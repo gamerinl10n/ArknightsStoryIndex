@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% block preload %}{% for module in ['api','navigation','autocomplete','results','filters'] %}<link rel="modulepreload" href="{{ asset('ui/'+module+'.mjs') }}">{% endfor %}{% endblock %}
 {% block content %}
 <h1 class="sr-only">{{ t('search') }}</h1>
 <div id="search-experience" class="search-experience" data-view="{{ initial_view }}">
@@ -25,4 +26,4 @@
 </section>
 </div>
 {% endblock %}
-{% block scripts %}<script src="/app.js" defer></script>{% endblock %}
+{% block scripts %}<script src="{{ asset('app.js') }}" type="module"></script>{% endblock %}

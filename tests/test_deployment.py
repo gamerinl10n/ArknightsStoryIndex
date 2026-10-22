@@ -30,7 +30,7 @@ class DeploymentTest(unittest.TestCase):
     def test_snapshot_has_only_search_tables(self):
         with closing(sqlite3.connect(self.snapshot)) as db:
             tables={r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
-            self.assertEqual(tables,{'stories','lines','import_status'})
+            self.assertEqual(tables,{'stories','lines','import_status','suggestion_counts','sqlite_stat1'})
             self.assertNotIn('raw',[r[1] for r in db.execute('PRAGMA table_info(stories)')])
     def test_removed_admin_route_and_ui(self):
         self.assertEqual(self.client.post('/api/review',json={}).status_code,404)
@@ -70,6 +70,48 @@ class DeploymentTest(unittest.TestCase):
         self.assertIn('Mon3tr',by_name['M3']['label'])
         self.assertIn('凯尔希',by_name)
         self.assertEqual(self.client.get('/api/suggestions?lang=bad').status_code,400)
+
+    def test_versioned_modules_are_cacheable_and_private_routes_are_not(self):
+        import re
+        html=self.client.get('/').text
+        module=re.search(r'src="([^"]+/app.js)"',html).group(1)
+        response=self.client.get(module)
+        self.assertIn('immutable',response.headers['Cache-Control'])
+        response.close()
+        dependency=module.rsplit('/',1)[0]+'/ui/results.mjs'
+        with self.client.get(dependency) as dependency_response:
+            self.assertEqual(dependency_response.status_code,200)
+        self.assertIn('no-store',self.client.get('/api/status').headers['Cache-Control'])
+        self.assertEqual(self.client.get('/assets/invalid/ui/results.mjs').status_code,404)
+        self.assertEqual(self.client.get('/ui/../../app.py').status_code,404)
+
+    def test_precomputed_suggestions_equal_mutable_archive_results(self):
+        mutable=create_app(str(self.root/'source.sqlite'),False).test_client()
+        for lang in ('ko_KR','zh_CN','ja_JP','en_US'):
+            for spoilers in ('0','1'):
+                query={'lang':lang,'spoilers':spoilers}
+                self.assertEqual(self.client.get('/api/suggestions',query_string=query).json,mutable.get('/api/suggestions',query_string=query).json)
+
+    def test_precomputed_suggestions_do_not_leak_advance_only_speakers(self):
+        future=self.root/'cn/gamedata/story/future.txt'
+        future.parent.mkdir(parents=True)
+        future.write_text('[name="Mon3tr"]fixture future',encoding='utf8')
+        with closing(connect(self.source)) as db:ingest(db,self.root,'v2','test/source')
+        export_snapshot(self.source,self.snapshot)
+        client=create_app(str(self.snapshot),True).test_client()
+        self.assertEqual(client.get('/api/suggestions?lang=zh_CN').json,[])
+        by_name={row['value']:row for row in client.get('/api/suggestions?lang=zh_CN&spoilers=1').json}
+        self.assertEqual(by_name['M3']['count'],1)
+
+    def test_light_api_and_lazy_context_preserve_source_and_parallel(self):
+        response=self.client.get('/api/search?speaker=M3&details=0').json
+        item=response['items'][0]
+        self.assertNotIn('context',item)
+        self.assertEqual(item['source'],'test/source')
+        result=self.client.get('/api/context',query_string={'story':item['story'],'ordinal':item['ordinal'],'radius':3,'parallel':'1'}).json
+        self.assertEqual(result['items'][0]['text'],item['text'])
+        self.assertIn('parallel',result)
+        self.assertIn('branch',result['items'][0])
 
     def test_compressed_bundle_is_unpacked_for_readonly_queries(self):
         import gzip

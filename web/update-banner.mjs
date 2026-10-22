@@ -1,3 +1,4 @@
+import {preserveForm} from './ui/form-state.mjs';
 import { createUpdateMonitor } from './update-monitor.mjs';
 
 const currentVersion = document.querySelector('meta[name="deployment-version"]')?.content;
@@ -51,14 +52,7 @@ if (currentVersion && currentVersion !== 'development') {
   });
   later.addEventListener('click', () => monitor.remindLater());
   update.addEventListener('click', () => {
-    const url = new URL(window.location.href);
-    // Preserve even unsubmitted search fields before loading the new deployment.
-    if (document.getElementById('speaker')) {
-      url.searchParams.set('view',document.getElementById('search-experience').dataset.view==='home'?'home':'results');
-      for (const id of ['speaker','target','lang']) url.searchParams.set(id,document.getElementById(id).value);
-      url.searchParams.set('q',document.getElementById('query').value);url.searchParams.set('story',document.getElementById('story-filter')?.value||'');
-      url.searchParams.set('spoilers',document.getElementById('spoilers').checked?'1':'0');
-    }
+    const url = preserveForm();
     url.searchParams.set('updated', Date.now().toString());
     window.location.replace(url.toString());
   });

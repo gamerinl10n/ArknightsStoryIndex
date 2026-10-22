@@ -26,6 +26,16 @@ class CoreTest(unittest.TestCase):
         self.assertEqual(sum(row['count'] for row in result['stories']),3)
         self.assertEqual(search(self.db,'시험 화자',story="' OR 1=1 --")['total'],0)
         self.assertEqual(search(self.db,'시험 화자',query='추가')['stories'],[{'path':'second.txt','count':1}])
+    def test_light_search_preserves_matches_without_eager_detail_queries(self):
+        statements=[]
+        self.db.set_trace_callback(statements.append)
+        light=search(self.db,'시험 화자',include_details=False)
+        self.db.set_trace_callback(None)
+        self.assertEqual(len(statements),2)
+        self.assertNotIn('context',light['items'][0])
+        detailed=search(self.db,'시험 화자')
+        self.assertEqual([i['id'] for i in light['items']],[i['id'] for i in detailed['items']])
+        self.assertEqual(light['stories'],detailed['stories'])
     def test_failed_import_preserves_data(self):
         with tempfile.TemporaryDirectory() as empty:
             with self.assertRaises(ValueError):ingest(self.db,empty,'bad','test')

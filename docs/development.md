@@ -7,7 +7,7 @@
 앱에는 Python 3.12 이상과 Git이 필요합니다. UI 테스트에는 Node.js 22.22.2 이상(22 계열) 또는 지원되는 최신 Node.js가 필요합니다. 의존성 설치는 잠금 파일을 사용합니다.
 
 ```sh
-python -m pip install -r requirements.txt
+python -m pip install -r requirements-dev.txt
 npm ci --ignore-scripts
 python -m unittest discover -s tests -v
 npm test
@@ -16,6 +16,8 @@ node --check web/theme.js
 node --check web/chrome.js
 node --check web/update-banner.mjs
 node --check web/update-monitor.mjs
+npm run format:check
+python -m black --check app.py core.py catalog.py search_queries.py search_service.py build.py runtime_snapshot.py scripts/benchmark.py
 git diff --check
 ```
 
@@ -67,3 +69,42 @@ VERCEL=1 python app.py
 `web/base.html`이 헤더·푸터를 공유하며 `pages.py`와 `localized_pages.py`가 안내 문서를 제공합니다. `translations.py`는 네 언어의 UI 문구를 관리합니다.
 
 테마는 `asi-theme-v1` localStorage 키에 저장합니다. 업데이트 알림은 60초마다 확인하고 숨겨진 탭·오프라인에서는 쉬며, 30분 재알림은 sessionStorage에 보관합니다. 업데이트 전에 입력 중인 검색 조건을 URL에 보존합니다. 피드백은 외부 Tally 링크이며 분석·광고 스크립트는 포함하지 않습니다.
+
+
+## 역할별 코드 위치
+
+- `app.py`: HTTP 입력 검증, HTML·API·버전별 정적 파일 응답.
+- `core.py`: 파싱·아카이브 적재. 기존 import 호환을 위해 검색 함수도 재수출합니다.
+- `catalog.py`: 프로세스당 한 번 읽는 이름·별칭 인덱스.
+- `search_queries.py`: 검색 조건·파일 집계·문맥 조회.
+- `search_service.py`: 읽기 전용 DB 연결과 공개 자동완성 캐시.
+- `web/app.js`: 검색 요청·결과 상태·브라우저 기록을 연결하는 컨트롤러.
+- `web/ui/`: API, 자동완성, 결과 렌더링, 화면 전환, 폼 상태, 필터, 모달, 공통 DOM 모듈.
+- `web/chrome.js`: 헤더·테마·푸터 초기화. 업데이트 알림도 같은 폼 상태 모듈을 씁니다.
+
+브라우저 표준 ES 모듈을 사용하며 번들러나 새 런타임 프레임워크가 필요하지 않습니다. UI 테스트는 각 jsdom의 격리된 VM에서 실제 모듈 그래프를 실행합니다. Node의 `--experimental-vm-modules` 옵션은 테스트에만 사용합니다. `npm run format:ui`로 UI 모듈을 정리하고 `npm run format:check`로 검사합니다.
+
+정적 파일은 `/assets/<deployment-version>/...` 주소와 immutable 캐시를 사용합니다. 모듈 상대 경로도 같은 버전 아래에서 로드합니다. HTML·API·버전 응답은 no-store입니다. 로컬 버전 해시는 하위 UI 모듈까지 포함합니다. 사용자가 이전 배포 화면을 열어둔 동안의 데이터 변경은 업데이트 알림·새로고침으로 반영합니다.
+
+## 성능 확인
+
+```sh
+python scripts/benchmark.py generated/search.sqlite.gz
+```
+
+실제 DB가 있는 로컬 환경에서 대사 원문을 출력하지 않고 조회 수·응답 크기·반복 중앙값을 측정합니다. UI는 `details=0`으로 보이는 결과만 받고, 문맥·언어 후보는 `/api/context?parallel=1`을 열 때 가져옵니다. 기본 API의 상세 응답은 이전과 호환됩니다. 스토리 집계에서 전체 개수를 구해 별도 count 스캔을 없앴습니다.
+
+자동완성 집계는 스냅샷 빌드에서 `suggestion_counts`로 생성하고, 서버에서는 공개 목록만 최대 8개 언어·범위 조합으로 캐시합니다. 구버전 DB와 변경 가능한 로컬 아카이브는 기존 집계로 동작합니다. 브라우저 API 캐시는 현재 탭 메모리에서 최대 16개·60초이며 실패·취소 응답을 보관하지 않습니다. 검색어는 디스크 저장소에 캐시하지 않습니다.
+
+
+2026-10-22 로컬 스냅샷 1,433,397개 대사에서 변경 전후 각 15회 측정했습니다. 네트워크·Vercel 기동·최초 gzip 해제 시간은 포함하지 않습니다. 자동완성은 7,453개 항목이며 새 집계 스냅샷은 약 420.5MiB로 450MiB 제한 안에 있습니다.
+
+| 항목 | 변경 전 | 변경 후 |
+| --- | ---: | ---: |
+| 한국어 자동완성 API 반복 중앙값 | 958ms | 5.8ms |
+| M3→켈시 검색 중앙값 | 9.7ms | 3.8ms |
+| 아미야 전체 검색 중앙값 | 20.5ms | 14.9ms |
+| 첫 결과 SQL 수 | 103 | 2 |
+| M3→켈시 첫 결과 JSON | 약 112KB | 약 28KB |
+
+다른 환경의 절대 속도를 보장하는 수치는 아닙니다. 문맥을 펼치면 해당 요청 비용이 추가됩니다. 기능 추가 시 같은 스냅샷·검색 조건으로 다시 측정하고 결과 개수·출처·분기·공개 범위가 같음을 함께 확인하세요.

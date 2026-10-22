@@ -1,0 +1,105 @@
+"""Bounded SQLite retrieval. Physical neighbours never establish addressees."""
+
+from catalog import aliases
+
+LANGUAGES = {"ko_KR": "kr", "zh_CN": "cn", "ja_JP": "jp", "en_US": "en"}
+
+
+def search(
+    db,
+    speaker="",
+    target="",
+    query="",
+    lang="ko_KR",
+    spoilers=False,
+    offset=0,
+    story="",
+    include_details=True,
+):
+    if lang not in LANGUAGES:
+        raise ValueError("지원하지 않는 언어")
+    clauses = ["s.lang=?"]
+    args = [lang]
+    if speaker:
+        names = aliases(speaker, lang)
+        clauses.append("l.speaker IN (" + ",".join("?" for _ in names) + ")")
+        args.extend(names)
+    if query:
+        clauses.append("instr(l.text,?)>0")
+        args.append(query)
+    if not spoilers:
+        clauses.append(
+            "EXISTS(SELECT 1 FROM stories kr WHERE kr.lang='ko_KR' AND kr.path=s.path)"
+        )
+    if target:
+        names = aliases(target, lang)
+        clauses.append("(" + " OR ".join("instr(l.text,?)>0" for _ in names) + ")")
+        args += names
+    where = " AND ".join(clauses)
+    facets = [
+        dict(row)
+        for row in db.execute(
+            f"SELECT s.path,count(*) AS count FROM lines l JOIN stories s ON s.id=l.story WHERE {where} GROUP BY s.path ORDER BY s.path",
+            args,
+        )
+    ]
+    if story:
+        where += " AND s.path=?"
+        args.append(story)
+    total = sum(row["count"] for row in facets if not story or row["path"] == story)
+    rows = db.execute(
+        f"SELECT l.*,s.lang,s.path,s.revision,s.source FROM lines l JOIN stories s ON s.id=l.story WHERE {where} ORDER BY s.path,l.ordinal LIMIT 50 OFFSET ?",
+        args + [offset],
+    ).fetchall()
+    results = []
+    for row in rows:
+        item = dict(row)
+        # Physical neighbours are explicitly not inferred conversation partners.
+        if not include_details:
+            results.append(item)
+            continue
+        item["context"] = [
+            dict(r)
+            for r in db.execute(
+                "SELECT speaker,text,branch,ordinal FROM (SELECT speaker,text,branch,ordinal FROM lines WHERE story=? AND ordinal<? ORDER BY ordinal DESC LIMIT 3) UNION ALL SELECT speaker,text,branch,ordinal FROM (SELECT speaker,text,branch,ordinal FROM lines WHERE story=? AND ordinal>=? ORDER BY ordinal LIMIT 4) ORDER BY ordinal",
+                (row["story"], row["ordinal"], row["story"], row["ordinal"]),
+            )
+        ]
+        item["parallel"] = [
+            dict(r)
+            for r in db.execute(
+                "SELECT l.speaker,l.text,s.lang FROM lines l JOIN stories s ON s.id=l.story WHERE s.path=? AND l.ordinal=? AND s.lang!=?",
+                (row["path"], row["ordinal"], lang),
+            )
+        ]
+        results.append(item)
+    return {"total": total, "items": results, "stories": facets}
+
+
+def context_window(db, story, ordinal, radius=15, parallel=False):
+    row = db.execute("SELECT path,lang FROM stories WHERE id=?", (story,)).fetchone()
+    if not row:
+        raise ValueError("Story not found")
+    radius = max(3, min(100, radius))
+    before = db.execute(
+        "SELECT speaker,text,branch,ordinal FROM lines WHERE story=? AND ordinal<? ORDER BY ordinal DESC LIMIT ?",
+        (story, ordinal, radius),
+    ).fetchall()
+    after = db.execute(
+        "SELECT speaker,text,branch,ordinal FROM lines WHERE story=? AND ordinal>=? ORDER BY ordinal LIMIT ?",
+        (story, ordinal, radius + 1),
+    ).fetchall()
+    rows = list(reversed(before)) + list(after)
+    result = {
+        "items": [dict(r) for r in rows],
+        "has_more": len(before) == radius or len(after) == radius + 1,
+    }
+    if parallel:
+        result["parallel"] = [
+            dict(r)
+            for r in db.execute(
+                "SELECT l.speaker,l.text,s.lang FROM lines l JOIN stories s ON s.id=l.story WHERE s.path=? AND l.ordinal=? AND s.lang!=?",
+                (row["path"], ordinal, row["lang"]),
+            )
+        ]
+    return result
