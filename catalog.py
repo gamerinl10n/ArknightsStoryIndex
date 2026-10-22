@@ -30,3 +30,21 @@ def alias_index():
 def aliases(value, lang):
     # Return a fresh list: callers cannot mutate the shared catalog index.
     return list(alias_index().get((lang, value.casefold()), (value,)))
+
+
+@lru_cache(maxsize=1)
+def identity_index():
+    index = {}
+    for character in characters():
+        # Include exact multilingual names and explicit aliases, never fuzzy similarity.
+        for value in [
+            character["id"],
+            *character.get("aliases", []),
+            *(name for group in character["names"].values() for name in group),
+        ]:
+            index.setdefault(value.casefold(), set()).add(character["id"])
+    return {key: next(iter(ids)) for key, ids in index.items() if len(ids) == 1}
+
+
+def character_id(value):
+    return identity_index().get(value.casefold())

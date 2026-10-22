@@ -29,7 +29,7 @@ from search_service import SearchService
 ROOT = Path(__file__).resolve().parent
 
 
-def create_app(database=None, readonly=None):
+def create_app(database=None, readonly=None, portrait_root=None):
     app = Flask(__name__, static_folder=None, template_folder=str(ROOT / "web"))
     app.config["MAX_CONTENT_LENGTH"] = 16384
     readonly = bool(os.environ.get("VERCEL")) if readonly is None else readonly
@@ -40,7 +40,7 @@ def create_app(database=None, readonly=None):
             ROOT / ("generated/search.sqlite.gz" if readonly else "data/index.sqlite")
         )
     )
-    service = SearchService(database, readonly)
+    service = SearchService(database, readonly, portrait_root)
     open_db = service.open_db
 
     version = (
@@ -74,12 +74,6 @@ def create_app(database=None, readonly=None):
                 "versioned_asset", asset_version=version, filename=filename
             ),
             help_page=get_page("help", ui),
-            footer_labels={
-                "privacy": "개인정보 · Privacy",
-                "terms": "이용안내 · Terms",
-                "license": "라이선스 · License",
-                "changelog": "패치 노트 · Changelog",
-            },
         )
 
     @app.route("/version.json")
@@ -100,7 +94,10 @@ def create_app(database=None, readonly=None):
 
     @app.after_request
     def headers(response):
-        if request.endpoint == "versioned_asset" and response.status_code in (200, 304):
+        if request.endpoint in (
+            "versioned_asset",
+            "portrait",
+        ) and response.status_code in (200, 304):
             response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
         elif request.endpoint in (
             "javascript",
@@ -143,7 +140,10 @@ def create_app(database=None, readonly=None):
             initial_view=(
                 "results"
                 if request.path == "/search"
-                or (request.args.get("speaker") and request.args.get("view") != "home")
+                or (
+                    any(request.args.get(key) for key in ("speaker", "target", "q"))
+                    and request.args.get("view") != "home"
+                )
                 else "home"
             ),
         )
@@ -154,9 +154,20 @@ def create_app(database=None, readonly=None):
             ".js",
             ".mjs",
             ".css",
+            ".otf",
+            ".woff2",
+            ".txt",
         ):
             abort(404)
         return send_from_directory(ROOT / "web", filename)
+
+    @app.route("/portraits/<filename>")
+    def portrait(filename):
+        if filename not in service.portraits.images.values():
+            abort(404)
+        return send_from_directory(
+            service.portraits.root, filename, mimetype="image/webp"
+        )
 
     @app.route("/app.js")
     def javascript():
@@ -207,9 +218,8 @@ def create_app(database=None, readonly=None):
     @app.route("/api/search")
     def find():
         q = request.args
-        # A character-scoped search prevents accidentally scanning the whole corpus.
-        if not q.get("speaker", "").strip():
-            raise ValueError("말하는 인물을 선택하세요.")
+        if not any(q.get(key, "").strip() for key in ("speaker", "target", "q")):
+            raise ValueError("인물이나 대사 속 표현을 입력하세요.")
         if any(
             len(q.get(key, "")) > 300 for key in ("speaker", "target", "q", "story")
         ):
@@ -219,13 +229,21 @@ def create_app(database=None, readonly=None):
                 db,
                 q.get("speaker", "").strip(),
                 q.get("target", "").strip(),
-                q.get("q", ""),
+                q.get("q", "").strip(),
                 q.get("lang", "ko_KR"),
                 q.get("spoilers") == "1",
                 max(0, int(q.get("offset", 0))),
                 q.get("story", ""),
                 include_details=q.get("details") != "0",
             )
+        service.portraits.annotate(result["items"])
+        for item in result["items"]:
+            service.portraits.annotate(item.get("context", []))
+            service.portraits.annotate(item.get("parallel", []))
+        result["participants"] = {
+            key: service.portraits.identity(q.get(key, "").strip())
+            for key in ("speaker", "target")
+        }
         return jsonify(result)
 
     @app.route("/api/context")
@@ -238,6 +256,8 @@ def create_app(database=None, readonly=None):
                 int(request.args.get("radius", 15)),
                 parallel=request.args.get("parallel") == "1",
             )
+        service.portraits.annotate(result["items"])
+        service.portraits.annotate(result.get("parallel", []))
         return jsonify(result)
 
     @app.route("/api/status")

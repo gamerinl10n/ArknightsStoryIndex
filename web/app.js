@@ -4,14 +4,13 @@ import { readForm } from "./ui/form-state.mjs";
 import { createNavigation } from "./ui/navigation.mjs";
 import { createAutocomplete } from "./ui/autocomplete.mjs";
 import { renderBatch } from "./ui/results.mjs";
-import { storyOptions } from "./ui/filters.mjs";
+import { setResultTitle } from "./ui/portraits.mjs";
 
 let offset = 0,
   last = null,
   requestVersion = 0,
   controller,
-  renderedKey = null,
-  cachedStories = [];
+  renderedKey = null;
 const setView = createNavigation($("search-experience"));
 const autocomplete = createAutocomplete();
 function stopSearch() {
@@ -20,7 +19,6 @@ function stopSearch() {
   $("submit-search").disabled = false;
   $("submit-search").textContent = t("search");
   $("results").setAttribute("aria-busy", "false");
-  $("story-filter").disabled = false;
   $("search-loading").hidden = true;
 }
 function goHome(event) {
@@ -72,7 +70,6 @@ async function run(append = false) {
     $("empty-state").hidden = true;
   }
   $("notice").textContent = t("loading");
-  $("story-filter").disabled = true;
   $("search-loading").hidden = false;
   $("search-loading").dataset.append = String(append);
   renderedKey = null;
@@ -84,22 +81,22 @@ async function run(append = false) {
       signal: controller.signal,
     });
     if (version !== requestVersion) return;
-    if (!append) {
-      cachedStories = data.stories || [];
-      storyOptions(cachedStories, search.story);
-    }
     renderBatch(data.items, search.q);
     offset += data.items.length;
     renderedKey = JSON.stringify(search);
     $("more").hidden = offset >= data.total;
-    $("results-title").textContent = search.target
-      ? t("search_pair", { a: search.speaker, b: search.target })
-      : t("search_solo", { a: search.speaker });
+    const title = search.speaker
+      ? search.target
+        ? t("search_pair", { a: search.speaker, b: search.target })
+        : t("search_solo", { a: search.speaker })
+      : search.q
+        ? t("search_keyword", { q: search.q })
+        : t("search_mention", { b: search.target });
+    setResultTitle(title, data.participants, search);
     $("result-count").textContent = t("count", {
       n: data.total.toLocaleString(),
     });
     $("notice").textContent = "";
-    $("share-search").hidden = false;
     if (!data.total) empty(t("no_results"), t("broaden"));
   } catch (error) {
     if (version !== requestVersion || error.name === "AbortError") return;
@@ -111,18 +108,18 @@ async function run(append = false) {
       $("submit-search").disabled = false;
       $("submit-search").textContent = t("search");
       $("results").setAttribute("aria-busy", "false");
-      $("story-filter").disabled = false;
       $("search-loading").hidden = true;
     }
   }
 }
-function submit(updateUrl = true, keepStory = false) {
-  if (!$("speaker").value.trim()) {
-    $("speaker").setCustomValidity(t("search_error"));
-    $("speaker").reportValidity();
+function submit(updateUrl = true) {
+  if (!["speaker", "target", "query"].some((id) => $(id).value.trim())) {
+    $("query").setCustomValidity(t("search_error"));
+    $("query").reportValidity();
     return;
   }
-  if (!keepStory) $("story-filter").value = "";
+  $("query").setCustomValidity("");
+  autocomplete.hydrate();
   const draft = readForm();
   if (updateUrl) {
     history.replaceState({ ...history.state, draft }, "", location.href);
@@ -141,8 +138,6 @@ function restore(initial = false) {
     draft = history.state?.draft || {};
   for (const key of ["speaker", "target"])
     $(key).value = (params.get(key) ?? draft[key] ?? "").slice(0, 300);
-  const story = (params.get("story") ?? draft.story ?? "").slice(0, 300);
-  storyOptions(cachedStories, story);
   $("query").value = (params.get("q") ?? draft.q ?? "").slice(0, 300);
   const lang = params.get("lang") || draft.lang;
   $("lang").value = [...$("lang").options].some((o) => o.value === lang)
@@ -151,9 +146,10 @@ function restore(initial = false) {
   $("spoilers").checked = (params.get("spoilers") ?? draft.spoilers) === "1";
   autocomplete.load();
   const showResults =
-    $("speaker").value &&
+    ["speaker", "target", "query"].some((id) => $(id).value.trim()) &&
     params.get("view") !== "home" &&
-    (location.pathname === "/search" || params.has("speaker"));
+    (location.pathname === "/search" ||
+      ["speaker", "target", "q"].some((key) => params.get(key)));
   if (showResults) {
     const search = readForm();
     setView("results", !initial);
@@ -167,19 +163,12 @@ function restore(initial = false) {
     setView("home", !initial);
   }
 }
-$("story-filter").addEventListener("change", () => submit(true, true));
+for (const id of ["speaker", "target", "query"])
+  $(id).addEventListener("input", () => $("query").setCustomValidity(""));
 $("search").onsubmit = (event) => {
   event.preventDefault();
   submit();
 };
 $("more").onclick = () => run(true);
-$("share-search").onclick = async () => {
-  try {
-    await navigator.clipboard.writeText(location.href);
-    $("share-search").textContent = t("shared");
-  } catch {
-    $("share-search").textContent = t("copy_failed");
-  }
-};
 window.addEventListener("popstate", () => restore(false));
 restore(true);

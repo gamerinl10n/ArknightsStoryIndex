@@ -13,9 +13,17 @@ Flask: Copyright Pallets and contributors, BSD-3-Clause.
 Werkzeug, Jinja2, MarkupSafe, itsdangerous, Click and Blinker retain their own
 package license files. Dependency license files are distributed with their
 installed packages. Python is under the PSF license; SQLite is public domain.
-No third-party web fonts, analytics, advertising or feedback form scripts are
-bundled in this application.
+Pillow and its dependencies retain their package licenses.
+NEXON Lv2 Gothic Regular/Bold: copyright NEXON. Original, unmodified files
+from L10ndiff; terms in web/fonts/NEXON-Lv2-Gothic.txt.
+Japanese and Chinese glyphs use device fonts. No analytics, advertising or
+feedback form scripts are bundled in this application.
 
 Update monitor, notification banner styles, and question-mark icon adapted from gamerinl10n/l10ndiff on the same owner’s request. Character display names are joined by official game IDs; see characters.source.json for provenance.
 
 Segmented language selector and centered help button styling adapted from the same owner's L10ndiff at the owner's request.
+
+Default character avatars: ArknightsAssets/ArknightsAssets2, pinned in
+portraits.source.json. Generated WebP images remain game content, and the code
+license does not grant rights in them. Images are resized at build time and
+served locally; no avatar or font requests go to third parties at runtime.

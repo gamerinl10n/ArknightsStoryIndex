@@ -8,7 +8,6 @@ export function readForm() {
     q: $("query").value.trim(),
     lang: $("lang").value,
     spoilers: $("spoilers").checked ? "1" : "0",
-    story: $("story-filter").value,
   };
 }
 

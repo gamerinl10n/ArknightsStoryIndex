@@ -9,6 +9,7 @@ from pathlib import Path
 import sqlite3
 import subprocess
 import sys
+from build_portraits import build_portraits
 
 
 def build_suggestion_counts(db):
@@ -105,6 +106,7 @@ def main():
             ],
             check=True,
         )
+    build_portraits()
     export_snapshot(source, a.output)
     compressed = Path(a.output).with_suffix(".sqlite.gz")
     with (

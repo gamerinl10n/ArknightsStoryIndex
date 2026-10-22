@@ -13,6 +13,13 @@ EXTRA = {
  'zh': {'no_parallel':'没有其他语言的同行候选。','retry_action':'重试','source_line':'原文件行号','close':'关闭','source_details':'台词信息','source_file':'原始文件','source_revision':'原始版本','source':'提供方','main_branch':'主分支','branch_hint':'相邻台词可能属于不同分支。解读上下文时请确认分支信息。','story_filter':'剧情文件','all_stories':'全部剧情','story_count':'{path} · {n} 条'},
  'ja': {'no_parallel':'同じ行位置の他言語候補はありません。','retry_action':'再試行','source_line':'原文の行番号','close':'閉じる','source_details':'台詞情報','source_file':'原文ファイル','source_revision':'原文の版','source':'提供元','main_branch':'基本分岐','branch_hint':'隣接する台詞が別の分岐に属する場合があります。文脈を読む際は分岐情報も確認してください。','story_filter':'ストーリーファイル','all_stories':'すべてのストーリー','story_count':'{path} · {n} 件'}
 }
+SEARCH_EXTRA = {
+ 'ko': {'speaker_optional':'말하는 인물 · 선택','target_optional':'대사에서 찾을 인물 · 선택','expression':'대사 속 단어나 문구','search_error':'인물이나 대사 속 표현을 입력하세요.','search_keyword':'“{q}” 포함 대사','search_mention':'{b} 이름이 포함된 대사'},
+ 'en': {'speaker_optional':'Speaker · optional','target_optional':'Character mentioned · optional','expression':'Word or phrase in dialogue','search_error':'Enter a character or a word in dialogue.','search_keyword':'Dialogue containing “{q}”','search_mention':'Dialogue mentioning {b}'},
+ 'zh': {'speaker_optional':'说话角色 · 选填','target_optional':'台词中提及的角色 · 选填','expression':'台词中的词语或句子','search_error':'请输入角色或台词中的词句。','search_keyword':'包含“{q}”的台词','search_mention':'提及{b}姓名的台词'},
+ 'ja': {'speaker_optional':'話す人物 · 任意','target_optional':'台詞に登場する人物 · 任意','expression':'台詞内の単語やフレーズ','search_error':'人物または台詞内の語句を入力してください。','search_keyword':'「{q}」を含む台詞','search_mention':'{b}の名前を含む台詞'}
+}
+for lang,values in SEARCH_EXTRA.items(): EXTRA[lang].update(values)
 for lang,values in EXTRA.items(): STRINGS[lang].update(values)
 def tr(lang, key, **values):
     return STRINGS[lang][key].format(**values)
