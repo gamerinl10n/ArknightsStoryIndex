@@ -135,7 +135,10 @@ def validate_review(db, payload):
         raise ValueError('검토 항목이 너무 깁니다.')
     if payload['kind'] in ('direct','reference') and not payload['expression'].strip():
         raise ValueError('직접 호칭과 지칭에는 원문 표현이 필요합니다.')
-    line = db.execute('SELECT * FROM lines WHERE id=?', (payload['line'],)).fetchone()
+    story, separator, ordinal = payload['line'].rpartition(':')
+    if not separator or not ordinal.isdecimal():
+        raise ValueError('잘못된 대사 식별자입니다.')
+    line = db.execute('SELECT * FROM lines WHERE story=? AND ordinal=? AND id=?', (story,int(ordinal),payload['line'])).fetchone()
     if not line or line['hash'] != payload['hash']:
         raise ValueError('원문이 변경되었습니다. 새로 검색한 뒤 검토하세요.')
     if payload['kind'] not in ('direct', 'reference', 'related', 'rejected'):

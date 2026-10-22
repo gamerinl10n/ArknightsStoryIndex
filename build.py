@@ -20,12 +20,12 @@ def export_snapshot(source, output):
             # Retain exact schema/indices used by core.search, but not raw archives.
             dst.executescript('''
             CREATE TABLE stories(id TEXT PRIMARY KEY,lang TEXT,path TEXT,revision TEXT,source TEXT);
-            CREATE TABLE lines(id TEXT PRIMARY KEY,story TEXT,ordinal INTEGER,speaker TEXT,text TEXT,branch TEXT,hash TEXT);
+            CREATE TABLE lines(id TEXT GENERATED ALWAYS AS (story || ':' || ordinal) VIRTUAL,story TEXT,ordinal INTEGER,speaker TEXT,text TEXT,branch TEXT,hash TEXT);
             CREATE TABLE reviews(line TEXT,target TEXT,expression TEXT,kind TEXT,hash TEXT,PRIMARY KEY(line,target));
             CREATE TABLE import_status(id INTEGER PRIMARY KEY,payload TEXT);
             ''')
             dst.executemany('INSERT INTO stories VALUES(?,?,?,?,?)',src.execute('SELECT id,lang,path,revision,source FROM stories'))
-            dst.executemany('INSERT INTO lines VALUES(?,?,?,?,?,?,?)',src.execute('SELECT * FROM lines'))
+            dst.executemany('INSERT INTO lines(story,ordinal,speaker,text,branch,hash) VALUES(?,?,?,?,?,?)',src.execute('SELECT story,ordinal,speaker,text,branch,hash FROM lines'))
             dst.executemany('INSERT INTO import_status VALUES(?,?)',src.execute('SELECT * FROM import_status'))
             dst.executescript('''
             CREATE INDEX story_path_idx ON stories(path,lang);

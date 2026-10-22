@@ -61,3 +61,21 @@ class DeploymentTest(unittest.TestCase):
         client=create_app(str(self.root/'missing.sqlite'),True).test_client()
         self.assertEqual(client.get('/api/status').status_code,503)
         self.assertFalse((self.root/'missing.sqlite').exists())
+
+    def test_store_failure_never_returns_unreviewed_success(self):
+        class BrokenStore:
+            def load(self):raise RuntimeError('unavailable')
+            def save(self,payload):raise RuntimeError('unavailable')
+        client=create_app(str(self.snapshot),True,BrokenStore()).test_client()
+        self.assertEqual(client.get('/api/search?speaker=M3').status_code,503)
+        item=self.client.get('/api/search?speaker=M3').json['items'][0]
+        payload=dict(line=item['id'],hash=item['hash'],target='켈시',expression='선생님',kind='direct')
+        with patch.dict(os.environ,{'ASI_ADMIN_TOKEN':'x'*32}):
+            self.assertEqual(client.post('/api/review',json=payload,headers={'Authorization':'Bearer '+'x'*32}).status_code,503)
+
+    def test_stale_source_cannot_be_saved_to_remote(self):
+        store=MemoryReviews();client=create_app(str(self.snapshot),True,store).test_client()
+        payload=dict(line='ko_KR:test.txt:0',hash='old',target='켈시',expression='선생님',kind='direct')
+        with patch.dict(os.environ,{'ASI_ADMIN_TOKEN':'x'*32}):
+            self.assertEqual(client.post('/api/review',json=payload,headers={'Authorization':'Bearer '+'x'*32}).status_code,400)
+        self.assertEqual(store.rows,{})
