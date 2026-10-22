@@ -6,8 +6,12 @@ import os
 from pathlib import Path
 import sqlite3
 from flask import Flask, jsonify, request, send_file, render_template, abort
-from core import connect, ingest, search
+from core import connect, ingest, search, LANGUAGES, context_window
 from pages import PAGES
+from translations import STRINGS, UI_LANGS, tr
+from localized_pages import get_page
+import hashlib
+from runtime_snapshot import materialize
 
 ROOT = Path(__file__).resolve().parent
 
@@ -16,15 +20,32 @@ def create_app(database=None, readonly=None):
     app = Flask(__name__, static_folder=None, template_folder=str(ROOT / "web"))
     app.config['MAX_CONTENT_LENGTH'] = 16384
     readonly = bool(os.environ.get('VERCEL')) if readonly is None else readonly
-    database = database or os.environ.get('ASI_DB') or str(ROOT / ('generated/search.sqlite' if readonly else 'data/index.sqlite'))
+    database = database or os.environ.get('ASI_DB') or str(ROOT / ('generated/search.sqlite.gz' if readonly else 'data/index.sqlite'))
     def open_db():
         if readonly:
-            path = Path(database).resolve()
+            path = materialize(database)
             db = sqlite3.connect(path.as_uri() + '?mode=ro&immutable=1', uri=True)
             db.row_factory = sqlite3.Row
         else:
             db = connect(database)
         return db
+
+    version = os.environ.get('VERCEL_DEPLOYMENT_ID') or os.environ.get('VERCEL_URL') or os.environ.get('VERCEL_GIT_COMMIT_SHA') or hashlib.sha256(b''.join(p.read_bytes() for p in sorted((ROOT/'web').glob('*')) if p.is_file())).hexdigest()[:16]
+    @app.context_processor
+    def template_context():
+        ui = request.args.get('ui', 'ko')
+        if ui not in UI_LANGS: ui = 'ko'
+        return dict(ui=ui, t=lambda key:tr(ui,key), ui_languages=UI_LANGS, corpus_languages={'ko_KR':'한국어', 'zh_CN':'中文', 'ja_JP':'日本語', 'en_US':'English'}, deployment_version=version)
+
+    @app.route('/version.json')
+    def version_json():
+        return jsonify(version=version)
+
+    @app.route('/i18n.js')
+    def ui_copy():
+        ui = request.args.get('ui','ko')
+        if ui not in UI_LANGS: ui='ko'
+        return app.response_class('window.ASI = '+json.dumps({'ui':ui,'strings':STRINGS[ui]},ensure_ascii=False)+';', mimetype='text/javascript')
 
     @app.after_request
     def headers(response):
@@ -44,7 +65,7 @@ def create_app(database=None, readonly=None):
 
     @app.route('/')
     def home():
-        return render_template('index.html',title='대사 검색')
+        return render_template('index.html',title=tr(request.args.get('ui') if request.args.get('ui') in UI_LANGS else 'ko','search'))
 
     @app.route('/app.js')
     def javascript():
@@ -54,6 +75,9 @@ def create_app(database=None, readonly=None):
     def stylesheet():
         return send_file(ROOT / 'web/style.css', mimetype='text/css')
 
+    @app.route('/update-monitor.mjs')
+    @app.route('/update-banner.mjs')
+    @app.route('/update-banner.css')
     @app.route('/theme.js')
     @app.route('/chrome.js')
     @app.route('/theme-control.css')
@@ -65,7 +89,8 @@ def create_app(database=None, readonly=None):
     def document(page):
         if page not in PAGES:
             abort(404)
-        data = PAGES[page]
+        ui = request.args.get('ui','ko')
+        data = get_page(page,ui if ui in UI_LANGS else 'ko')
         return render_template('document.html',title=data['title'],page=data)
 
     @app.route('/api/search')
@@ -80,6 +105,12 @@ def create_app(database=None, readonly=None):
             result = search(db, q.get('speaker','').strip(), q.get('target','').strip(), q.get('q',''), q.get('lang','ko_KR'), q.get('spoilers')=='1', max(0,int(q.get('offset',0))))
         return jsonify(result)
 
+    @app.route('/api/context')
+    def context():
+        with closing(open_db()) as db:
+            result = context_window(db, request.args.get('story',''), int(request.args.get('ordinal',0)), int(request.args.get('radius',15)))
+        return jsonify(result)
+
     @app.route('/api/status')
     def status():
         with closing(open_db()) as db:
@@ -92,7 +123,7 @@ def create_app(database=None, readonly=None):
     @app.route('/api/speakers')
     def speakers():
         lang = request.args.get('lang', 'ko_KR')
-        if lang not in ('ko_KR','zh_CN'):
+        if lang not in LANGUAGES:
             raise ValueError('지원하지 않는 언어')
         spoilers = request.args.get('spoilers') == '1'
         with closing(open_db()) as db:
@@ -102,12 +133,12 @@ def create_app(database=None, readonly=None):
     @app.route('/api/suggestions')
     def suggestions():
         lang = request.args.get('lang', 'ko_KR')
-        if lang not in ('ko_KR','zh_CN'):
+        if lang not in LANGUAGES:
             raise ValueError('지원하지 않는 언어')
         spoilers = request.args.get('spoilers') == '1'
         with closing(open_db()) as db:
             counts = dict(db.execute("SELECT l.speaker,count(*) FROM lines l JOIN stories s ON s.id=l.story WHERE s.lang=? AND l.speaker!='' AND (? OR EXISTS(SELECT 1 FROM stories kr WHERE kr.lang='ko_KR' AND kr.path=s.path)) GROUP BY l.speaker",(lang,spoilers)))
-        result = {name: {'value':name, 'label':f'{count:,}개 대사', 'count':count} for name,count in counts.items()}
+        result = {name: {'value':name, 'label':name, 'count':count} for name,count in counts.items()}
         for character in json.loads((ROOT/'characters.json').read_text(encoding='utf-8')):
             names = character['names'].get(lang, [])
             count = sum(counts.get(name,0) for name in names)
@@ -116,7 +147,7 @@ def create_app(database=None, readonly=None):
             alternate = character.get('aliases', []) + [n for group in character['names'].values() for n in group]
             for alias in alternate:
                 if alias not in result:
-                    result[alias] = {'value':alias,'label':f"{' / '.join(names)} · {count:,}개 대사",'count':count}
+                    result[alias] = {'value':alias,'label':' / '.join(names),'count':count}
         return jsonify(sorted(result.values(),key=lambda r:r['value']))
 
     return app

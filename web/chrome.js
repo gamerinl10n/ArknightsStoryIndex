@@ -8,3 +8,10 @@
   });
   window.addEventListener('storage', event => { if (event.key === key || event.key === null) apply(event.newValue || 'light'); });
 })();
+document.getElementById('ui-language')?.addEventListener('change', event => {
+  const url=new URL(location.href);url.searchParams.set('ui',event.target.value);
+  if(document.getElementById('speaker')) {for(const id of ['speaker','target','lang'])url.searchParams.set(id,document.getElementById(id).value);url.searchParams.set('q',document.getElementById('query').value);url.searchParams.set('spoilers',document.getElementById('spoilers').checked?'1':'0');}
+  location.assign(url);
+});
+const footer=document.querySelector('.site-footer');
+if(footer){const reserve=()=>document.documentElement.style.setProperty('--footer-space',footer.getBoundingClientRect().height+'px');reserve();if('ResizeObserver' in window)new ResizeObserver(reserve).observe(footer);window.addEventListener('resize',reserve);}

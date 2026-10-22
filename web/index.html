@@ -1,25 +1,21 @@
 {% extends 'base.html' %}
 {% block content %}
-<section class="search-panel" aria-labelledby="search-title">
-<div class="panel-title"><h1 id="search-title">대사 검색</h1></div>
+<section class="search-panel" aria-label="{{ t('search') }}">
 <form id="search">
 <div class="people">
-<div class="field"><label for="speaker">말하는 인물 <span>필수</span></label><input id="speaker" list="characters" placeholder="이름 입력 · 예: 켈시, M3" autocomplete="off" aria-describedby="speaker-help" required><p id="speaker-help" class="field-help">이름 일부를 입력하면 자동완성 목록이 나타납니다.</p></div>
-<button type="button" id="swap" aria-label="말하는 인물과 찾을 인물 바꾸기" title="두 인물 바꾸기">⇄</button>
-<div class="field"><label for="target">대사에서 찾을 인물 <span>선택</span></label><input id="target" list="characters" placeholder="비워두면 왼쪽 인물의 전체 대사" autocomplete="off" aria-describedby="target-help"><p id="target-help" class="field-help">이름을 넣으면 해당 인물을 언급한 대사로 좁힙니다.</p></div>
+<div class="field autocomplete"><label class="sr-only" for="speaker">{{ t('speaker') }}</label><input id="speaker" placeholder="{{ t('speaker') }}" autocomplete="off" required role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="speaker-options"><div id="speaker-options" class="suggestions" role="listbox" hidden></div></div>
+<button type="button" id="swap" aria-label="{{ t('swap') }}" title="{{ t('swap') }}">⇄</button>
+<div class="field autocomplete"><label class="sr-only" for="target">{{ t('target') }}</label><input id="target" placeholder="{{ t('target') }}" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="target-options"><div id="target-options" class="suggestions" role="listbox" hidden></div></div>
 </div>
-<datalist id="characters"></datalist>
-<div class="filters"><div class="keyword-field"><label for="query">대사 속 표현 <span>선택</span></label><input id="query" placeholder="예: 박사, 선생님" autocomplete="off"></div><div><label for="lang">대사 언어</label><select id="lang"><option value="ko_KR">한국어</option><option value="zh_CN">중국어</option></select></div><button id="submit-search" class="primary">대사 검색 <span aria-hidden="true">↗</span></button></div>
-<div class="search-bottom"><label class="check"><input type="checkbox" id="spoilers"> 중국 서버 선행 스토리 포함</label><span id="search-mode">말하는 인물을 선택해 시작하세요.</span></div>
+<div class="filters"><div class="keyword-field"><label class="sr-only" for="query">{{ t('expression') }}</label><input id="query" placeholder="{{ t('expression') }}" autocomplete="off"></div><div><label class="sr-only" for="lang">{{ t('corpus') }}</label><select id="lang">{% for code,label in corpus_languages.items() %}<option value="{{ code }}">{{ label }}</option>{% endfor %}</select></div><button id="submit-search" class="primary">{{ t('search') }} <span aria-hidden="true">↗</span></button></div>
+<div class="search-bottom"><label class="check"><input type="checkbox" id="spoilers"> {{ t('spoilers') }}</label></div>
 </form>
-<div class="examples"><span>이렇게 찾아보세요</span><button type="button" id="example-pair">M3 → 켈시 <span aria-hidden="true">↗</span></button><button type="button" id="example-solo">켈시의 전체 대사 <span aria-hidden="true">↗</span></button></div>
 </section>
 <section class="results-panel" aria-labelledby="results-title">
-<div class="results-heading"><h2 id="results-title">검색 결과</h2><span id="result-count"></span></div>
+<div class="results-heading"><h2 id="results-title">{{ t('results') }}</h2><div class="result-tools"><span id="result-count"></span><button id="share-search" type="button" hidden>{{ t('share') }}</button></div></div>
 <p id="notice" role="status" aria-live="polite"></p>
 <div id="empty-state" class="empty-state" hidden><h3></h3><p></p></div>
-<div id="results" aria-busy="false"></div><button id="more" hidden>대사 더 보기</button>
+<div id="results" aria-busy="false"></div><button id="more" hidden>{{ t('more') }}</button>
 </section>
-
 {% endblock %}
 {% block scripts %}<script src="/app.js" defer></script>{% endblock %}

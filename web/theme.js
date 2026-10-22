@@ -9,7 +9,8 @@
     document.getElementById('colorSchemeMeta')?.setAttribute('content', dark ? 'dark light' : 'light dark');
     const button = document.getElementById('themeButton');
     if (button) {
-      const label = dark ? '라이트 모드' : '다크 모드';
+      const labels = {ko:['다크 모드','라이트 모드'],en:['Dark mode','Light mode'],zh:['深色模式','浅色模式'],ja:['ダークモード','ライトモード']};
+      const label = (labels[document.documentElement.lang] || labels.ko)[dark ? 1 : 0];
       button.setAttribute('title', label); button.setAttribute('aria-label', label); button.setAttribute('aria-pressed', String(dark));
     }
   }

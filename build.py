@@ -1,5 +1,7 @@
 """Build an immutable search-only snapshot. Raw archives never enter the Function."""
 import argparse
+import gzip
+import shutil
 from contextlib import closing
 import os
 from pathlib import Path
@@ -36,8 +38,8 @@ def export_snapshot(source, output):
             if not count or dst.execute('PRAGMA quick_check').fetchone()[0]!='ok':
                 raise ValueError('Invalid search snapshot')
         size=temporary.stat().st_size
-        if size > 400*1024*1024:
-            raise ValueError('Search snapshot exceeds 400 MiB budget; split the corpus before deployment')
+        if size > 450*1024*1024:
+            raise ValueError('Search snapshot exceeds 450 MiB budget; split the corpus before deployment')
         temporary.replace(output)
         print(f'Search snapshot: {count:,} lines, {size/1024**2:.1f} MiB')
     finally:
@@ -52,8 +54,12 @@ def main():
     source=a.source_db
     if not source:
         source='data/build.sqlite'
-        subprocess.run([sys.executable,'sync.py','--database',source,'--ref',os.environ.get('ASI_SOURCE_REF','master')],check=True)
+        subprocess.run([sys.executable,'sync.py','--database',source,'--ephemeral','--ref',os.environ.get('ASI_SOURCE_REF','master')],check=True)
     export_snapshot(source,a.output)
+    compressed=Path(a.output).with_suffix('.sqlite.gz')
+    with open(a.output,'rb') as src,gzip.open(compressed,'wb',compresslevel=6) as dst:
+        shutil.copyfileobj(src,dst,length=1024*1024)
+    print(f'Bundled snapshot: {compressed.stat().st_size/1024**2:.1f} MiB gzip')
 
 if __name__=='__main__':
     main()

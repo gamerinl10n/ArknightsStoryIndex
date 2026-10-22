@@ -4,8 +4,8 @@
   "buildCommand": "python build.py",
   "functions": {
     "app.py": {
-      "includeFiles": "{generated/search.sqlite,characters.json,web/**}",
-      "excludeFiles": "{data/**,node_modules/**,tests/**,docs/**,.git/**,__pycache__/**}",
+      "includeFiles": "{generated/search.sqlite.gz,characters.json,web/**}",
+      "excludeFiles": "{generated/*.sqlite,data/**,node_modules/**,tests/**,docs/**,.git/**,__pycache__/**}",
       "maxDuration": 60
     }
   }
