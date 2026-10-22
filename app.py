@@ -1,11 +1,12 @@
 """Flask entrypoint shared by local development and Vercel Functions."""
 import argparse
 from contextlib import closing
+from urllib.parse import urlencode
 import json
 import os
 from pathlib import Path
 import sqlite3
-from flask import Flask, jsonify, request, send_file, render_template, abort
+from flask import Flask, jsonify, request, send_file, render_template, abort, redirect
 from core import connect, ingest, search, LANGUAGES, context_window
 from pages import PAGES
 from translations import STRINGS, UI_LANGS, tr
@@ -35,7 +36,7 @@ def create_app(database=None, readonly=None):
     def template_context():
         ui = request.args.get('ui', 'ko')
         if ui not in UI_LANGS: ui = 'ko'
-        return dict(ui=ui, t=lambda key:tr(ui,key), ui_languages=UI_LANGS, corpus_languages={'ko_KR':'한국어', 'zh_CN':'中文', 'ja_JP':'日本語', 'en_US':'English'}, deployment_version=version)
+        return dict(ui=ui, t=lambda key:tr(ui,key), ui_languages=UI_LANGS, corpus_languages={'ko_KR':'한국어', 'zh_CN':'中文', 'ja_JP':'日本語', 'en_US':'English'}, deployment_version=version, help_page=get_page('help',ui), footer_labels={'privacy':'개인정보 · Privacy','terms':'이용안내 · Terms','license':'라이선스 · License','changelog':'패치 노트 · Changelog'})
 
     @app.route('/version.json')
     def version_json():
@@ -88,11 +89,14 @@ def create_app(database=None, readonly=None):
 
     @app.route('/<page>')
     def document(page):
+        if page == 'help':
+            return redirect('/?'+urlencode({'ui':request.args.get('ui','ko'),'help':'1'}))
         if page not in PAGES:
             abort(404)
         ui = request.args.get('ui','ko')
-        data = get_page(page,ui if ui in UI_LANGS else 'ko')
-        return render_template('document.html',title=data['title'],page=data)
+        data = get_page(page,'ko')
+        english = get_page(page,'en')
+        return render_template('document.html',title=data['title']+' · '+english['title'],page=data,english_page=english,bilingual_document=True)
 
     @app.route('/api/search')
     def find():
@@ -100,10 +104,10 @@ def create_app(database=None, readonly=None):
         # A character-scoped search prevents accidentally scanning the whole corpus.
         if not q.get('speaker', '').strip():
             raise ValueError('말하는 인물을 선택하세요.')
-        if any(len(q.get(key, '')) > 300 for key in ('speaker', 'target', 'q')):
+        if any(len(q.get(key, '')) > 300 for key in ('speaker', 'target', 'q', 'story')):
             raise ValueError('검색어가 너무 깁니다.')
         with closing(open_db()) as db:
-            result = search(db, q.get('speaker','').strip(), q.get('target','').strip(), q.get('q',''), q.get('lang','ko_KR'), q.get('spoilers')=='1', max(0,int(q.get('offset',0))))
+            result = search(db, q.get('speaker','').strip(), q.get('target','').strip(), q.get('q',''), q.get('lang','ko_KR'), q.get('spoilers')=='1', max(0,int(q.get('offset',0))), q.get('story',''))
         return jsonify(result)
 
     @app.route('/api/context')

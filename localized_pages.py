@@ -30,6 +30,13 @@ for lang,title,text in [
  COPY[lang]['help'].append((title,text))
  COPY[lang]['changelog'].insert(0,('2026-10-22',text))
 
+for lang,title,text in [
+ ('en','Details and filters','Open the guide with the header question mark; close with Escape or Close. The small question marks beside dialogue and context show file, line, branch and revision details. Adjacent lines may belong to different branches. Filter results by source story file; filenames are source paths rather than official story titles. Searched phrases are highlighted without changing copied source text.'),
+ ('zh','详情与筛选','点击顶部问号打开使用说明，用 Esc 或关闭按钮退出。台词及上下文旁的小问号可查看文件、行号、分支和版本，相邻台词可能属于不同分支。可按原始剧情文件筛选结果；文件名是原始路径，并非官方剧情标题。搜索词会高亮，复制时保留原文。'),
+ ('ja','詳細と絞り込み','上部の？から使い方を開き、Escや閉じるボタンで戻ります。台詞と文脈の小さな？からファイル・行・分岐・版を確認できます。隣接する台詞が別分岐の場合もあります。原文のストーリーファイルで絞り込めます。ファイル名は原文パスで、正式な作品名ではありません。検索語を強調し、コピー時は原文を保持します。')]:
+ COPY[lang]['help'].append((title,text))
+ COPY[lang]['changelog'].insert(0,('2026-10-22',text))
+
 def get_page(page,ui):
     if ui=='ko': return PAGES[page]
     return {'title':tr(ui,page),'subtitle':'','sections':[{'title':title,'paragraphs':[text]} for title,text in COPY[ui][page]]}

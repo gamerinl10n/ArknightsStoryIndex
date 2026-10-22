@@ -17,3 +17,5 @@ No third-party web fonts, analytics, advertising or feedback form scripts are
 bundled in this application.
 
 Update monitor, notification banner styles, and question-mark icon adapted from gamerinl10n/l10ndiff on the same owner’s request. Character display names are joined by official game IDs; see characters.source.json for provenance.
+
+Segmented language selector and centered help button styling adapted from the same owner's L10ndiff at the owner's request.

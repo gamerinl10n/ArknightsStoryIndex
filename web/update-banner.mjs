@@ -56,7 +56,7 @@ if (currentVersion && currentVersion !== 'development') {
     if (document.getElementById('speaker')) {
       url.searchParams.set('view',document.getElementById('search-experience').dataset.view==='home'?'home':'results');
       for (const id of ['speaker','target','lang']) url.searchParams.set(id,document.getElementById(id).value);
-      url.searchParams.set('q',document.getElementById('query').value);
+      url.searchParams.set('q',document.getElementById('query').value);url.searchParams.set('story',document.getElementById('story-filter')?.value||'');
       url.searchParams.set('spoilers',document.getElementById('spoilers').checked?'1':'0');
     }
     url.searchParams.set('updated', Date.now().toString());

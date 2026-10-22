@@ -16,6 +16,16 @@ class CoreTest(unittest.TestCase):
         self.assertEqual(result['total'],1)
         self.assertEqual(len(result['items'][0]['context']),2)
         self.assertNotIn('reviews',result['items'][0])
+    def test_story_filter_facets_and_spoiler_scope(self):
+        p=self.root/'kr/gamedata/story/second.txt'
+        p.write_text('[name="시험 화자"]추가 대사',encoding='utf8')
+        ingest(self.db,self.root,'v2','test/source')
+        result=search(self.db,'시험 화자',story='second.txt')
+        self.assertEqual(result['total'],1)
+        self.assertEqual(result['items'][0]['path'],'second.txt')
+        self.assertEqual(sum(row['count'] for row in result['stories']),3)
+        self.assertEqual(search(self.db,'시험 화자',story="' OR 1=1 --")['total'],0)
+        self.assertEqual(search(self.db,'시험 화자',query='추가')['stories'],[{'path':'second.txt','count':1}])
     def test_failed_import_preserves_data(self):
         with tempfile.TemporaryDirectory() as empty:
             with self.assertRaises(ValueError):ingest(self.db,empty,'bad','test')

@@ -7,5 +7,12 @@ ROWS = {
 'zh': ['台词搜索','明日方舟台词搜索','使用说明','隐私','使用条款','许可','更新日志','反馈','说话角色','台词中提及的角色','台词中的词句','台词语言','必填','选填','交换角色','包含国服先行剧情','搜索结果','加载更多','复制台词与来源','已复制','复制失败','前后台词','展开更多上下文','其他语言 · 同一行位置的候选','原文件第 {n} 行','分支','未署名','搜索中…','请求失败，请重试。','没有匹配的台词。','清除提及的角色或词句后重新搜索。','点击搜索重试。','请输入说话角色。','搜索内容过长。','{n} 条台词','{a} → {b}','{a}的全部台词','复制搜索链接','链接已复制','搜索角色名','说话角色','网站已有新版本。','稍后提醒','立即更新','30 分钟后再次提醒。','返回搜索','界面语言','深色模式','浅色模式'],
 'ja': ['台詞検索','アークナイツ台詞検索','使い方','プライバシー','利用案内','ライセンス','更新履歴','フィードバック','話す人物','台詞に登場する人物','台詞内の語句','台詞の言語','必須','任意','人物を入れ替え','中国サーバー先行ストーリーを含む','検索結果','さらに表示','台詞と出典をコピー','コピーしました','コピー失敗','前後の台詞','文脈をさらに表示','他の言語 · 同じ行位置の候補','原文 {n} 行目','分岐','名前なし','検索中…','リクエストに失敗しました。再試行してください。','該当する台詞はありません。','登場人物や語句を消して再検索してください。','検索ボタンで再試行してください。','話す人物を入力してください。','検索語句が長すぎます。','{n} 件の台詞','{a} → {b}','{a}の全台詞','検索リンクをコピー','リンクをコピーしました','人物名を検索','話す人物','新しいバージョンが公開されました。','後で通知','今すぐ更新','30分後に再通知します。','検索に戻る','表示言語','ダークモード','ライトモード']}
 STRINGS = {lang:dict(zip(KEYS, row, strict=True)) for lang,row in ROWS.items()}
+EXTRA = {
+ 'ko': {'source_line':'원본 행','close':'닫기','source_details':'대사 정보','source_file':'원본 파일','source_revision':'원본 버전','source':'제공처','main_branch':'기본 분기','branch_hint':'앞뒤 문맥에는 서로 다른 분기의 대사가 섞일 수 있습니다. 분기 정보를 함께 확인하세요.','story_filter':'스토리 파일','all_stories':'전체 스토리','story_count':'{path} · {n}개'},
+ 'en': {'source_line':'Source line','close':'Close','source_details':'Dialogue details','source_file':'Source file','source_revision':'Source revision','source':'Provider','main_branch':'Main branch','branch_hint':'Adjacent lines may belong to different branches. Check the branch details when interpreting context.','story_filter':'Story file','all_stories':'All stories','story_count':'{path} · {n} lines'},
+ 'zh': {'source_line':'原文件行号','close':'关闭','source_details':'台词信息','source_file':'原始文件','source_revision':'原始版本','source':'提供方','main_branch':'主分支','branch_hint':'相邻台词可能属于不同分支。解读上下文时请确认分支信息。','story_filter':'剧情文件','all_stories':'全部剧情','story_count':'{path} · {n} 条'},
+ 'ja': {'source_line':'原文の行番号','close':'閉じる','source_details':'台詞情報','source_file':'原文ファイル','source_revision':'原文の版','source':'提供元','main_branch':'基本分岐','branch_hint':'隣接する台詞が別の分岐に属する場合があります。文脈を読む際は分岐情報も確認してください。','story_filter':'ストーリーファイル','all_stories':'すべてのストーリー','story_count':'{path} · {n} 件'}
+}
+for lang,values in EXTRA.items(): STRINGS[lang].update(values)
 def tr(lang, key, **values):
     return STRINGS[lang][key].format(**values)

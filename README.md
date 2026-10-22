@@ -2,14 +2,14 @@
 
 명일방주 캐릭터의 **대사·말투·호칭 용례**를 앞뒤 문맥과 함께 찾는 비공식 검색 도구입니다.
 
-[사이트 열기](https://arknightsstoryindex.vercel.app/) · [사용 설명서](https://arknightsstoryindex.vercel.app/help?ui=ko) · [패치 노트](https://arknightsstoryindex.vercel.app/changelog?ui=ko) · [피드백](https://tally.so/r/lb2Lxo)
+[사이트 열기](https://arknightindex.vercel.app/) · [사용 설명서](https://arknightindex.vercel.app/?ui=ko&help=1) · [패치 노트](https://arknightindex.vercel.app/changelog?ui=ko) · [피드백](https://tally.so/r/lb2Lxo)
 
 ## 할 수 있는 일
 
 - **인물 하나**: 해당 인물의 대사를 모아 말투와 표현을 살펴봅니다.
 - **인물 둘**: 두 번째 인물의 이름·등록 별칭이 포함된 첫 번째 인물의 대사를 찾습니다.
-- **표현 검색**: 단어나 문구를 추가해 결과를 좁힙니다.
-- **문맥 확인**: 앞뒤 대사를 최대 100개씩 확장하고, 분기와 다른 언어의 대응 후보를 확인합니다.
+- **표현 검색**: 단어나 문구를 추가하고 스토리 파일로 결과를 좁힙니다.
+- **문맥 확인**: 앞뒤 대사를 최대 100개씩 확장하고, 작은 물음표에서 출처·행·분기를 확인합니다. 다른 언어의 대응 후보도 제공합니다.
 - **기록과 공유**: 대사·출처를 복사하거나 검색 조건을 URL로 공유합니다.
 
 화면 언어와 대사 언어는 각각 **한국어·중국어·일본어·영어** 중에서 선택할 수 있습니다. 검색창에 붙는 자동완성, 다크·라이트 모드와 새 버전 알림을 제공합니다.
@@ -37,7 +37,7 @@ python app.py
 - 한국 서버 공개 범위는 같은 경로의 한국어 파일 존재 여부로 판단하는 **근사치**입니다.
 - 다른 언어의 같은 줄 위치는 **대응 후보**이며 정확히 일치하지 않을 수 있습니다.
 - 자막·선택지·다중행 등의 일부 형식은 추가 지원이 필요합니다. 결과가 없다고 용례가 없다는 뜻은 아닙니다.
-- 검색어는 서버로 전송되며 요청·공유 URL에 포함됩니다. [개인정보 안내](https://arknightsstoryindex.vercel.app/privacy?ui=ko)를 참고하세요.
+- 검색어는 서버로 전송되며 요청·공유 URL에 포함됩니다. [개인정보 안내](https://arknightindex.vercel.app/privacy?ui=ko)를 참고하세요.
 
 ## 개발 안내
 

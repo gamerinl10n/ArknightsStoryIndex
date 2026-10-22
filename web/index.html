@@ -16,6 +16,7 @@
 </section>
 <section class="results-panel" id="results-panel" aria-labelledby="results-title" {% if initial_view=='home' %}hidden{% endif %}>
 <div class="results-heading"><h2 id="results-title" tabindex="-1">{{ t('results') }}</h2><div class="result-tools"><span id="result-count"></span><button id="share-search" type="button" hidden>{{ t('share') }}</button></div></div>
+<div class="result-filters" id="result-filters" hidden><label class="sr-only" for="story-filter">{{ t('story_filter') }}</label><select id="story-filter" aria-label="{{ t('story_filter') }}"><option value="">{{ t('all_stories') }}</option></select></div>
 <p id="notice" role="status" aria-live="polite"></p>
 <div id="empty-state" class="empty-state" hidden><h3></h3><p></p></div>
 <div id="results" aria-busy="false"></div>

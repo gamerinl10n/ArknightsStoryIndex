@@ -24,10 +24,15 @@ class MultilingualTest(unittest.TestCase):
             self.assertEqual(client.get('/api/context?story=missing').status_code,400)
             for ui in ('ko','zh','ja','en'):
                 for page in ('','search','help','privacy','terms','license','changelog'):
-                    r=client.get('/'+page+'?ui='+ui)
+                    r=client.get('/'+page+'?ui='+ui,follow_redirects=True)
                     self.assertEqual(r.status_code,200)
                     self.assertIn(f'<html lang="{ui}">',r.text)
                     self.assertIn('https://tally.so/r/lb2Lxo',r.text)
+            for page in ('privacy','terms','license','changelog'):
+                response=client.get('/'+page+'?ui=zh')
+                self.assertIn('class="document-language" lang="ko"',response.text)
+                self.assertIn('class="document-language" lang="en"',response.text)
+                self.assertNotIn('class="segmented language-switch"',response.text)
             self.assertEqual(client.get('/version.json').status_code,200)
             self.assertIn('version',client.get('/version.json').json)
     def test_official_id_names(self):
