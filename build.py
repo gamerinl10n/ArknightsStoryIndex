@@ -2,6 +2,8 @@
 
 import argparse
 import gzip
+import json
+from dataset import reuse
 import shutil
 from contextlib import closing
 import os
@@ -90,8 +92,21 @@ def main():
         "--source-db", help="Reuse an already imported DB for local verification"
     )
     p.add_argument("--output", default="generated/search.sqlite")
+    p.add_argument(
+        "--fresh-data",
+        action="store_true",
+        help="Build a new dataset instead of reusing a published bundle",
+    )
     a = p.parse_args()
     source = a.source_db
+    if (
+        not source
+        and not a.fresh_data
+        and not os.environ.get("ASI_SOURCE_REF")
+        and a.output == "generated/search.sqlite"
+    ):
+        if reuse():
+            return
     if not source:
         source = "data/build.sqlite"
         subprocess.run(
@@ -102,7 +117,8 @@ def main():
                 source,
                 "--ephemeral",
                 "--ref",
-                os.environ.get("ASI_SOURCE_REF", "master"),
+                os.environ.get("ASI_SOURCE_REF")
+                or json.loads(Path("dataset-source.json").read_text())["revision"],
             ],
             check=True,
         )

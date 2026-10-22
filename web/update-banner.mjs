@@ -12,7 +12,7 @@ if (currentVersion && currentVersion !== 'development') {
   const message = document.createElement('div');
   message.className = 'site-update-message';
   const icon = document.createElement('span');
-  icon.className='brand-mark';icon.textContent='ASI';icon.setAttribute('aria-hidden','true');
+  icon.className='brand-mark';icon.textContent='AI';icon.setAttribute('aria-hidden','true');
   const text = document.createElement('p');
   message.append(icon, text);
   const actions = document.createElement('div');

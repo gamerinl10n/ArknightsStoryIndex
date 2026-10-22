@@ -10,11 +10,11 @@ PAGES = {
   {'title':'브라우저 저장과 쿠키','paragraphs':['테마 선택값은 localStorage의 asi-theme-v1 키에 보관합니다. 업데이트 알림의 다시 알림 시각은 sessionStorage에 보관합니다. 브라우저의 사이트 데이터 삭제로 지울 수 있습니다. 앱 자체는 기능용 쿠키를 설정하지 않으며, 검색어를 localStorage에 저장하지 않습니다.']},
   {'title':'호스팅과 외부 링크','paragraphs':['Vercel 등 호스팅 제공자가 IP 주소, User-Agent, 요청 URL·시각 등 접속 정보를 자체 정책에 따라 처리할 수 있습니다. 앱에 별도의 Analytics·광고 스크립트는 포함하지 않습니다. 호스팅 제공자의 보존 기간은 이 앱에서 통제하지 않습니다.','피드백 링크는 외부 Tally 폼을 엽니다. 입력·제출한 정보에는 Tally 및 폼 운영자의 정책이 적용됩니다. 이 사이트에는 외부 폼을 삽입하지 않습니다. 검색 조건은 공유 URL에도 포함됩니다.']} ],'links':[{'label':'Vercel 개인정보 정책','url':'https://vercel.com/legal/privacy-policy'},{'label':'문의·피드백','url':'https://tally.so/r/lb2Lxo'}]},
  'terms': {'title':'이용안내','subtitle':'2026-10-22 업데이트','sections':[
-  {'title':'비공식 검색 도구','paragraphs':['Arknights Story Index는 명일방주 대사와 문맥을 참고하기 위한 비공식 팬 프로젝트입니다. 게임 제작사나 서비스 운영사와의 공식 제휴를 의미하지 않습니다.']},
+  {'title':'비공식 검색 도구','paragraphs':['Arknights Index는 명일방주 대사와 문맥을 참고하기 위한 비공식 팬 프로젝트입니다. 게임 제작사나 서비스 운영사와의 공식 제휴를 의미하지 않습니다.']},
   {'title':'결과의 의미','paragraphs':['검색 결과는 이름·등록 별칭을 포함한 용례입니다. 호칭이나 발화 상대를 확정하지 않습니다. 자료 누락, 파싱 오류, 서버 간 차이, 데이터 갱신 지연이 있을 수 있습니다. 결과가 없다고 해당 용례가 존재하지 않는다는 뜻은 아닙니다. 최종 해석은 원문과 문맥을 확인해 판단하세요.']},
   {'title':'콘텐츠와 서비스','paragraphs':['공개된 게임 원문을 검색한다고 원문에 대한 재배포나 상업적 이용 권한이 부여되는 것은 아닙니다. 인용·활용 시 각 권리자의 조건을 확인하세요. 서비스와 코드는 있는 그대로 제공되며 정확성·완전성·지속적인 가용성을 보장하지 않습니다.']} ]},
  'license': {'title':'라이선스·출처','subtitle':'자체 코드와 게임 콘텐츠의 권리는 별개입니다.','sections':[
-  {'title':'자체 코드와 공통 UI','paragraphs':['Arknights Story Index 자체 코드·브랜드의 권리는 gamerinl10n에 있습니다. 공개 사이트 이용을 허용하며, 소스 코드·자산의 수정·복제·재배포 등 별도 이용은 저작권자의 허가가 필요합니다. 저장소 LICENSE를 참고하세요.']},
+  {'title':'자체 코드와 공통 UI','paragraphs':['Arknights Index 자체 코드·브랜드의 권리는 gamerinl10n에 있습니다. 공개 사이트 이용을 허용하며, 소스 코드·자산의 수정·복제·재배포 등 별도 이용은 저작권자의 허가가 필요합니다. 저장소 LICENSE를 참고하세요.']},
   {'title':'게임 데이터','paragraphs':['명일방주 게임 원문·캐릭터·명칭의 권리는 각 권리자에게 있습니다. 대사 원본 제공처는 ArknightsAssets/ArknightsGamedata, 기본 초상화는 ArknightsAssets/ArknightsAssets2이며 본 프로젝트가 자체 파서로 변환합니다. 데이터 원본의 버전과 줄 위치를 결과에 함께 제공합니다.']},
   {'title':'서드파티와 글꼴','paragraphs':['Flask는 BSD-3-Clause이며 의존성은 각 패키지의 라이선스를 따릅니다. L10ndiff의 NEXON Lv2 Gothic 원본 글꼴을 함께 제공합니다. 저작권은 넥슨에 있으며 web/fonts/NEXON-Lv2-Gothic.txt의 이용 조건을 따릅니다. 일본어·중국어는 기기의 글꼴을 사용합니다. Python과 SQLite 역시 각 프로젝트의 조건을 따릅니다.']} ],'links':[{'label':'원본 데이터','url':'https://github.com/ArknightsAssets/ArknightsGamedata'},{'label':'L10ndiff','url':'https://github.com/gamerinl10n/l10ndiff'},{'label':'LICENSE','url':'https://github.com/gamerinl10n/Arknights_Index/blob/master/LICENSE'},{'label':'서드파티 고지','url':'https://github.com/gamerinl10n/Arknights_Index/blob/master/NOTICE'}]},
  'changelog': {'title':'패치 노트','subtitle':'검색 도구가 달라진 기록','sections':[
@@ -39,3 +39,6 @@ PAGES["changelog"]["sections"].insert(0,{"title":"2026-10-22 · 결과 화면 �
 PAGES["changelog"]["sections"].insert(0,{"title":"2026-10-22 · 언어 검색과 키보드 탐색","paragraphs":["다른 언어로 인물 이름을 입력해도 현재 대사 언어의 이름을 자동완성합니다. 상단 언어 선택과 대사 언어를 연결했습니다. 검색 전후 로고 위치와 탭 제목을 고정했습니다.","Tab 이동 순서를 검색 흐름에 맞추고 대사 언어 메뉴를 둥근 민트 디자인으로 통일했습니다."]})
 
 PAGES["changelog"]["sections"].insert(0,{"title":"2026-10-22 · 문맥 중심의 결과","paragraphs":["다른 언어의 같은 줄 위치 후보를 제거하고, 선택한 언어의 대사와 앞뒤 문맥에 집중하도록 정리했습니다."]})
+
+PAGES['help']['sections'].append({'title':'두 인물 검색의 순서','paragraphs':['같은 분기에서 상대 인물의 발화가 가까운 결과를 먼저 표시합니다. 각 방향 최대 6개 텍스트 행·원본 60행 안에서 다른 화자나 분기 경계가 나오기 전까지 확인합니다. 인접 발화만으로 직접 대화나 제삼자 언급을 확정하지 않습니다. 이름이 생략된 대사는 이 순위로 새로 검색되지 않습니다.','같은 파일·분기의 가까운 일치는 한 카드에서 문맥을 공유합니다. 각 대사 옆 물음표에서 원본 위치를 확인할 수 있습니다. 자막·내레이션·선택지는 화자를 임의로 붙이지 않고 이름 없음으로 표시합니다.']})
+PAGES['changelog']['sections'].insert(0,{'title':'2026-10-23 · 대화 탐색과 Arknights Index','paragraphs':['브랜드명을 Arknights Index로 통일했습니다. 가까운 상대 발화가 있는 결과를 우선하고 겹치는 문맥을 한 카드에서 확인할 수 있습니다.','자막·내레이션·선택지·스티커 텍스트를 검색에 포함하고, 검색 데이터 생성과 UI 배포를 분리했습니다.']})

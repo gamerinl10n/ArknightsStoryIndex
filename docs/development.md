@@ -39,7 +39,7 @@ python app.py --import-root /path/to/ArknightsGamedata --revision <source-commit
 
 ## Vercel 배포
 
-저장소 루트를 Root Directory로 사용하고 Output Directory 수동 지정은 비워둡니다. `vercel.json`이 Flask 진입점과 `python build.py`를 지정합니다. `ASI_SOURCE_REF`로 원본 SHA를 고정할 수 있으며, 데이터는 재배포 시 갱신됩니다.
+저장소 루트를 Root Directory로 사용하고 Output Directory 수동 지정은 비워둡니다. `vercel.json`이 Flask 진입점과 `python build.py`를 지정합니다. `ASI_SOURCE_REF`로 원본 SHA를 고정할 수 있으며, 기본 원본 SHA는 `dataset-source.json`으로 고정합니다. UI 배포만으로 원본 버전은 바뀌지 않습니다.
 
 ```sh
 python build.py --source-db data/index.sqlite
@@ -114,3 +114,13 @@ python scripts/benchmark.py generated/search.sqlite.gz
 `python build_portraits.py`는 portraits.source.json에 고정된 원본 SHA를 검증하고 기본 아바타를 96px WebP로 생성합니다. 이미지와 인덱스는 generated/에만 두고 커밋하지 않습니다. 빌드에 실패하면 배포를 중단합니다. 요청 중 외부 다운로드는 없습니다. 공식 ID로만 연결하고, 중복 이름·누락 이미지는 기본 아이콘을 사용합니다.
 
 L10ndiff의 NEXON Lv2 Gothic Regular/Bold 원본은 web/fonts/에 변경 없이 보관합니다. fonts.source.json에 Git blob SHA와 출처를 기록하며 일본어·중국어는 기기 글꼴로 이어집니다. 글꼴은 버전별 정적 경로로 캐시합니다. 푸터 링크는 화면 언어를 따르고 문서 본문은 한국어·영어 병기입니다.
+
+## 검색 데이터와 UI 배포 분리
+
+`Publish search dataset` 워크플로는 원본 SHA·파서·빌드 입력이 변경될 때만 실행합니다. 수동 실행도 가능합니다. 검증된 검색 스냅샷 gzip, 공식 ID 이름 사전, 초상화를 `dataset-<입력 해시>` GitHub Release의 `dataset.zip`에 보관합니다. 원문 아카이브는 포함하지 않습니다. 데이터 갱신은 dataset-source.json의 SHA를 갱신하는 PR로 진행합니다.
+
+기본 `python build.py`는 정확히 같은 입력 해시의 묶음을 다운로드해 파일 목록·용량·SHA-256을 검증합니다. UI만 바꾸면 원본 수집·파싱·이미지 변환을 생략합니다. 해당 Release가 아직 없는 첫 배포는 고정 원본에서 직접 빌드합니다. 404 이외의 다운로드 실패나 검증 오류는 배포를 중단합니다. `--fresh-data` 또는 `ASI_SOURCE_REF`는 재사용을 우회합니다. Release 생성과 첫 Vercel 배포가 동시에 실행될 수 있으므로 첫 배포까지 빨라지는 것은 아닙니다.
+
+두 인물 검색은 전체 일치 결과를 가까운 상대 발화 수(앞·뒤 각각 최대 1)로 먼저 정렬하고, 파일·행으로 동률을 정렬한 뒤 50개씩 반환합니다. 각 방향 최대 6개 텍스트 행·물리 60행만 조사하며 다른 분기나 다른 화자를 만나면 탐색을 멈춥니다. 직접 대화·제삼자 언급을 확정하지 않고 검색 순위에만 이용합니다. 단어 단독 검색 순서는 유지합니다.
+
+2026-10-23 추가 파서 검증: 같은 원본 SHA에서 한국어·일본어·영어 각 368,102개, 중국어 385,920개, 총 1,490,226개 텍스트를 확인했습니다. 검색 DB 438.0MiB, gzip 147.1MiB입니다. 로컬 M3→켈시 5회 반복 중앙값은 언어별 3.2–3.7ms이며 서버·네트워크 지연은 포함하지 않습니다. 미지원 텍스트 명령은 import_status의 unsupported_text_tags에 집계합니다. 튜토리얼·UI 명령 등은 아직 검색하지 않습니다. 물리적으로 분리된 다중행은 원본 행별로 유지합니다.

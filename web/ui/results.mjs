@@ -52,13 +52,16 @@ function quote(text, needle) {
   return node;
 }
 
-function contextRows(rows, item, needle) {
+function contextRows(rows, item, needle, matches = [item]) {
   const fragment = document.createDocumentFragment();
   for (const row of rows) {
     const line = el(
       "div",
       "",
-      "context-line" + (row.ordinal === item.ordinal ? " current-line" : ""),
+      "context-line" +
+        (matches.some((match) => match.ordinal === row.ordinal)
+          ? " current-line"
+          : ""),
     );
     const heading = el("div", "", "context-heading");
     heading.append(
@@ -72,13 +75,26 @@ function contextRows(rows, item, needle) {
   return fragment;
 }
 
-function renderCard(item, needle, index) {
+function renderCard(group, needle, index) {
+  const item = group[Math.floor((group.length - 1) / 2)];
+  const initialRadius = Math.max(
+    3,
+    group[group.length - 1].ordinal - group[0].ordinal,
+  );
   const card = el("article", "", "result-card");
   card.lang = item.lang.replace("_", "-");
   card.style.setProperty("--enter-delay", Math.min(index, 5) * 35 + "ms");
-  const heading = el("div", "", "card-heading");
-  heading.append(portrait(item), el("h2", item.speaker), infoButton(item));
-  card.append(heading, quote(item.text, needle));
+  if (group.some((row) => row.nearby_turns > 0))
+    card.append(el("span", t("nearby_turns"), "evidence-label"));
+  for (const row of group) {
+    const heading = el("div", "", "card-heading");
+    heading.append(
+      portrait(row),
+      el("h2", row.speaker || t("unnamed")),
+      infoButton(row),
+    );
+    card.append(heading, quote(row.text, needle));
+  }
 
   // Network, line DOM and event handlers are created only when a section is opened.
   let detailRequest;
@@ -94,7 +110,7 @@ function renderCard(item, needle, index) {
               new URLSearchParams({
                 story: item.story,
                 ordinal: item.ordinal,
-                radius: 3,
+                radius: initialRadius,
               }),
           );
       detailRequest = detailRequest.catch((error) => {
@@ -137,10 +153,10 @@ function renderCard(item, needle, index) {
   }
   section("context", (content, data) => {
     const lines = el("div", "", "context-lines");
-    lines.append(contextRows(data.items, item, needle));
+    lines.append(contextRows(data.items, item, needle, group));
     const expand = el("button", t("context_more"));
     expand.type = "button";
-    let radius = 3;
+    let radius = initialRadius;
     expand.hidden = !data.has_more;
     expand.onclick = async () => {
       expand.disabled = true;
@@ -155,7 +171,7 @@ function renderCard(item, needle, index) {
             }),
         );
         if (!card.isConnected) return;
-        lines.replaceChildren(contextRows(data.items, item, needle));
+        lines.replaceChildren(contextRows(data.items, item, needle, group));
         radius = next;
         expand.hidden = !data.has_more || radius >= 100;
         expand.textContent = t("context_more");
@@ -174,8 +190,24 @@ function renderCard(item, needle, index) {
 export function renderBatch(items, needle = "") {
   const fragment = document.createDocumentFragment(),
     offset = $("results").children.length;
-  items.forEach((item, index) =>
-    fragment.append(renderCard(item, needle, offset + index)),
+  const groups = [];
+  for (const item of items) {
+    const group = groups[groups.length - 1];
+    const first = group?.[0];
+    const previous = group?.[group.length - 1];
+    // Only combine overlapping windows on this page; retain every matched quote.
+    if (
+      first &&
+      first.story === item.story &&
+      first.branch === item.branch &&
+      item.ordinal > previous.ordinal &&
+      item.ordinal - first.ordinal <= 6
+    )
+      group.push(item);
+    else groups.push([item]);
+  }
+  groups.forEach((group, index) =>
+    fragment.append(renderCard(group, needle, offset + index)),
   );
   $("results").append(fragment);
 }

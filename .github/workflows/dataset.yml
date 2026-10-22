@@ -1,0 +1,47 @@
+name: Publish search dataset
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - 'dataset-source.json'
+      - 'dataset.py'
+      - 'core.py'
+      - 'catalog.py'
+      - 'character_catalog.py'
+      - 'build.py'
+      - 'build_portraits.py'
+      - 'portraits.source.json'
+      - 'requirements.txt'
+      - 'search_queries.py'
+      - 'search_service.py'
+      - '.github/workflows/dataset.yml'
+permissions:
+  contents: write
+concurrency:
+  group: publish-dataset-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  dataset:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements.txt
+      - name: Build from pinned source
+        run: python build.py --fresh-data
+      - name: Package validated search data
+        run: python dataset.py pack
+      - name: Publish immutable dataset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          dataset_tag="dataset-$(python dataset.py)"
+          if gh release view "$dataset_tag" >/dev/null 2>&1; then
+            echo "Dataset already published: $dataset_tag"
+          else
+            gh release create "$dataset_tag" generated/dataset.zip --target "$GITHUB_SHA" --title "Search dataset $dataset_tag" --notes "Generated search snapshot, localized character catalog and portraits. No raw script archive. Source revision is pinned in dataset-source.json." --latest=false
+          fi

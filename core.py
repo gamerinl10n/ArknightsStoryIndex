@@ -29,39 +29,78 @@ def connect(path, ephemeral=False):
     return db
 
 
+# A closing bracket inside a quoted attribute is text, not the command boundary.
+COMMAND = re.compile(r'^\[(\w+)((?:"(?:\\.|[^"\\])*"|[^"\]])*)\](.*)$')
+ATTR = re.compile(r'(\w+)\s*=\s*(?:"((?:\\.|[^"\\])*)"|([^,\s)]+))')
+TEXT_TAGS = {"name", "multiline", "subtitle", "sticker", "narration", "decision"}
+
+
+def command_parts(line):
+    match = COMMAND.match(line.strip())
+    if not match:
+        return None
+    prop, attrs, trailing = match.groups()
+    prop = prop.lower()
+    if prop == "name" and attrs.lstrip().startswith("="):
+        attrs = "name" + attrs
+    pairs = {
+        m[0].lower(): (m[1] or m[2]).replace('\\"', '"') for m in ATTR.findall(attrs)
+    }
+    return prop, attrs, pairs, trailing
+
+
 def parse(raw):
     branch = "main"
     for n, line in enumerate(raw.splitlines()):
-        command = re.match(r"^\[(\w+)(.*?)\](.*)$", line.strip())
+        command = command_parts(line)
         if not command:
             continue
-        prop, attrs, text = command.groups()
-        prop = prop.lower()
-        if prop == "name" and attrs.lstrip().startswith("="):
-            attrs = "name" + attrs
-        pairs = dict(
-            (m[0], m[1] if m[1] else m[2])
-            for m in re.findall(r'(\w+)\s*=\s*(?:"([^"]*)"|([^,\s]+))', attrs)
-        )
+        prop, attrs, pairs, text = command
         if prop in ("predicate", "decision", "label", "gotolabel"):
-            branch = f"{prop}:{attrs.strip()}"
-        if prop not in ("name", "multiline"):
+            # Include the physical boundary so repeated labels cannot join scenes.
+            branch = f"{prop}@{n}:{attrs.strip()}"
+        if prop not in TEXT_TAGS:
             continue
-        speaker = pairs.get("name", "")
-        text = text or pairs.get("content", "")
+        speaker = pairs.get("name", "") if prop in ("name", "multiline") else ""
+        if prop == "decision":
+            # One source row, with separate options; do not invent a speaker.
+            text = "\n".join(pairs.get("options", "").split(";"))
+        else:
+            text = text or pairs.get("content", "") or pairs.get("text", "")
         if text.strip():
-            yield n, speaker, re.sub(r"<[^>]+>", "", text).replace("\\n", "\n"), branch
+            yield n, speaker, re.sub(r"<[^>]*>", "", text).replace("\\n", "\n"), branch
 
 
 def ingest(db, root, revision, source):
     """Validate entire batch before transactional replacement; raw snapshots stay in SQLite."""
     root = Path(root)
     batch = []
-    report = {"files": 0, "dialogue_lines": 0, "unparsed_text_lines": 0}
+    report = {
+        "files": 0,
+        "dialogue_lines": 0,
+        "unparsed_text_lines": 0,
+        "unsupported_text_tags": {},
+        "excluded_documents": 0,
+    }
 
     for lang, folder in LANGUAGES.items():
         for f in sorted((root / folder / "gamedata/story").rglob("*.txt")):
+            if f.name == "avg_segment_report.txt":
+                report["excluded_documents"] += 1
+                continue
             raw = f.read_text(encoding="utf-8-sig")
+            for line in raw.splitlines():
+                command = command_parts(line)
+                if command:
+                    prop, _, pairs, trailing = command
+                    if prop not in TEXT_TAGS and (
+                        trailing.strip()
+                        or pairs.get("text")
+                        or pairs.get("content")
+                        or pairs.get("options")
+                    ):
+                        counts = report["unsupported_text_tags"]
+                        counts[prop] = counts.get(prop, 0) + 1
             rows = list(parse(raw))
             report["files"] += 1
             report["dialogue_lines"] += len(rows)

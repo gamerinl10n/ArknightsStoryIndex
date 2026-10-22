@@ -1,5 +1,5 @@
 {
-  "name": "arknights-story-index-ui-tests",
+  "name": "arknights-index-ui-tests",
   "private": true,
   "scripts": {
     "test": "node --experimental-vm-modules --test tests/ui.test.cjs tests/update-monitor.test.mjs",
