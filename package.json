@@ -1,6 +1,13 @@
 {
   "name": "arknights-story-index-ui-tests",
   "private": true,
-  "scripts": {"test": "node --test tests/ui.test.cjs tests/update-monitor.test.mjs"},
-  "devDependencies": {"jsdom": "30.1.3"}
+  "scripts": {
+    "test": "node --experimental-vm-modules --test tests/ui.test.cjs tests/update-monitor.test.mjs",
+    "format:ui": "prettier --write web/app.js web/chrome.js \"web/ui/*.mjs\"",
+    "format:check": "prettier --check web/app.js web/chrome.js \"web/ui/*.mjs\""
+  },
+  "devDependencies": {
+    "jsdom": "30.1.3",
+    "prettier": "3.6.2"
+  }
 }

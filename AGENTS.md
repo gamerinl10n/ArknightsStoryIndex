@@ -1,3 +1,5 @@
 # Project rules
 
 Read README.md, docs/architecture.md, docs/development.md, and CONTRIBUTING.md before changes. Preserve Korean/Chinese/Japanese/English text and provenance. Never infer addressees from co-occurrence alone or label name matches as confirmed forms of address. Let users judge using context. Do not add administrator review, login, review records, or external review-storage dependencies. Never present synthetic dialogue as official. Never commit secrets, raw game dumps, or runtime databases. Run unit tests and JavaScript syntax checks. Ship changes via a feature branch and PR; report missing live-data verification explicitly.
+
+Keep UI behavior in web/ui native ES modules and retrieval logic in search_queries.py/search_service.py/catalog.py. Reuse form-state.mjs for URL preservation. Do not reintroduce eager per-result context fetching or count scans. Retain legacy detailed API compatibility and mutable-archive freshness. Use the formatting and benchmark commands in docs/development.md for refactors; report local timings separately from deployed performance.
