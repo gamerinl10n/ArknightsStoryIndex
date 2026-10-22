@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "flask",
-  "buildCommand": "python build.py",
+  "buildCommand": "python -m pip install -r requirements.txt && python build.py",
   "functions": {
     "app.py": {
       "includeFiles": "{generated/search.sqlite.gz,generated/portraits/**,characters.json,web/**}",
