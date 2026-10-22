@@ -4,9 +4,10 @@
 
 ## 실행
 
-Python 3.11+, Git이 필요합니다. 외부 Python 패키지는 필요하지 않습니다.
+Python 3.12+, Git이 필요합니다. 로컬과 Vercel에서 같은 Flask 앱을 실행합니다.
 
 ```sh
+python -m pip install -r requirements.txt
 python sync.py
 python app.py
 ```
@@ -53,3 +54,36 @@ node --check web/app.js
 대상별로 제외한 후보는 같은 원문에서 숨기고, 원문이 바뀌면 다시 검토 후보가 됩니다. 직접 호칭/지칭 검토에는 원문에 존재하는 표현이 필요합니다. 100개 이상 적재된 DB에서 대사가 20% 이상 감소하면 가져오기를 차단합니다. 작은 DB는 이 감소 검사를 적용하지 않습니다. 삭제 반영과 누락 파일 검사는 여전히 후속 작업입니다.
 
 `/api/status`에서 마지막 성공한 수집의 버전, 파일 수, 추출 대사 수 및 미처리 일반 텍스트 줄 수를 확인할 수 있습니다. 미처리 일반 텍스트에는 내레이션과 설명 파일도 포함되므로 이를 대사 누락률로 해석하지 않습니다.
+
+## Vercel 배포
+
+저장소 루트를 Root Directory로 사용하고 Output Directory 수동 지정은 비워두세요. `vercel.json`이 Flask 프레임워크, `python build.py` 빌드와 Function 파일 포함 범위를 지정합니다. `app.py`는 모듈 최상위 `app`을 내보냅니다. `web/`를 루트 디렉터리로 지정하면 API가 배포되지 않습니다.
+
+빌드에서 한국어·중국어 원본을 가져와 자체 파서로 처리한 뒤 `generated/search.sqlite`를 생성합니다. `ASI_SOURCE_REF`로 검증할 원본 commit SHA를 고정할 수 있고, 미설정 시 해당 빌드 시점의 master를 사용합니다. 원본 다운로드가 실패하면 빌드를 실패시켜 빈 검색 DB를 배포하지 않습니다. 갱신은 재배포할 때 반영됩니다.
+
+Function은 DB를 읽기 전용으로 열고 원본 TXT, 원본 스냅샷, 검토 이력과 로컬 데이터를 번들에 넣지 않습니다. 관리자 기록은 배포용 검색 DB에 복사하지 않습니다. 로컬 원본 보관 DB와 원본 체크아웃은 계속 별도 백업해야 합니다. Vercel 빌드 작업 디렉터리는 원본의 영구 보관소가 아닙니다.
+
+2026-10-22 원본 기준 검색 전용 DB는 약 291MiB입니다. 400MiB를 넘으면 빌드를 중단합니다. Python Function 번들 전체 크기에는 의존성도 포함되므로 Vercel 빌드에서 최종 크기를 확인해야 합니다.
+
+### 단일 관리자 검토 저장
+
+검색은 추가 DB 없이 동작합니다. Vercel에서 검토를 저장하려면 **별도 PostgreSQL**을 연결해야 합니다. 운영자가 선택한 PostgreSQL의 연결 문자열을 비공개 환경 변수 `ASI_REVIEW_DATABASE_URL`에 등록하세요(제공자 지침에 따라 TLS와 풀링 주소 사용). 새 DB를 자동 생성하거나 유료 서비스를 신청하지 않습니다.
+
+연결 문자열을 로컬 환경 변수로 설정한 뒤 한 번 실행합니다.
+
+```sh
+python review_store.py
+```
+
+이 명령은 `asi_reviews`와 `asi_review_history` 테이블을 생성합니다. Vercel에 같은 연결 문자열 및 32자 이상 무작위 `ASI_ADMIN_TOKEN`을 설정하고 재배포하면 관리자 검토를 사용할 수 있습니다. 비밀값은 코드나 브라우저 저장소에 넣지 마세요. Preview 환경에는 테스트용 DB와 별도 토큰을 사용하세요.
+
+요청은 원문을 확인한 다음 검토 현재값과 이력을 PostgreSQL의 한 트랜잭션으로 저장합니다. 검색은 최신 검토를 요청마다 불러와 요청 전용 SQLite 임시 테이블에 합칩니다. 원본 파일과 배포 디스크에는 쓰지 않습니다. DB가 연결되지 않으면 검토 UI가 비활성화되며 저장 API는 503으로 거부합니다. 저장소가 장애일 때는 검토 없는 결과를 정상 결과인 것처럼 내보내지 않습니다.
+
+확인 명령:
+
+```sh
+python build.py --source-db data/index.sqlite
+VERCEL=1 python app.py
+```
+
+`/`, `/app.js`, `/api/status`, `/api/speakers`, `/api/search?speaker=M3&target=켈시`를 확인하세요. 로컬 테스트는 Flask test client로 Vercel과 같은 읽기 전용 모드를 검증합니다. 실제 PostgreSQL과 Vercel 배포 성공 검증은 연결 및 배포 후 별도로 필요합니다.
