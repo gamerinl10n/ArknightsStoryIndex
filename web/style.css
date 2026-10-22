@@ -18,3 +18,5 @@ html[data-theme="dark"] .meta,html[data-theme="dark"] footer,html[data-theme="da
 html[data-theme="dark"] .empty-state{background:#24242499;border-color:#3d5f56}html[data-theme="dark"] .empty-state h3{color:#b7cfc6}html[data-theme="dark"] .empty-state p{color:var(--muted)}
 @media(max-width:640px){.header-actions{gap:10px}.header-actions .data-status{display:none}.brand small{font-size:10px}.brand>span:last-child{max-width:150px}.brand-mark{width:34px;height:34px;flex-shrink:0}.document{padding:24px 20px}.document h1{font-size:25px}.footer-links{gap:12px 16px}}
 @media(prefers-reduced-motion:reduce){.theme-icon{transition:none!important}}
+
+#notice:empty{display:none}

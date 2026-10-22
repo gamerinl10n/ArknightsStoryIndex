@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 <section class="search-panel" aria-labelledby="search-title">
-<div class="panel-title"><h1 id="search-title">누구의 대사를 찾고 있나요?</h1><p>인물 하나로 말투를, 두 인물로 호칭의 용례를 찾아보세요.</p></div>
+<div class="panel-title"><h1 id="search-title">대사 검색</h1></div>
 <form id="search">
 <div class="people">
 <div class="field"><label for="speaker">말하는 인물 <span>필수</span></label><input id="speaker" list="characters" placeholder="이름 입력 · 예: 켈시, M3" autocomplete="off" aria-describedby="speaker-help" required><p id="speaker-help" class="field-help">이름 일부를 입력하면 자동완성 목록이 나타납니다.</p></div>
@@ -16,8 +16,8 @@
 </section>
 <section class="results-panel" aria-labelledby="results-title">
 <div class="results-heading"><h2 id="results-title">검색 결과</h2><span id="result-count"></span></div>
-<p id="notice" role="status" aria-live="polite">이름을 선택하거나 위의 예시를 눌러 검색해보세요.</p>
-<div id="empty-state" class="empty-state"><span class="empty-icon" aria-hidden="true">⌕</span><h3>대사에서 시작하는 인물 탐색</h3><p>말하는 인물만 선택하면 전체 대사를 볼 수 있어요.<br>다른 인물의 이름을 더하면 관련 용례를 찾을 수 있습니다.</p></div>
+<p id="notice" role="status" aria-live="polite"></p>
+<div id="empty-state" class="empty-state" hidden><h3></h3><p></p></div>
 <div id="results" aria-busy="false"></div><button id="more" hidden>대사 더 보기</button>
 </section>
 
