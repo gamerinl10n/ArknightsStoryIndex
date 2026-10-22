@@ -3,7 +3,7 @@ from pages import PAGES
 from translations import tr
 COPY = {
 'en': {
-'help': [('Search','Enter a speaker or choose a suggestion. Leave the second character empty for all dialogue. Add a character to find names and registered aliases within the speaker’s lines. This does not identify the addressee: pronouns and omitted names may be missed. Use words in dialogue to narrow results.'),('Languages and context','Interface and dialogue languages are independent. Korean, Chinese, Japanese and English are supported. Arrow keys and Enter select a suggestion; Escape closes the list. Expand context to read up to 100 dialogue lines on either side. Adjacent lines may belong to different branches. Other-language results at the same file and line are candidates, not verified translations.'),('Sharing and updates','Search conditions are saved in the URL; copy the search link to share or bookmark it. CN advance stories may contain spoilers; the default filter approximates Korean release coverage by matching file paths. The moon/sun button changes the theme. A new-deployment notice offers an immediate update or a 30-minute reminder; updating preserves search fields in the URL.')],
+'help': [('Search','Enter a speaker or choose a suggestion. Leave the second character empty for all dialogue. Add a character to find names and registered aliases within the speaker’s lines. This does not identify the addressee: pronouns and omitted names may be missed. Use words in dialogue to narrow results.'),('Languages and context','Interface and dialogue languages are independent. Korean, Chinese, Japanese and English are supported. Arrow keys and Enter select a suggestion; Escape closes the list. Expand context to read up to 100 dialogue lines on either side. Adjacent lines may belong to different branches. Other-language results at the same file and line are candidates, not verified translations.'),('Sharing and updates','Search conditions are saved in the URL; the address can be shared or bookmarked. CN advance stories may contain spoilers; the default filter approximates Korean release coverage by matching file paths. The moon/sun button changes the theme. A new-deployment notice offers an immediate update or a 30-minute reminder; updating preserves search fields in the URL.')],
 'privacy':[('Requests and storage','Search names, phrases, language and spoiler choices are sent to the server as URL parameters and may appear in hosting logs or shared links. The app creates no accounts or search-history database and includes no analytics or advertising scripts. Theme preference is stored in localStorage; update reminders use sessionStorage. No application cookies are set.'),('External services','Vercel may process IP addresses, user agents, request URLs and timestamps under its own policies. Feedback opens an external Tally form; submitted data is governed by Tally and the form operator. No external feedback form is embedded here.')],
 'terms':[('Unofficial service','This is an unofficial fan reference tool, not affiliated with the game’s creators or publishers. Results match names and registered aliases; they do not confirm forms of address or conversation partners. Missing data, parsing errors and differences between servers may affect results. Check the source and surrounding dialogue.'),('Content','Game content remains the property of its respective rights holders. Search access grants no redistribution or commercial rights. The service is provided as is, without guarantees of accuracy, completeness or availability.')],
 'license':[('Code','The application code and brand belong to gamerinl10n. Public use of the website is permitted; other copying, modification or distribution requires permission. See LICENSE and NOTICE in the repository.'),('Data and dependencies','Game text, characters and names belong to their respective rights holders. Source data is ArknightsAssets/ArknightsGamedata, converted by this project with source revision and line references. Flask uses BSD-3-Clause; other dependencies retain their own licenses. The site bundles unmodified NEXON Lv2 Gothic files from L10ndiff, copyright NEXON; see web/fonts/NEXON-Lv2-Gothic.txt. Chinese and Japanese use device fonts. Portraits come from ArknightsAssets/ArknightsAssets2 and remain game content.')],
@@ -31,9 +31,9 @@ for lang,title,text in [
  COPY[lang]['changelog'].insert(0,('2026-10-22',text))
 
 for lang,title,text in [
- ('en','Details and filters','Open the guide with the header question mark; close with Escape or Close. The small question marks beside dialogue and context show file, line, branch and revision details. Adjacent lines may belong to different branches. Filenames are source paths rather than official story titles. Searched phrases are highlighted without changing source text.'),
- ('zh','详情与筛选','点击顶部问号打开使用说明，用 Esc 或关闭按钮退出。台词及上下文旁的小问号可查看文件、行号、分支和版本，相邻台词可能属于不同分支。文件名是原始路径，并非官方剧情标题。搜索词会高亮，原文保持不变。'),
- ('ja','詳細と絞り込み','上部の？から使い方を開き、Escや閉じるボタンで戻ります。台詞と文脈の小さな？からファイル・行・分岐・版を確認できます。隣接する台詞が別分岐の場合もあります。ファイル名は原文パスで、正式な作品名ではありません。検索語を強調し、原文は保持します。')]:
+ ('en','Dialogue details','Open the guide with the header question mark; close with Escape or Close. The small question marks beside dialogue and context show file, line, branch and revision details. Adjacent lines may belong to different branches. Filenames are source paths rather than official story titles. Searched phrases are highlighted without changing source text.'),
+ ('zh','台词详情','点击顶部问号打开使用说明，用 Esc 或关闭按钮退出。台词及上下文旁的小问号可查看文件、行号、分支和版本，相邻台词可能属于不同分支。文件名是原始路径，并非官方剧情标题。搜索词会高亮，原文保持不变。'),
+ ('ja','台詞の詳細','上部の？から使い方を開き、Escや閉じるボタンで戻ります。台詞と文脈の小さな？からファイル・行・分岐・版を確認できます。隣接する台詞が別分岐の場合もあります。ファイル名は原文パスで、正式な作品名ではありません。検索語を強調し、原文は保持します。')]:
  COPY[lang]['help'].append((title,text))
  COPY[lang]['changelog'].insert(0,('2026-10-22',text))
 
@@ -46,4 +46,10 @@ for lang,title,text in [
  ('zh','只搜索关键词','将两个角色栏留空，输入词语或短句即可搜索所有说话者的台词。添加角色可缩小范围。按原字符串匹配，区分空格及大小写。头像按官方角色ID关联；身份不明确或无图片时显示默认图标。'),
  ('ja','単語だけで検索','両方の人物欄を空にして単語や文を入力すると、全話者の台詞を検索します。人物を追加すると絞り込めます。空白と大文字・小文字を含む文字列で一致します。画像は公式人物IDで対応し、曖昧な名前や画像がない場合は共通アイコンを表示します。')]:
  COPY[lang]['help'].insert(0,(title,text))
+ COPY[lang]['changelog'].insert(0,('2026-10-22',text))
+
+for lang,text in [
+ ('en','Removed search-link copying, dialogue/source copying and the story dropdown. Open the small question mark beside dialogue for source details.'),
+ ('zh','移除了搜索链接复制、台词出处复制及剧情文件下拉菜单。点击台词旁的小问号可查看出处。'),
+ ('ja','検索リンクのコピー、台詞・出典のコピー、ストーリーファイル選択を削除しました。台詞横の小さな？から出典を確認できます。')]:
  COPY[lang]['changelog'].insert(0,('2026-10-22',text))
