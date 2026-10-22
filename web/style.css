@@ -27,7 +27,8 @@ header{width:100%;max-width:1160px;margin:0 auto;padding:23px 28px;display:flex;
 main{width:100%;max-width:1104px;margin:0 auto;padding:16px 28px 28px;flex:1;display:flex;flex-direction:column}
 .search-experience{width:100%;flex:1;min-width:0}
 .search-experience[data-view=home]{display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:380px;padding:32px 0 64px}
-.search-panel{width:100%;padding:27px 28px 22px;border:1px solid var(--line);border-radius:36px;background:var(--surface);box-shadow:var(--shadow);view-transition-name:search-panel}
+/* Keep anchored menus above the separate results view-transition layer. */
+.search-panel{position:relative;z-index:2;width:100%;padding:27px 28px 22px;border:1px solid var(--line);border-radius:36px;background:var(--surface);box-shadow:var(--shadow);view-transition-name:search-panel}
 [data-view=home] .search-panel{max-width:900px}
 .search-navigation{margin:0 0 18px}.search-navigation button{font-size:12px}
 
@@ -60,7 +61,7 @@ button:active:not(:disabled),.button:active{transform:translateY(1px) scale(.97)
 .suggestion{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:9px 10px;border-radius:18px;cursor:pointer;font-size:14px;transition:background 120ms,color 120ms}
 .suggestion small{font-size:11px;color:var(--muted);overflow-wrap:anywhere}.suggestion:hover,.suggestion[aria-selected=true]{background:var(--accent-soft);color:var(--accent-deep)}
 /* Results retain the search controls in a compact header. */
-.results-panel{margin-top:28px;view-transition-name:search-results}
+.results-panel{position:relative;z-index:1;margin-top:28px;view-transition-name:search-results}
 .results-heading{display:flex;justify-content:space-between;align-items:center;gap:16px;border-bottom:1px solid var(--line);padding-bottom:16px}
 .results-heading h2{font-size:16px;margin:0;font-weight:600;overflow-wrap:anywhere;outline:none}
 .result-tools{display:flex;gap:12px;align-items:center;flex-shrink:0}#result-count{color:var(--accent-deep);font-size:12px}
