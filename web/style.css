@@ -153,3 +153,22 @@ mark{background:#98ddca70;color:inherit;border-radius:4px;padding:1px 2px;box-de
 @media(max-width:640px){.people{margin-top:14px}.search-panel{max-width:100%}.card-heading{gap:10px}.modal-heading{padding-left:52px}#results-title{flex-wrap:wrap}.result-tools{flex-wrap:wrap}.suggestion small{max-width:45%}}
 
 @media(prefers-reduced-motion:reduce){.portrait{transition:none}}
+
+/* DOM order follows the main keyboard task; grid placement preserves the layout. */
+.search-form{display:grid;grid-template-columns:minmax(0,1fr) 132px 154px;grid-template-areas:"query corpus submit" "people people people" "bottom bottom bottom";gap:18px 14px;align-items:start}
+.search-form .keyword-field{grid-area:query}.search-form .corpus-field{grid-area:corpus}.search-form #submit-search{grid-area:submit}
+.search-form .speaker-field,.search-form .target-field{grid-area:people;width:calc((100% - 68px)/2)}
+.search-form .speaker-field{justify-self:start}.search-form .target-field{justify-self:end}.search-form #swap{grid-area:people;justify-self:center}
+.search-form .search-bottom{grid-area:bottom;margin-top:0}
+@media(max-width:640px){.search-form{grid-template-columns:minmax(0,1fr) 108px;grid-template-areas:"query corpus" "people people" "target target" "submit submit" "bottom bottom";gap:12px 8px}.search-form .speaker-field{grid-area:people;width:calc(100% - 44px)}.search-form .target-field{grid-area:target;width:100%}.search-form #swap{grid-area:people;justify-self:end}.search-form #submit-search{grid-column:auto}}
+
+/* Corpus picker shares the same rounded field and anchored menu as names. */
+.corpus-field{position:relative;min-width:0}.corpus-field:focus-within{z-index:45}
+.corpus-button{width:100%;height:48px;min-height:48px;padding:0 15px;justify-content:space-between;border:1px solid var(--line);border-radius:var(--control-radius);background:var(--field);color:var(--ink);font-size:14px;font-weight:400}
+.corpus-button:hover{border-color:var(--accent-border)}.corpus-button[aria-expanded=true]{border-color:var(--accent-deep);box-shadow:0 0 0 4px #98ddca20}
+.corpus-chevron{width:7px;height:7px;flex-shrink:0;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translateY(-2px);transition:transform 180ms var(--ease)}
+.corpus-button[aria-expanded=true] .corpus-chevron{transform:rotate(225deg) translate(-2px,-1px)}
+.corpus-options{position:absolute;top:calc(100% + 4px);left:0;min-width:100%;width:max-content;padding:5px;border:1px solid var(--line);border-radius:22px;background:var(--field);box-shadow:0 14px 30px #14141417;z-index:45;animation:menu-enter 150ms var(--ease)}
+.corpus-option{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:11px 13px;border-radius:17px;cursor:pointer;font-size:13px;color:var(--ink);transition:background 120ms,color 120ms}
+.corpus-option:hover,.corpus-option.is-active{background:var(--accent-soft);color:var(--accent-deep)}.corpus-option[aria-selected=true]{color:var(--accent-deep);font-weight:700}.corpus-check{opacity:0}.corpus-option[aria-selected=true] .corpus-check{opacity:1}
+@media(prefers-reduced-motion:reduce){.corpus-chevron,.corpus-option{transition:none}}
