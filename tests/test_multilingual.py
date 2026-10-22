@@ -23,7 +23,7 @@ class MultilingualTest(unittest.TestCase):
                 self.assertEqual(len(result['items']),201)
             self.assertEqual(client.get('/api/context?story=missing').status_code,400)
             for ui in ('ko','zh','ja','en'):
-                for page in ('','help','privacy','terms','license','changelog'):
+                for page in ('','search','help','privacy','terms','license','changelog'):
                     r=client.get('/'+page+'?ui='+ui)
                     self.assertEqual(r.status_code,200)
                     self.assertIn(f'<html lang="{ui}">',r.text)

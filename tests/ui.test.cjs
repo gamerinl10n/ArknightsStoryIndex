@@ -90,3 +90,33 @@ test('late responses cannot replace a newer search',async()=>{
 test('expanded context loads a bounded window for the selected source',async()=>{
  const x=setup();try{enter(x);await tick();await tick();const button=x.$('results').querySelector('details button');button.click();await tick();await tick();assert(x.calls.some(url=>url.startsWith('/api/context?')&&url.includes('radius=18')&&url.includes('story=ko_KR')));assert.equal(button.disabled,false);}finally{x.dom.window.close();}
 });
+
+test('home and results are separate views; return and browser history preserve the draft',async()=>{
+ const x=setup();x.w.scrollTo=()=>{};try {
+  assert.equal(x.$('search-experience').dataset.view,'home');assert.equal(x.$('results-panel').hidden,true);
+  enter(x);await tick();await tick();assert.equal(x.w.location.pathname,'/search');assert.equal(x.$('results-panel').hidden,false);
+  const requests=x.calls.filter(url=>url.startsWith('/api/search?')).length;
+  x.$('back-search').click();assert.equal(x.w.location.pathname,'/');assert.equal(x.$('search-experience').dataset.view,'home');assert.equal(x.$('speaker').value,'M3');assert.equal(x.$('target').value,'켈시');
+  const pop=new Promise(resolve=>x.w.addEventListener('popstate',resolve,{once:true}));x.w.history.back();await pop;await tick();
+  assert.equal(x.w.location.pathname,'/search');assert.equal(x.$('results-panel').hidden,false);
+  assert.equal(x.calls.filter(url=>url.startsWith('/api/search?')).length,requests);
+ }finally{x.dom.window.close();}
+});
+test('result links reload directly; home draft links do not start a search',async()=>{
+ const a=setup({query:'search?speaker=M3&target=켈시&lang=ja_JP'}),b=setup({query:'?speaker=M3&target=켈시&view=home'});
+ try{await tick();await tick();assert.equal(a.$('search-experience').dataset.view,'results');assert.equal(a.$('lang').value,'ja_JP');assert.equal(b.$('search-experience').dataset.view,'home');assert.equal(b.$('speaker').value,'M3');assert(!b.calls.some(url=>url.startsWith('/api/search?')));}finally{a.dom.window.close();b.dom.window.close();}
+});
+test('returning during a pending request prevents a late result from reopening the page',async()=>{
+ let resolve;const x=setup({search:()=>new Promise(r=>resolve=r)});x.w.scrollTo=()=>{};
+ try{enter(x);assert.equal(x.$('search-loading').hidden,false);x.$('back-search').click();resolve({total:1,items:[exampleItem]});await tick();await tick();assert.equal(x.$('search-experience').dataset.view,'home');assert.equal(x.$('results-panel').hidden,true);assert.equal(x.$('search-loading').hidden,true);assert.equal(x.$('submit-search').disabled,false);assert.equal(x.$('results').children.length,0);}finally{x.dom.window.close();}
+});
+test('reduced motion avoids native page transitions',async()=>{
+ const x=setup();let transitions=0;x.w.matchMedia=()=>({matches:true});x.w.document.startViewTransition=()=>{transitions++;throw Error('not expected');};
+ try{enter(x);await tick();await tick();assert.equal(transitions,0);assert.equal(x.$('search-experience').dataset.view,'results');}finally{x.dom.window.close();}
+});
+
+test('a delayed view transition cannot undo a newer navigation',async()=>{
+ const x=setup();x.w.scrollTo=()=>{};const frames=[];
+ x.w.document.startViewTransition=apply=>{frames.push(apply);return {finished:Promise.resolve(),skipTransition(){}};};
+ try{enter(x);x.$('back-search').click();frames.forEach(apply=>apply());await tick();await tick();assert.equal(x.$('search-experience').dataset.view,'home');assert.equal(x.$('results-panel').hidden,true);}finally{x.dom.window.close();}
+});

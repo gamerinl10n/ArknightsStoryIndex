@@ -23,6 +23,13 @@ COPY = {
 'license':[('コード','アプリのコードとブランドはgamerinl10nに帰属します。公開サイトの利用は可能ですが、コードや資産の複製・改変・再配布などには許可が必要です。リポジトリのLICENSEとNOTICEを参照してください。'),('データと依存関係','ゲーム本文・人物・名称の権利は各権利者に帰属します。原データはArknightsAssets/ArknightsGamedataから取得し、本プロジェクトが変換して版と行位置を表示します。FlaskはBSD-3-Clause、他の依存関係は各ライセンスに従います。システムフォントを使用しています。')],
 'changelog':[('2026-10-22','4言語の表示と台詞検索、公式IDによる人物名の関連付け、検索欄に沿った候補リスト、文脈拡張と検索リンク共有を追加。更新通知、？の説明ボタン、下部中央のフッター、Tallyへのフィードバックを追加。重複する説明と管理者レビューを削除。')]
 }}
+for lang,title,text in [
+ ('en','Search and results','The centered search opens a separate results view. Back to search and browser history preserve the entered conditions. Reload or share a results URL to repeat the search. Motion is minimized when your device requests reduced motion.'),
+ ('zh','搜索与结果','首页中央的搜索框会打开独立的结果页面。返回搜索或使用浏览器历史记录时保留输入条件。刷新或分享结果链接可重复搜索。设备开启减少动态效果后，将尽量减少动画。'),
+ ('ja','検索画面と結果画面','中央の検索欄から結果画面に移動します。検索に戻るボタンやブラウザーの履歴移動でも入力条件が保持されます。結果URLの再読み込みや共有で同じ検索を開けます。端末で動きを減らす設定が有効な場合はアニメーションを抑えます。')]:
+ COPY[lang]['help'].append((title,text))
+ COPY[lang]['changelog'].insert(0,('2026-10-22',text))
+
 def get_page(page,ui):
     if ui=='ko': return PAGES[page]
     return {'title':tr(ui,page),'subtitle':'','sections':[{'title':title,'paragraphs':[text]} for title,text in COPY[ui][page]]}

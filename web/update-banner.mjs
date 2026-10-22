@@ -54,6 +54,7 @@ if (currentVersion && currentVersion !== 'development') {
     const url = new URL(window.location.href);
     // Preserve even unsubmitted search fields before loading the new deployment.
     if (document.getElementById('speaker')) {
+      url.searchParams.set('view',document.getElementById('search-experience').dataset.view==='home'?'home':'results');
       for (const id of ['speaker','target','lang']) url.searchParams.set(id,document.getElementById(id).value);
       url.searchParams.set('q',document.getElementById('query').value);
       url.searchParams.set('spoilers',document.getElementById('spoilers').checked?'1':'0');
