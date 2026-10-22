@@ -11,7 +11,7 @@ function guide() {
   const speaker = $('speaker').value.trim(), target = $('target').value.trim();
   const match = suggestions.find(row => row.value.toLocaleLowerCase() === speaker.toLocaleLowerCase());
   $('speaker').setCustomValidity('');
-  $('speaker-help').textContent = match ? `${match.label} · 이 이름으로 검색할 수 있어요.` : '이름 일부를 입력하고 자동완성 목록에서 골라보세요.';
+  $('speaker-help').textContent = match ? match.label : '이름 일부를 입력하면 자동완성 목록이 나타납니다.';
   $('target-help').textContent = target ? `‘${target}’의 이름·등록 별칭이 나오는 대사를 찾아요.` : '비워두면 말하는 인물의 전체 대사를 볼 수 있어요.';
   $('search-mode').textContent = !speaker ? '말하는 인물을 선택해 시작하세요.' : target ? `${speaker}의 대사에서 ${target} 찾기` : `${speaker}의 전체 대사 찾기`;
 }
@@ -87,7 +87,7 @@ async function run(append = false) {
     $('more').hidden = offset >= data.total;
     $('results-title').textContent = search.target ? `${search.speaker}의 대사에서 ${search.target} 찾기` : `${search.speaker}의 전체 대사`;
     $('result-count').textContent = `${data.total.toLocaleString()}개 대사`;
-    $('notice').textContent = search.target ? '이름·등록 별칭이 포함된 대사예요. 호칭과 지칭 대상은 앞뒤 문맥에서 확인하세요.' : '앞뒤 문맥을 펼쳐 말투와 대화 흐름을 살펴보세요.';
+    $('notice').textContent = '';
     if (!data.total) empty('조건에 맞는 대사를 찾지 못했어요', '자동완성에서 말하는 인물의 이름을 확인하거나, 찾을 인물·대사 속 표현을 지우고 다시 검색해보세요.');
   } catch (error) {
     if (version !== requestVersion || error.name === 'AbortError') return;
