@@ -1,5 +1,8 @@
 {% extends 'base.html' %}
 {% block content %}
+<h1 class="sr-only">{{ t('search') }}</h1>
+<div id="search-experience" class="search-experience" data-view="{{ initial_view }}">
+<div class="search-navigation" {% if initial_view=='home' %}hidden{% endif %}><button type="button" id="back-search" class="button button-quiet"><span aria-hidden="true">←</span> {{ t('back') }}</button></div>
 <section class="search-panel" aria-label="{{ t('search') }}">
 <form id="search">
 <div class="people">
@@ -11,11 +14,14 @@
 <div class="search-bottom"><label class="check"><input type="checkbox" id="spoilers"> {{ t('spoilers') }}</label></div>
 </form>
 </section>
-<section class="results-panel" aria-labelledby="results-title">
-<div class="results-heading"><h2 id="results-title">{{ t('results') }}</h2><div class="result-tools"><span id="result-count"></span><button id="share-search" type="button" hidden>{{ t('share') }}</button></div></div>
+<section class="results-panel" id="results-panel" aria-labelledby="results-title" {% if initial_view=='home' %}hidden{% endif %}>
+<div class="results-heading"><h2 id="results-title" tabindex="-1">{{ t('results') }}</h2><div class="result-tools"><span id="result-count"></span><button id="share-search" type="button" hidden>{{ t('share') }}</button></div></div>
 <p id="notice" role="status" aria-live="polite"></p>
 <div id="empty-state" class="empty-state" hidden><h3></h3><p></p></div>
-<div id="results" aria-busy="false"></div><button id="more" hidden>{{ t('more') }}</button>
+<div id="results" aria-busy="false"></div>
+<div id="search-loading" class="search-loading" aria-hidden="true" hidden>{% for i in range(3) %}<div class="skeleton-card"><span></span><span></span><span></span></div>{% endfor %}</div>
+<button id="more" hidden>{{ t('more') }}</button>
 </section>
+</div>
 {% endblock %}
 {% block scripts %}<script src="/app.js" defer></script>{% endblock %}

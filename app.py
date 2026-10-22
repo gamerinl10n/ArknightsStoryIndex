@@ -64,8 +64,9 @@ def create_app(database=None, readonly=None):
         return jsonify(error='검색 데이터가 준비되지 않았습니다. 배포 빌드와 데이터 생성을 확인하세요.'), 503
 
     @app.route('/')
+    @app.route('/search')
     def home():
-        return render_template('index.html',title=tr(request.args.get('ui') if request.args.get('ui') in UI_LANGS else 'ko','search'))
+        return render_template('index.html',title=tr(request.args.get('ui') if request.args.get('ui') in UI_LANGS else 'ko','search'), initial_view='results' if request.path=='/search' or (request.args.get('speaker') and request.args.get('view')!='home') else 'home')
 
     @app.route('/app.js')
     def javascript():

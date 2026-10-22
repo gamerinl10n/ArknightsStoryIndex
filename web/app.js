@@ -1,7 +1,22 @@
 const $ = id => document.getElementById(id);
 const t = (key, values={}) => Object.entries(values).reduce((s,[k,v])=>s.replaceAll('{'+k+'}',String(v)), window.ASI.strings[key] || key);
 const el = (tag, text, cls) => { const node=document.createElement(tag); node.textContent=text; if(cls) node.className=cls; return node; };
-let offset=0, last=null, suggestions=[], suggestionVersion=0, requestVersion=0, controller;
+let offset=0, last=null, suggestions=[], suggestionVersion=0, requestVersion=0, controller, renderedKey=null, viewTransition, viewVersion=0;
+const experience=$('search-experience');
+const reducedMotion=()=>window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+function setView(view, animate=true) {
+  const token=++viewVersion,changed=experience.dataset.view!==view;
+  const apply=()=>{if(token!==viewVersion)return;experience.dataset.view=view;document.title=t(view==='home'?'search':'results')+' · Arknights Story Index';$('results-panel').hidden=view==='home';$('back-search').parentElement.hidden=view==='home';if(changed && view==='results')$('results-title').focus({preventScroll:true});};
+  if(!changed || !animate || reducedMotion()){viewTransition?.skipTransition();apply();return;}
+  if(document.startViewTransition){try{viewTransition?.skipTransition();viewTransition=document.startViewTransition(apply);viewTransition.finished.catch(()=>{});return;}catch{ /* Use the CSS entry transition on unsupported surfaces. */ }}
+  apply();experience.classList.remove('view-enter');void experience.offsetWidth;experience.classList.add('view-enter');
+}
+experience.addEventListener('animationend',()=>experience.classList.remove('view-enter'));
+function readForm(){return {speaker:$('speaker').value.trim(),target:$('target').value.trim(),q:$('query').value.trim(),lang:$('lang').value,spoilers:$('spoilers').checked?'1':'0'};}
+function stopSearch(){++requestVersion;controller?.abort();$('submit-search').disabled=false;$('submit-search').textContent=t('search');$('results').setAttribute('aria-busy','false');$('search-loading').hidden=true;}
+function goHome(event){event?.preventDefault();const draft=readForm();history.pushState({draft},'','/?'+new URLSearchParams({ui:window.ASI.ui}));stopSearch();completions.forEach(c=>c.close());setView('home');$('speaker').focus({preventScroll:true});window.scrollTo?.({top:0,behavior:reducedMotion()?'instant':'smooth'});}
+$('back-search').onclick=goHome;
+document.querySelector('.brand').addEventListener('click',event=>{if(event.button===0&&!event.ctrlKey&&!event.metaKey&&!event.shiftKey&&!event.altKey)goHome(event);});
 async function api(url, options) { const response=await fetch(url,options); const data=await response.json(); if(!response.ok) throw Error(t('failed')); return data; }
 function completion(id) {
   const input=$(id), list=$(id+'-options'); let active=-1, rows=[];
@@ -43,7 +58,7 @@ function contextRows(container,rows,ordinal) {
   container.replaceChildren();rows.forEach(row=>{const p=el('p',`${row.speaker||t('unnamed')}: ${row.text}`,row.ordinal===ordinal?'current-line':'');if(row.branch!=='main')p.append(el('small',`\n${t('branch')}: ${row.branch}`,'branch-note'));container.append(p);});
 }
 function render(item) {
-  const card=el('article','');card.append(el('h2',item.speaker),el('p',item.text,'quote'),el('p',`${item.path} · ${t('line',{n:item.ordinal+1})} · ${item.revision.slice(0,12)}`,'meta'));
+  const card=el('article','','result-card');card.style.setProperty('--enter-delay',Math.min($('results').children.length,5)*35+'ms');card.append(el('h2',item.speaker),el('p',item.text,'quote'),el('p',`${item.path} · ${t('line',{n:item.ordinal+1})} · ${item.revision.slice(0,12)}`,'meta'));
   const context=el('details','');context.append(el('summary',t('context')));const lines=el('div','');contextRows(lines,item.context,item.ordinal);context.append(lines);
   const expand=el('button',t('context_more'));expand.type='button';let radius=3;
   expand.onclick=async()=>{expand.disabled=true;try {const next=Math.min(radius+15,100);const data=await api('/api/context?'+new URLSearchParams({story:item.story,ordinal:item.ordinal,radius:next}));contextRows(lines,data.items,item.ordinal);radius=next;expand.hidden=!data.has_more||radius>=100;}catch{expand.textContent=t('retry');}finally{expand.disabled=false;}};
@@ -56,27 +71,31 @@ async function run(append=false) {
   const version=++requestVersion,search={...last};controller?.abort();controller=new AbortController();
   $('more').disabled=true;$('submit-search').disabled=true;$('submit-search').textContent=t('loading');$('results').setAttribute('aria-busy','true');
   if(!append){$('results').replaceChildren();$('more').hidden=true;$('result-count').textContent='';$('empty-state').hidden=true;}
-  $('notice').textContent=t('loading');
+  $('notice').textContent=t('loading');$('search-loading').hidden=false;$('search-loading').dataset.append=String(append);renderedKey=null;
   try {const params=new URLSearchParams(search);params.set('offset',offset);const data=await api('/api/search?'+params,{signal:controller.signal});if(version!==requestVersion)return;
-    data.items.forEach(render);offset+=data.items.length;$('more').hidden=offset>=data.total;
+    data.items.forEach(render);offset+=data.items.length;renderedKey=JSON.stringify(search);$('more').hidden=offset>=data.total;
     $('results-title').textContent=search.target?t('search_pair',{a:search.speaker,b:search.target}):t('search_solo',{a:search.speaker});$('result-count').textContent=t('count',{n:data.total.toLocaleString()});$('notice').textContent='';$('share-search').hidden=false;
     if(!data.total)empty(t('no_results'),t('broaden'));
   }catch(error){if(version!==requestVersion||error.name==='AbortError')return;$('notice').textContent=t('failed');if(!append)empty(t('failed'),t('retry'));}
-  finally{if(version===requestVersion){$('more').disabled=false;$('submit-search').disabled=false;$('submit-search').textContent=t('search');$('results').setAttribute('aria-busy','false');}}
+  finally{if(version===requestVersion){$('more').disabled=false;$('submit-search').disabled=false;$('submit-search').textContent=t('search');$('results').setAttribute('aria-busy','false');$('search-loading').hidden=true;}}
 }
 function submit(updateUrl=true) {
   if(!$('speaker').value.trim()){$('speaker').setCustomValidity(t('search_error'));$('speaker').reportValidity();return;}
-  offset=0;last={speaker:$('speaker').value.trim(),target:$('target').value.trim(),q:$('query').value.trim(),lang:$('lang').value,spoilers:$('spoilers').checked?'1':'0'};
-  completions.forEach(c=>c.close());
-  if(updateUrl){const params=new URLSearchParams(last);params.set('ui',window.ASI.ui);history.pushState(null,'','/?'+params);}
-  run();
+  const draft=readForm();
+  if(updateUrl){history.replaceState({...history.state,draft},'',location.href);const params=new URLSearchParams(draft);params.set('ui',window.ASI.ui);history.pushState({draft},'','/search?'+params);}
+  offset=0;last=draft;completions.forEach(c=>c.close());setView('results');run();
 }
-function restore() {
-  const params=new URLSearchParams(location.search);for(const key of ['speaker','target'])$(key).value=(params.get(key)||'').slice(0,300);$('query').value=(params.get('q')||'').slice(0,300);
-  if([...$('lang').options].some(o=>o.value===params.get('lang')))$('lang').value=params.get('lang');else $('lang').value=({ko:'ko_KR',zh:'zh_CN',ja:'ja_JP',en:'en_US'})[window.ASI.ui];
-  $('spoilers').checked=params.get('spoilers')==='1';loadSpeakers();
-  if($('speaker').value)submit(false);else{++requestVersion;controller?.abort();last=null;offset=0;$('results').replaceChildren();$('notice').textContent='';$('result-count').textContent='';$('results-title').textContent=t('results');$('more').hidden=true;$('share-search').hidden=true;$('empty-state').hidden=true;$('submit-search').disabled=false;$('submit-search').textContent=t('search');$('results').setAttribute('aria-busy','false');}
+function restore(initial=false) {
+  const params=new URLSearchParams(location.search),draft=history.state?.draft||{};
+  for(const key of ['speaker','target'])$(key).value=(params.get(key)??draft[key]??'').slice(0,300);
+  $('query').value=(params.get('q')??draft.q??'').slice(0,300);
+  const lang=params.get('lang')||draft.lang;
+  $('lang').value=[...$('lang').options].some(o=>o.value===lang)?lang:({ko:'ko_KR',zh:'zh_CN',ja:'ja_JP',en:'en_US'})[window.ASI.ui];
+  $('spoilers').checked=(params.get('spoilers')??draft.spoilers)==='1';loadSpeakers();
+  const showResults=$('speaker').value && params.get('view')!=='home' && (location.pathname==='/search'||params.has('speaker'));
+  if(showResults){const search=readForm();setView('results',!initial);if(renderedKey!==JSON.stringify(search)){offset=0;last=search;run();}}
+  else{stopSearch();setView('home',!initial);}
 }
 $('search').onsubmit=event=>{event.preventDefault();submit();};$('more').onclick=()=>run(true);
 $('share-search').onclick=async()=>{try{await navigator.clipboard.writeText(location.href);$('share-search').textContent=t('shared');}catch{$('share-search').textContent=t('copy_failed');}};
-window.addEventListener('popstate',restore);restore();
+window.addEventListener('popstate',()=>restore(false));restore(true);
