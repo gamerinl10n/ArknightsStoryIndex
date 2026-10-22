@@ -4,15 +4,20 @@ from contextlib import closing
 from functools import lru_cache
 import json
 import sqlite3
+from pathlib import Path
+from portraits import Portraits
 from catalog import characters
 from core import connect
 from runtime_snapshot import materialize
 
 
 class SearchService:
-    def __init__(self, database, readonly):
+    def __init__(self, database, readonly, portrait_root=None):
         self.database = database
         self.readonly = readonly
+        self.portraits = Portraits(
+            portrait_root or Path(__file__).parent / "generated/portraits"
+        )
         # Cache public suggestions only. Search terms and results are never cached here.
         self._cached_suggestions = lru_cache(maxsize=8)(self._suggestions)
 
@@ -70,7 +75,9 @@ class SearchService:
                         "label": " / ".join(names),
                         "count": count,
                     }
-        return sorted(result.values(), key=lambda row: row["value"])
+        return self.portraits.annotate(
+            sorted(result.values(), key=lambda row: row["value"])
+        )
 
     def status(self):
         with closing(self.open_db()) as db:

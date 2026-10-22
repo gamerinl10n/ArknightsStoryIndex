@@ -1,5 +1,6 @@
 import { $, t, el } from "./dom.mjs";
 import { api } from "./api.mjs";
+import { portrait } from "./portraits.mjs";
 import { openDialog } from "./dialogs.mjs";
 
 function infoButton(item, row = item) {
@@ -61,6 +62,7 @@ function contextRows(rows, item, needle) {
     );
     const heading = el("div", "", "context-heading");
     heading.append(
+      portrait(row),
       el("strong", row.speaker || t("unnamed")),
       infoButton(item, row),
     );
@@ -72,9 +74,10 @@ function contextRows(rows, item, needle) {
 
 function renderCard(item, needle, index) {
   const card = el("article", "", "result-card");
+  card.lang = item.lang.replace("_", "-");
   card.style.setProperty("--enter-delay", Math.min(index, 5) * 35 + "ms");
   const heading = el("div", "", "card-heading");
-  heading.append(el("h2", item.speaker), infoButton(item));
+  heading.append(portrait(item), el("h2", item.speaker), infoButton(item));
   card.append(heading, quote(item.text, needle));
 
   // Network, line DOM and event handlers are created only when a section is opened.
@@ -167,29 +170,16 @@ function renderCard(item, needle, index) {
     content.replaceChildren(lines, expand);
   });
   section("parallel", (content, data) => {
-    const rows = data.parallel.map((row) =>
-      el("p", `[${row.lang}] ${row.speaker}: ${row.text}`),
-    );
+    const rows = data.parallel.map((row) => {
+      const line = el("p", `[${row.lang}] ${row.speaker}: ${row.text}`);
+      line.lang = row.lang.replace("_", "-");
+      return line;
+    });
     content.replaceChildren(
       ...(rows.length ? rows : [el("p", t("no_parallel"))]),
     );
   });
 
-  const actions = el("div", "", "result-actions"),
-    copy = el("button", t("copy"));
-  copy.type = "button";
-  copy.onclick = async () => {
-    try {
-      await navigator.clipboard.writeText(
-        `${item.speaker}: ${item.text}\n${item.source}@${item.revision} / ${item.lang}/${item.path}:${item.ordinal + 1}`,
-      );
-      copy.textContent = t("copied");
-    } catch {
-      copy.textContent = t("copy_failed");
-    }
-  };
-  actions.append(copy);
-  card.append(actions);
   return card;
 }
 

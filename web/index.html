@@ -1,23 +1,22 @@
 {% extends 'base.html' %}
-{% block preload %}{% for module in ['api','navigation','autocomplete','results','filters'] %}<link rel="modulepreload" href="{{ asset('ui/'+module+'.mjs') }}">{% endfor %}{% endblock %}
+{% block preload %}{% for module in ['api','navigation','autocomplete','results','portraits'] %}<link rel="modulepreload" href="{{ asset('ui/'+module+'.mjs') }}">{% endfor %}{% endblock %}
 {% block content %}
 <h1 class="sr-only">{{ t('search') }}</h1>
 <div id="search-experience" class="search-experience" data-view="{{ initial_view }}">
 <div class="search-navigation" {% if initial_view=='home' %}hidden{% endif %}><button type="button" id="back-search" class="button button-quiet"><span aria-hidden="true">←</span> {{ t('back') }}</button></div>
 <section class="search-panel" aria-label="{{ t('search') }}">
 <form id="search">
-<div class="people">
-<div class="field autocomplete"><label class="sr-only" for="speaker">{{ t('speaker') }}</label><input id="speaker" placeholder="{{ t('speaker') }}" autocomplete="off" required role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="speaker-options"><div id="speaker-options" class="suggestions" role="listbox" hidden></div></div>
-<button type="button" id="swap" aria-label="{{ t('swap') }}" title="{{ t('swap') }}">⇄</button>
-<div class="field autocomplete"><label class="sr-only" for="target">{{ t('target') }}</label><input id="target" placeholder="{{ t('target') }}" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="target-options"><div id="target-options" class="suggestions" role="listbox" hidden></div></div>
-</div>
 <div class="filters"><div class="keyword-field"><label class="sr-only" for="query">{{ t('expression') }}</label><input id="query" placeholder="{{ t('expression') }}" autocomplete="off"></div><div><label class="sr-only" for="lang">{{ t('corpus') }}</label><select id="lang">{% for code,label in corpus_languages.items() %}<option value="{{ code }}">{{ label }}</option>{% endfor %}</select></div><button id="submit-search" class="primary">{{ t('search') }} <span aria-hidden="true">↗</span></button></div>
+<div class="people">
+<div class="field autocomplete"><label class="sr-only" for="speaker">{{ t('speaker') }}</label><input id="speaker" placeholder="{{ t('speaker_optional') }}" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="speaker-options"><div id="speaker-options" class="suggestions" role="listbox" hidden></div></div>
+<button type="button" id="swap" aria-label="{{ t('swap') }}" title="{{ t('swap') }}">⇄</button>
+<div class="field autocomplete"><label class="sr-only" for="target">{{ t('target') }}</label><input id="target" placeholder="{{ t('target_optional') }}" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="target-options"><div id="target-options" class="suggestions" role="listbox" hidden></div></div>
+</div>
 <div class="search-bottom"><label class="check"><input type="checkbox" id="spoilers"> {{ t('spoilers') }}</label></div>
 </form>
 </section>
 <section class="results-panel" id="results-panel" aria-labelledby="results-title" {% if initial_view=='home' %}hidden{% endif %}>
-<div class="results-heading"><h2 id="results-title" tabindex="-1">{{ t('results') }}</h2><div class="result-tools"><span id="result-count"></span><button id="share-search" type="button" hidden>{{ t('share') }}</button></div></div>
-<div class="result-filters" id="result-filters" hidden><label class="sr-only" for="story-filter">{{ t('story_filter') }}</label><select id="story-filter" aria-label="{{ t('story_filter') }}"><option value="">{{ t('all_stories') }}</option></select></div>
+<div class="results-heading"><h2 id="results-title" tabindex="-1">{{ t('results') }}</h2><div class="result-tools"><span id="result-count"></span></div></div>
 <p id="notice" role="status" aria-live="polite"></p>
 <div id="empty-state" class="empty-state" hidden><h3></h3><p></p></div>
 <div id="results" aria-busy="false"></div>

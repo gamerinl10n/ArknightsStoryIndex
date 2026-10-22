@@ -21,7 +21,7 @@ async function setup(options = {}) {
     if (String(url).startsWith('/api/status')) data={dialogue_lines:725401};
     else if(String(url).startsWith('/api/suggestions')) {
       if(options.badSuggestions) throw Error('offline');
-      data=[{value:'켈시',label:'10개 대사',count:10},{value:'M3',label:'Mon3tr · 5개 대사',count:5}];
+      data=[{value:'켈시',label:'10개 대사',count:10,character_id:'char_003_kalts',portrait:'/portraits/fixture.webp'},{value:'M3',label:'Mon3tr · 5개 대사',count:5}];
     } else data=options.search ? await options.search(url,args) : {total:1,items:[exampleItem]};
     return {ok:true,json:async()=>data};
   };
@@ -50,7 +50,7 @@ test('attached completion supports keyboard selection, search and context', asyn
   assert.equal(x.$('speaker').value,'켈시');assert.equal(x.$('speaker-options').hidden,true);
   enter(x);await tick();await tick();assert.match(x.w.location.search,/speaker=M3/);
   assert.equal(x.$('results').querySelectorAll('article').length,1);assert.equal(x.$('results').querySelector('.current-line'),null);
-  assert.equal(x.$('share-search').hidden,false);assert.equal(x.w.localStorage.length,0);
+  assert.equal(x.$('share-search'),null);assert.equal(x.w.localStorage.length,0);
  }finally{x.dom.window.close();}
 });
 test('shared URLs restore corpus and search values independently',async()=>{
@@ -151,13 +151,7 @@ test('result and context metadata are available only through detail controls',as
   x.$('info-dialog').close();const panel=card.querySelector('details');panel.open=true;panel.dispatchEvent(new x.w.Event('toggle'));await tick();await tick();card.querySelector('.context-line .info-button').click();assert.match(x.$('info-content').textContent,/기본 분기/);
  }finally{x.dom.window.close();}
 });
-test('story filtering retains facets through search links and browser history',async()=>{
- const stories=[{path:'test.txt',count:1},{path:'other.txt',count:2}];const x=await setup({search:async()=>({total:1,items:[exampleItem],stories})});
- try{enter(x);await tick();await tick();assert.equal(x.$('result-filters').hidden,false);x.$('story-filter').value='test.txt';x.$('story-filter').dispatchEvent(new x.w.Event('change'));await tick();await tick();
- assert(x.calls.some(url=>url.startsWith('/api/search?')&&url.includes('story=test.txt')));assert.equal(x.$('story-filter').options.length,3);
- const pop=new Promise(resolve=>x.w.addEventListener('popstate',resolve,{once:true}));x.w.history.back();await pop;await tick();await tick();assert.equal(x.$('story-filter').value,'');assert.equal(x.$('story-filter').options.length,3);
- }finally{x.dom.window.close();}
-});
+
 test('language links preserve UI/corpus independence, draft and selected story',async()=>{
  const x=await setup({query:'?speaker=M3&lang=ja_JP&story=test.txt&view=home'});try{await tick();const link=x.w.document.querySelector('[data-ui="en"]');link.dispatchEvent(new x.w.Event('pointerdown'));const url=new URL(link.href);assert.equal(url.searchParams.get('ui'),'en');assert.equal(url.searchParams.get('lang'),'ja_JP');assert.equal(url.searchParams.get('speaker'),'M3');assert.equal(url.searchParams.get('story'),'test.txt');assert.equal(url.searchParams.get('view'),'home');}finally{x.dom.window.close();}
 });
@@ -192,4 +186,26 @@ test('aborted request responses never enter the shared API cache',async()=>{
  const controller=new x.w.AbortController(),first=client('/cancel',{signal:controller.signal});controller.abort();resolve();await assert.rejects(first,{name:'AbortError'});
  const second=client('/cancel');resolve();await second;assert.equal(calls,2);
  }finally{x.dom.window.close();}
+});
+
+test('word-only search, shared URL and character selection preserve avatars and fallback', async()=>{
+ const x=await setup({query:'search?q=%EC%BC%88%EC%8B%9C&lang=ko_KR'});try {
+  await tick();await tick();assert.equal(x.$('speaker').value,'');
+  assert.equal(x.$('query').value,'켈시');assert.equal(x.$('search-experience').dataset.view,'results');
+  assert(x.calls.some(url=>url.startsWith('/api/search?')&&url.includes('q=')));
+  assert.match(x.$('results-title').textContent,/켈시/);
+  x.$('back-search').click();x.$('speaker').focus();x.$('speaker').value='켈시';x.$('speaker').dispatchEvent(new x.w.Event('input'));
+  x.$('speaker-options').querySelector('[role=option]').click();
+  assert.equal(x.$('speaker').closest('.field').querySelector('img').getAttribute('src'),'/portraits/fixture.webp');
+  x.$('swap').click();assert(x.$('target').closest('.field').querySelector('img'));
+  x.$('target').value='unknown';x.$('target').dispatchEvent(new x.w.Event('input'));
+  assert.equal(x.$('target').closest('.field').querySelector('img'),null);
+  const image=x.$('speaker-options').querySelector('img');image.dispatchEvent(new x.w.Event('error'));
+  assert.equal(image.isConnected,false);
+  assert(x.$('speaker-options').querySelector('svg'));
+ }finally{x.dom.window.close();}
+});
+
+test('results omit copy actions and story picker',async()=>{
+ const x=await setup();try{enter(x);await tick();await tick();assert.equal(x.$('share-search'),null);assert.equal(x.$('story-filter'),null);assert.equal(x.$('results').querySelector('.result-actions'),null);}finally{x.dom.window.close();}
 });

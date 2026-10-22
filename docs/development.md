@@ -48,7 +48,7 @@ VERCEL=1 python app.py
 
 빌드에서는 재생성 가능한 중간 DB에만 `--ephemeral` 및 메모리 저널을 사용합니다. 영구 아카이브 갱신에는 사용하지 않습니다. 최종 DB는 `quick_check`와 용량 검사 후 교체하며 수집·변환 실패 시 빌드를 실패시킵니다.
 
-배포 번들에는 `generated/search.sqlite.gz`만 포함하고 원본 SQLite·아카이브는 제외합니다. 런타임은 파일 잠금으로 중복 압축 해제를 막고 `/tmp`에 한 번 풀어 immutable 읽기 전용으로 엽니다. 이 파일은 재생성 가능한 임시 캐시입니다.
+배포 번들에는 `generated/search.sqlite.gz`와 `generated/portraits/`를 포함하고 원본 SQLite·아카이브는 제외합니다. 런타임은 파일 잠금으로 중복 압축 해제를 막고 `/tmp`에 한 번 풀어 immutable 읽기 전용으로 엽니다. 이 파일은 재생성 가능한 임시 캐시입니다.
 
 2026-10-22 검증본은 1,433,397개 대사, SQLite 약 419MiB, gzip 약 141MiB입니다. 압축 전 DB가 450MiB를 넘으면 빌드를 중단합니다. 최종 Function 번들 크기는 의존성을 포함해 배포에서 확인합니다.
 
@@ -56,7 +56,7 @@ VERCEL=1 python app.py
 
 | 경로 | 기능 |
 | --- | --- |
-| `/api/search` | 화자 필수 검색, 대상·표현·언어·공개 범위·페이지 지정 |
+| `/api/search` | 인물·표현 중 하나 이상으로 검색, 대상·표현·언어·공개 범위·페이지 지정 |
 | `/api/suggestions` | 선택한 언어·공개 범위의 화자와 등록 별칭 |
 | `/api/context` | 원본 story·ordinal 기준 앞뒤 최대 100개 대사 |
 | `/api/status` | 수집 출처·SHA·파일 수·대사 수·미처리 텍스트 수 |
@@ -108,3 +108,9 @@ python scripts/benchmark.py generated/search.sqlite.gz
 | M3→켈시 첫 결과 JSON | 약 112KB | 약 28KB |
 
 다른 환경의 절대 속도를 보장하는 수치는 아닙니다. 문맥을 펼치면 해당 요청 비용이 추가됩니다. 기능 추가 시 같은 스냅샷·검색 조건으로 다시 측정하고 결과 개수·출처·분기·공개 범위가 같음을 함께 확인하세요.
+
+## 초상화와 글꼴
+
+`python build_portraits.py`는 portraits.source.json에 고정된 원본 SHA를 검증하고 기본 아바타를 96px WebP로 생성합니다. 이미지와 인덱스는 generated/에만 두고 커밋하지 않습니다. 빌드에 실패하면 배포를 중단합니다. 요청 중 외부 다운로드는 없습니다. 공식 ID로만 연결하고, 중복 이름·누락 이미지는 기본 아이콘을 사용합니다.
+
+L10ndiff의 NEXON Lv2 Gothic Regular/Bold 원본은 web/fonts/에 변경 없이 보관합니다. fonts.source.json에 Git blob SHA와 출처를 기록하며 일본어·중국어는 기기 글꼴로 이어집니다. 글꼴은 버전별 정적 경로로 캐시합니다. 푸터 링크는 화면 언어를 따르고 문서 본문은 한국어·영어 병기입니다.

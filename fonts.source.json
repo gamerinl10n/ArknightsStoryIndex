@@ -1,0 +1,15 @@
+{
+  "source": "gamerinl10n/l10ndiff",
+  "files": [
+    {
+      "filename": "NEXONLv2Gothic-Bold.otf",
+      "sha": "18ce9924d347c330f3adcee2236c88cf7643d433",
+      "url": "https://github.com/gamerinl10n/l10ndiff/blob/master/fonts/NEXONLv2Gothic-Bold.otf"
+    },
+    {
+      "filename": "NEXONLv2Gothic-Regular.otf",
+      "sha": "52f0f4365c939013aa46369dbd3cb15b30a18ee3",
+      "url": "https://github.com/gamerinl10n/l10ndiff/blob/master/fonts/NEXONLv2Gothic-Regular.otf"
+    }
+  ]
+}

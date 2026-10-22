@@ -7,3 +7,4 @@ Bundling / embedding with this copyright notice is permitted.
 Source attribution is recommended.
 
 Official rights holder: NEXON Korea Corporation
+

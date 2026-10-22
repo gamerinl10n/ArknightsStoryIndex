@@ -47,9 +47,28 @@ def search(
         where += " AND s.path=?"
         args.append(story)
     total = sum(row["count"] for row in facets if not story or row["path"] == story)
+    # Unscoped word searches scan once for facets, then read only the files on this page.
+    page_offset = offset
+    if not speaker:
+        paths = []
+        needed = 50
+        for facet in facets:
+            if story and facet["path"] != story:
+                continue
+            if page_offset >= facet["count"]:
+                page_offset -= facet["count"]
+                continue
+            paths.append(facet["path"])
+            needed -= facet["count"] - (page_offset if len(paths) == 1 else 0)
+            if needed <= 0:
+                break
+        if not paths:
+            return {"total": total, "items": [], "stories": facets}
+        where += " AND s.path IN (" + ",".join("?" for _ in paths) + ")"
+        args.extend(paths)
     rows = db.execute(
         f"SELECT l.*,s.lang,s.path,s.revision,s.source FROM lines l JOIN stories s ON s.id=l.story WHERE {where} ORDER BY s.path,l.ordinal LIMIT 50 OFFSET ?",
-        args + [offset],
+        args + [page_offset],
     ).fetchall()
     results = []
     for row in rows:

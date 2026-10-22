@@ -1,5 +1,6 @@
 import { $, el } from "./dom.mjs";
 import { api } from "./api.mjs";
+import { portrait, setInputPortrait } from "./portraits.mjs";
 export function createAutocomplete() {
   let suggestions = [],
     suggestionVersion = 0;
@@ -31,7 +32,7 @@ export function createAutocomplete() {
         option.id = id + "-option-" + index;
         option.setAttribute("role", "option");
         option.setAttribute("aria-selected", "false");
-        option.append(el("span", row.value));
+        option.append(portrait(row), el("span", row.value));
         if (row.label !== row.value) option.append(el("small", row.label));
         option.addEventListener("pointerdown", (event) =>
           event.preventDefault(),
@@ -39,6 +40,7 @@ export function createAutocomplete() {
         option.addEventListener("click", () => {
           input.value = row.value;
           input.setCustomValidity("");
+          setInputPortrait(id, row);
           close();
           input.focus();
         });
@@ -49,6 +51,7 @@ export function createAutocomplete() {
     }
     input.addEventListener("input", () => {
       input.setCustomValidity("");
+      setInputPortrait(id, null);
       draw();
     });
     input.addEventListener("focus", draw);
@@ -74,6 +77,7 @@ export function createAutocomplete() {
       } else if (event.key === "Enter" && !list.hidden && active >= 0) {
         event.preventDefault();
         input.value = rows[active].value;
+        setInputPortrait(id, rows[active]);
         close();
       }
     });
@@ -90,6 +94,7 @@ export function createAutocomplete() {
     $("speaker").value = $("target").value;
     $("target").value = a;
     completions.forEach((c) => c.close());
+    hydrate();
   };
   async function loadSpeakers() {
     const version = ++suggestionVersion;
@@ -109,15 +114,26 @@ export function createAutocomplete() {
           search: (row.value + " " + row.label).toLocaleLowerCase(),
         }))
         .sort((a, b) => b.count - a.count);
+      hydrate();
       completions.forEach((c) => c.refresh());
     } catch {
       if (version === suggestionVersion) suggestions = [];
     }
+  }
+  function hydrate() {
+    for (const id of ["speaker", "target"])
+      setInputPortrait(
+        id,
+        suggestions.find(
+          (row) => row.key === $(id).value.trim().toLocaleLowerCase(),
+        ) || null,
+      );
   }
   $("lang").addEventListener("change", loadSpeakers);
   $("spoilers").addEventListener("change", loadSpeakers);
   return {
     close: () => completions.forEach((c) => c.close()),
     load: loadSpeakers,
+    hydrate,
   };
 }
