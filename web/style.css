@@ -1,3 +1,5 @@
+html{overflow-y:scroll;scrollbar-gutter:stable}
+@supports(scrollbar-gutter:stable){html{overflow-y:auto}}
 :root {
   color-scheme:light;
   font-family:var(--font-sans);
