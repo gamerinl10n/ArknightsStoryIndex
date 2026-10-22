@@ -5877,7 +5877,389 @@
         "ネクラス"
       ],
       "en_US": [
-        "…1664 tokens truncated… 위트"
+        "Necrass"
+      ]
+    }
+  },
+  {
+    "id": "char_206_gnosis",
+    "names": {
+      "ko_KR": [
+        "노시스"
+      ],
+      "zh_CN": [
+        "灵知"
+      ],
+      "ja_JP": [
+        "ノーシス"
+      ],
+      "en_US": [
+        "Gnosis"
+      ]
+    }
+  },
+  {
+    "id": "char_291_aglina",
+    "names": {
+      "ko_KR": [
+        "안젤리나"
+      ],
+      "zh_CN": [
+        "安洁莉娜"
+      ],
+      "ja_JP": [
+        "アンジェリーナ"
+      ],
+      "en_US": [
+        "Angelina"
+      ]
+    }
+  },
+  {
+    "id": "char_358_lisa",
+    "names": {
+      "ko_KR": [
+        "스즈란"
+      ],
+      "zh_CN": [
+        "铃兰"
+      ],
+      "ja_JP": [
+        "スズラン"
+      ],
+      "en_US": [
+        "Suzuran"
+      ]
+    }
+  },
+  {
+    "id": "char_614_acsupo",
+    "names": {
+      "ko_KR": [
+        "라이디언"
+      ],
+      "zh_CN": [
+        "Raidian"
+      ],
+      "ja_JP": [
+        "Raidian"
+      ],
+      "en_US": [
+        "Raidian"
+      ]
+    }
+  },
+  {
+    "id": "char_1047_halo2",
+    "names": {
+      "ko_KR": [
+        "아스트젠 더 라이트체이서"
+      ],
+      "zh_CN": [
+        "溯光星源"
+      ],
+      "ja_JP": [
+        "溯光アステジーニ"
+      ],
+      "en_US": [
+        "Astgenne the Lightchaser"
+      ]
+    }
+  },
+  {
+    "id": "char_248_mgllan",
+    "names": {
+      "ko_KR": [
+        "마젤란"
+      ],
+      "zh_CN": [
+        "麦哲伦"
+      ],
+      "ja_JP": [
+        "マゼラン"
+      ],
+      "en_US": [
+        "Magallan"
+      ]
+    }
+  },
+  {
+    "id": "char_4195_radian",
+    "names": {
+      "ko_KR": [
+        "라이디언"
+      ],
+      "zh_CN": [
+        "电弧"
+      ],
+      "ja_JP": [
+        "レイディアン"
+      ],
+      "en_US": [
+        "Raidian"
+      ]
+    }
+  },
+  {
+    "id": "char_1012_skadi2",
+    "names": {
+      "ko_KR": [
+        "스카디 더 커럽팅 하트"
+      ],
+      "zh_CN": [
+        "浊心斯卡蒂"
+      ],
+      "ja_JP": [
+        "濁心スカジ"
+      ],
+      "en_US": [
+        "Skadi the Corrupting Heart"
+      ]
+    }
+  },
+  {
+    "id": "char_4134_cetsyr",
+    "names": {
+      "ko_KR": [
+        "시빌라이트 에테르나"
+      ],
+      "zh_CN": [
+        "魔王"
+      ],
+      "ja_JP": [
+        "シヴィライト・エテルナ"
+      ],
+      "en_US": [
+        "Civilight Eterna"
+      ]
+    }
+  },
+  {
+    "id": "char_1031_slent2",
+    "names": {
+      "ko_KR": [
+        "사일런스 더 패러디그매틱"
+      ],
+      "zh_CN": [
+        "淬羽赫默"
+      ],
+      "ja_JP": [
+        "淬羽サイレンス"
+      ],
+      "en_US": [
+        "Silence the Paradigmatic"
+      ]
+    }
+  },
+  {
+    "id": "char_4202_haruka",
+    "names": {
+      "ko_KR": [
+        "하루카"
+      ],
+      "zh_CN": [
+        "遥"
+      ],
+      "ja_JP": [
+        "ハルカ"
+      ],
+      "en_US": [
+        "Haruka"
+      ]
+    }
+  },
+  {
+    "id": "char_2023_ling",
+    "names": {
+      "ko_KR": [
+        "링"
+      ],
+      "zh_CN": [
+        "令"
+      ],
+      "ja_JP": [
+        "リィン"
+      ],
+      "en_US": [
+        "Ling"
+      ]
+    }
+  },
+  {
+    "id": "char_4072_ironmn",
+    "names": {
+      "ko_KR": [
+        "스테인리스"
+      ],
+      "zh_CN": [
+        "白铁"
+      ],
+      "ja_JP": [
+        "ステインレス"
+      ],
+      "en_US": [
+        "Stainless"
+      ]
+    }
+  },
+  {
+    "id": "char_4212_nasti",
+    "names": {
+      "ko_KR": [
+        "내스티"
+      ],
+      "zh_CN": [
+        "娜斯提"
+      ],
+      "ja_JP": [
+        "ナスティ"
+      ],
+      "en_US": [
+        "Nasti"
+      ]
+    }
+  },
+  {
+    "id": "char_245_cello",
+    "names": {
+      "ko_KR": [
+        "비르투오사"
+      ],
+      "zh_CN": [
+        "塑心"
+      ],
+      "ja_JP": [
+        "ヴィルトゥオーサ"
+      ],
+      "en_US": [
+        "Virtuosa"
+      ]
+    }
+  },
+  {
+    "id": "char_1042_phatm2",
+    "names": {
+      "ko_KR": [
+        "트라고디아"
+      ],
+      "zh_CN": [
+        "酒神"
+      ],
+      "ja_JP": [
+        "トラゴーディア"
+      ],
+      "en_US": [
+        "Tragodia"
+      ]
+    }
+  },
+  {
+    "id": "char_250_phatom",
+    "names": {
+      "ko_KR": [
+        "팬텀"
+      ],
+      "zh_CN": [
+        "傀影"
+      ],
+      "ja_JP": [
+        "ファントム"
+      ],
+      "en_US": [
+        "Phantom"
+      ]
+    }
+  },
+  {
+    "id": "char_1028_texas2",
+    "names": {
+      "ko_KR": [
+        "텍사스 디 오메르토사"
+      ],
+      "zh_CN": [
+        "缄默德克萨斯"
+      ],
+      "ja_JP": [
+        "血掟テキサス"
+      ],
+      "en_US": [
+        "Texas the Omertosa"
+      ]
+    }
+  },
+  {
+    "id": "char_1029_yato2",
+    "names": {
+      "ko_KR": [
+        "키린R 야토"
+      ],
+      "zh_CN": [
+        "麒麟R夜刀"
+      ],
+      "ja_JP": [
+        "キリンRヤトウ"
+      ],
+      "en_US": [
+        "Kirin R Yato"
+      ]
+    }
+  },
+  {
+    "id": "char_1502_crosly",
+    "names": {
+      "ko_KR": [
+        "크라운슬레이어"
+      ],
+      "zh_CN": [
+        "弑君者"
+      ],
+      "ja_JP": [
+        "クラウンスレイヤー"
+      ],
+      "en_US": [
+        "Crownslayer"
+      ]
+    }
+  },
+  {
+    "id": "char_615_acspec",
+    "names": {
+      "ko_KR": [
+        "미저리"
+      ],
+      "zh_CN": [
+        "Misery"
+      ],
+      "ja_JP": [
+        "Misery"
+      ],
+      "en_US": [
+        "Misery"
+      ]
+    }
+  },
+  {
+    "id": "char_322_lmlee",
+    "names": {
+      "ko_KR": [
+        "리"
+      ],
+      "zh_CN": [
+        "老鲤"
+      ],
+      "ja_JP": [
+        "リー"
+      ],
+      "en_US": [
+        "Lee"
+      ]
+    }
+  },
+  {
+    "id": "char_1033_swire2",
+    "names": {
+      "ko_KR": [
+        "스와이어 디 엘리건트 위트"
       ],
       "zh_CN": [
         "琳琅诗怀雅"
