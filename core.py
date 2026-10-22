@@ -75,6 +75,7 @@ def ingest(db, root, revision, source):
     """Validate entire batch before transactional replacement; raw snapshots stay in SQLite."""
     root = Path(root)
     batch = []
+    excluded = []
     report = {
         "files": 0,
         "dialogue_lines": 0,
@@ -86,6 +87,9 @@ def ingest(db, root, revision, source):
     for lang, folder in LANGUAGES.items():
         for f in sorted((root / folder / "gamedata/story").rglob("*.txt")):
             if f.name == "avg_segment_report.txt":
+                excluded.append(
+                    f"{lang}:{f.relative_to(root / folder / 'gamedata/story').as_posix()}"
+                )
                 report["excluded_documents"] += 1
                 continue
             raw = f.read_text(encoding="utf-8-sig")
@@ -116,6 +120,8 @@ def ingest(db, root, revision, source):
     if old_count >= 100 and report["dialogue_lines"] < old_count * 0.8:
         raise ValueError("대사 수가 20% 이상 감소했습니다. 기존 데이터를 유지합니다.")
     with db:
+        # Retire old parser examples from search, retaining their archived source.
+        db.executemany("DELETE FROM lines WHERE story=?", ((sid,) for sid in excluded))
         for lang, path, raw, rows in batch:
             sid = f"{lang}:{path}"
             db.execute(

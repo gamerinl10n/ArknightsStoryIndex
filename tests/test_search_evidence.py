@@ -66,3 +66,38 @@ class EvidenceTest(unittest.TestCase):
             self.assertEqual(
                 search(db, query="B", include_details=False)["items"][0]["ordinal"], 1
             )
+
+    def test_reimport_removes_legacy_document_examples_but_keeps_archive(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            path = root / "kr/gamedata/story/test.txt"
+            path.parent.mkdir(parents=True)
+            path.write_text('[name="A"]검색 대사', encoding="utf8")
+            report = path.with_name("avg_segment_report.txt")
+            report.write_text('[name="예시"]문법 예시', encoding="utf8")
+            db = connect(":memory:")
+            self.addCleanup(db.close)
+            sid = "ko_KR:avg_segment_report.txt"
+            db.execute(
+                "INSERT INTO stories VALUES(?,?,?,?,?,?)",
+                (
+                    sid,
+                    "ko_KR",
+                    "avg_segment_report.txt",
+                    "old",
+                    "test",
+                    "synthetic archive",
+                ),
+            )
+            db.execute(
+                "INSERT INTO lines VALUES(?,?,?,?,?,?,?)",
+                (sid + ":0", sid, 0, "예시", "문법 예시", "main", "fixture"),
+            )
+            db.commit()
+            ingest(db, root, "new", "test")
+            self.assertEqual(search(db, query="문법")["total"], 0)
+            self.assertEqual(
+                db.execute("SELECT raw FROM stories WHERE id=?", (sid,)).fetchone()[0],
+                "synthetic archive",
+            )
+            self.assertEqual(search(db, speaker="A")["total"], 1)
