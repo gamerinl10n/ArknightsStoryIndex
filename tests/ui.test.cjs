@@ -160,12 +160,12 @@ test('expression highlights preserve raw text and never execute markup',async()=
  try{x.$('query').value='시험';enter(x);await tick();await tick();const quote=x.$('results').querySelector('.quote');assert.equal(quote.textContent,text);assert.equal(quote.querySelectorAll('mark').length,2);assert.equal(quote.querySelector('img'),null);}finally{x.dom.window.close();}
 });
 
-test('light results defer context DOM and fetch; context and parallel share one request',async()=>{
+test('light results fetch only context and omit cross-language candidates',async()=>{
  const item={...exampleItem};delete item.context;delete item.parallel;
  const x=await setup({search:async url=>String(url).startsWith('/api/context?')?{items:exampleItem.context,parallel:[{lang:'en_US',speaker:'Mon3tr',text:'Fixture'}],has_more:true}:{total:1,items:[item]}});
  try{enter(x);await tick();await tick();assert(x.calls.some(url=>url.includes('details=0')));assert.equal(x.$('results').querySelector('.context-line'),null);assert.equal(x.calls.filter(url=>url.startsWith('/api/context?')).length,0);
  const panels=x.$('results').querySelectorAll('details');panels[0].open=true;panels[0].dispatchEvent(new x.w.Event('toggle'));await tick();await tick();assert(x.$('results').querySelector('.current-line'));
- panels[1].open=true;panels[1].dispatchEvent(new x.w.Event('toggle'));await tick();await tick();assert.match(panels[1].textContent,/Fixture/);assert.equal(x.calls.filter(url=>url.startsWith('/api/context?')).length,1);
+ assert.equal(panels.length,1);assert(!x.calls.some(url=>url.includes('parallel=')));assert(!x.$('results').textContent.includes('Fixture'));assert.equal(x.calls.filter(url=>url.startsWith('/api/context?')).length,1);
  const count=x.calls.filter(url=>url.startsWith('/api/search?')).length;enter(x);await tick();await tick();assert.equal(x.calls.filter(url=>url.startsWith('/api/search?')).length,count);
  }finally{x.dom.window.close();}
 });
