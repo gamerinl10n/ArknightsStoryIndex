@@ -66,9 +66,10 @@ class DeploymentTest(unittest.TestCase):
     def test_suggestions_include_alias_and_count_without_spoilers(self):
         rows=self.client.get('/api/suggestions').json
         by_name={row['value']:row for row in rows}
-        self.assertEqual(by_name['M3']['count'],1)
-        self.assertIn('Mon3tr',by_name['M3']['label'])
-        self.assertIn('凯尔希',by_name)
+        self.assertEqual(by_name['Mon3tr']['count'],1)
+        self.assertIn('M3',by_name['Mon3tr']['lookup'])
+        self.assertNotIn('凯尔希',by_name)
+        self.assertIn('凯尔希',by_name['켈시']['lookup'])
         self.assertEqual(self.client.get('/api/suggestions?lang=bad').status_code,400)
 
     def test_versioned_modules_are_cacheable_and_private_routes_are_not(self):
@@ -101,7 +102,7 @@ class DeploymentTest(unittest.TestCase):
         client=create_app(str(self.snapshot),True).test_client()
         self.assertEqual(client.get('/api/suggestions?lang=zh_CN').json,[])
         by_name={row['value']:row for row in client.get('/api/suggestions?lang=zh_CN&spoilers=1').json}
-        self.assertEqual(by_name['M3']['count'],1)
+        self.assertEqual(by_name['Mon3tr']['count'],1)
 
     def test_light_api_and_lazy_context_preserve_source_and_parallel(self):
         response=self.client.get('/api/search?speaker=M3&details=0').json

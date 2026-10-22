@@ -1,4 +1,4 @@
-import { $, t, reducedMotion } from "./dom.mjs";
+import { $, reducedMotion } from "./dom.mjs";
 export function createNavigation(experience) {
   let viewTransition,
     viewVersion = 0;
@@ -8,8 +8,7 @@ export function createNavigation(experience) {
     const apply = () => {
       if (token !== viewVersion) return;
       experience.dataset.view = view;
-      document.title =
-        t(view === "home" ? "search" : "results") + " · Arknights Story Index";
+      document.title = "Arknights Story Index";
       $("results-panel").hidden = view === "home";
       $("back-search").parentElement.hidden = view === "home";
       if (changed && view === "results")

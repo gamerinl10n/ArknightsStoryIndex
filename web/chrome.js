@@ -21,6 +21,10 @@ document.querySelectorAll(".language-switch a").forEach((link) => {
   const refresh = () => {
     const url = preserveForm();
     url.searchParams.set("ui", link.dataset.ui);
+    url.searchParams.set(
+      "lang",
+      { ko: "ko_KR", zh: "zh_CN", ja: "ja_JP", en: "en_US" }[link.dataset.ui],
+    );
     link.href = url.href;
   };
   for (const event of ["pointerdown", "focus", "click"])

@@ -39,3 +39,18 @@ class MultilingualTest(unittest.TestCase):
         self.assertIn('ケルシー',aliases('켈시','ja_JP'))
         self.assertIn("Kal'tsit",aliases('凯尔希','en_US'))
         self.assertEqual(aliases('M3','ja_JP'),['Mon3tr'])
+
+    def test_localized_suggestions_accept_other_language_names(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            for folder,name in [('kr','아미야'),('en','Amiya'),('jp','アーミヤ'),('cn','阿米娅')]:
+                p=root/folder/'gamedata/story/test.txt';p.parent.mkdir(parents=True)
+                p.write_text(f'[name="{name}"]Synthetic fixture',encoding='utf8')
+            database=root/'test.sqlite'
+            with closing(connect(database)) as db:ingest(db,root,'synthetic','test/source')
+            client=create_app(str(database),True).test_client()
+            for lang,name in [('ko_KR','아미야'),('en_US','Amiya'),('ja_JP','アーミヤ'),('zh_CN','阿米娅')]:
+                rows=client.get('/api/suggestions',query_string={'lang':lang}).json
+                self.assertEqual([row['value'] for row in rows],[name])
+                self.assertIn('아미야',rows[0]['lookup'])
+                self.assertEqual(client.get('/api/search',query_string={'speaker':'아미야','lang':lang,'details':'0'}).json['items'][0]['speaker'],name)

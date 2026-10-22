@@ -21,7 +21,7 @@ async function setup(options = {}) {
     if (String(url).startsWith('/api/status')) data={dialogue_lines:725401};
     else if(String(url).startsWith('/api/suggestions')) {
       if(options.badSuggestions) throw Error('offline');
-      data=[{value:'켈시',label:'10개 대사',count:10,character_id:'char_003_kalts',portrait:'/portraits/fixture.webp'},{value:'M3',label:'Mon3tr · 5개 대사',count:5}];
+      data=options.suggestions || [{value:'켈시',label:'10개 대사',count:10,character_id:'char_003_kalts',portrait:'/portraits/fixture.webp'},{value:'M3',label:'Mon3tr · 5개 대사',count:5}];
     } else data=options.search ? await options.search(url,args) : {total:1,items:[exampleItem]};
     return {ok:true,json:async()=>data};
   };
@@ -152,8 +152,8 @@ test('result and context metadata are available only through detail controls',as
  }finally{x.dom.window.close();}
 });
 
-test('language links preserve UI/corpus independence, draft and selected story',async()=>{
- const x=await setup({query:'?speaker=M3&lang=ja_JP&story=test.txt&view=home'});try{await tick();const link=x.w.document.querySelector('[data-ui="en"]');link.dispatchEvent(new x.w.Event('pointerdown'));const url=new URL(link.href);assert.equal(url.searchParams.get('ui'),'en');assert.equal(url.searchParams.get('lang'),'ja_JP');assert.equal(url.searchParams.get('speaker'),'M3');assert.equal(url.searchParams.get('story'),'test.txt');assert.equal(url.searchParams.get('view'),'home');}finally{x.dom.window.close();}
+test('language links select matching corpus and preserve draft',async()=>{
+ const x=await setup({query:'?speaker=M3&lang=ja_JP&story=test.txt&view=home'});try{await tick();const link=x.w.document.querySelector('[data-ui="en"]');link.dispatchEvent(new x.w.Event('pointerdown'));const url=new URL(link.href);assert.equal(url.searchParams.get('ui'),'en');assert.equal(url.searchParams.get('lang'),'en_US');assert.equal(url.searchParams.get('speaker'),'M3');assert.equal(url.searchParams.get('story'),'test.txt');assert.equal(url.searchParams.get('view'),'home');}finally{x.dom.window.close();}
 });
 test('expression highlights preserve raw text and never execute markup',async()=>{
  const text='<img src=x onerror=alert(1)> 시험 시험';const x=await setup({search:async()=>({total:1,items:[{...exampleItem,text}]})});
@@ -208,4 +208,19 @@ test('word-only search, shared URL and character selection preserve avatars and 
 
 test('results omit copy actions and story picker',async()=>{
  const x=await setup();try{enter(x);await tick();await tick();assert.equal(x.$('share-search'),null);assert.equal(x.$('story-filter'),null);assert.equal(x.$('results').querySelector('.result-actions'),null);}finally{x.dom.window.close();}
+});
+
+test('Korean names find localized English and Japanese suggestions without foreign display rows',async()=>{
+ for(const [lang,name] of [['en_US','Amiya'],['ja_JP','アーミヤ']]){
+  const x=await setup({query:'?lang='+lang,suggestions:[{value:name,label:name,count:12,lookup:['아미야','Amiya','アーミヤ','阿米娅']}]});
+  try{await tick();await tick();x.$('speaker').focus();x.$('speaker').value='아미';x.$('speaker').dispatchEvent(new x.w.Event('input'));
+   assert.equal(x.$('speaker-options').children.length,1);assert.equal(x.$('speaker-options').textContent,name);
+   x.$('speaker-options').querySelector('[role=option]').click();assert.equal(x.$('speaker').value,name);
+   x.$('search').dispatchEvent(new x.w.Event('submit',{cancelable:true}));await tick();await tick();assert(x.calls.some(url=>url.startsWith('/api/search?')&&new URL(url,'https://asi.test').searchParams.get('speaker')===name&&url.includes('lang='+lang)));
+  }finally{x.dom.window.close();}
+ }
+});
+
+test('tab title stays the brand through search and return',async()=>{
+ const x=await setup();try{assert.equal(x.w.document.title,'Arknights Story Index');enter(x);await tick();await tick();assert.equal(x.w.document.title,'Arknights Story Index');x.$('back-search').click();assert.equal(x.w.document.title,'Arknights Story Index');}finally{x.dom.window.close();}
 });

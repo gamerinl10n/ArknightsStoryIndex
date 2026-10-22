@@ -17,7 +17,9 @@ export function createAutocomplete() {
     };
     function draw() {
       const query = input.value.trim().toLocaleLowerCase();
-      const exact = suggestions.find((row) => row.key === query);
+      const exact =
+        suggestions.find((row) => row.key === query) ||
+        suggestions.find((row) => row.keys.includes(query));
       rows = exact ? [exact] : [];
       for (const row of suggestions) {
         if (rows.length === 12) break;
@@ -111,7 +113,12 @@ export function createAutocomplete() {
         .map((row) => ({
           ...row,
           key: row.value.toLocaleLowerCase(),
-          search: (row.value + " " + row.label).toLocaleLowerCase(),
+          keys: [row.value, ...(row.lookup || [])].map((value) =>
+            value.toLocaleLowerCase(),
+          ),
+          search: [row.value, row.label, ...(row.lookup || [])]
+            .join(" ")
+            .toLocaleLowerCase(),
         }))
         .sort((a, b) => b.count - a.count);
       hydrate();
@@ -124,8 +131,8 @@ export function createAutocomplete() {
     for (const id of ["speaker", "target"])
       setInputPortrait(
         id,
-        suggestions.find(
-          (row) => row.key === $(id).value.trim().toLocaleLowerCase(),
+        suggestions.find((row) =>
+          row.keys.includes($(id).value.trim().toLocaleLowerCase()),
         ) || null,
       );
   }

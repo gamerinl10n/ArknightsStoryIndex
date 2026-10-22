@@ -6,7 +6,7 @@ import json
 import sqlite3
 from pathlib import Path
 from portraits import Portraits
-from catalog import characters
+from catalog import characters, character_id
 from core import connect
 from runtime_snapshot import materialize
 
@@ -65,16 +65,25 @@ class SearchService:
             count = sum(counts.get(name, 0) for name in names)
             if not count:
                 continue
-            alternate = character.get("aliases", []) + [
-                name for group in character["names"].values() for name in group
-            ]
-            for alias in alternate:
-                if alias not in result:
-                    result[alias] = {
-                        "value": alias,
-                        "label": " / ".join(names),
-                        "count": count,
-                    }
+            # Show only names in this corpus; other languages are lookup keys.
+            lookup = sorted(
+                {
+                    value
+                    for value in [
+                        character["id"],
+                        *character.get("aliases", []),
+                        *(
+                            name
+                            for group in character["names"].values()
+                            for name in group
+                        ),
+                    ]
+                    if character_id(value) == character["id"]
+                }
+            )
+            for name in names:
+                if name in result and character_id(name) == character["id"]:
+                    result[name]["lookup"] = lookup
         return self.portraits.annotate(
             sorted(result.values(), key=lambda row: row["value"])
         )
