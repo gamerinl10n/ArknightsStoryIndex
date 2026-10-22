@@ -1,0 +1,65 @@
+.theme-toggle {
+    position: relative;
+    overflow: hidden;
+    color: var(--muted);
+    background: var(--surface-glass-strong);
+}
+
+.theme-toggle:hover {
+    color: var(--accent-deep);
+    border-color: var(--accent-border);
+    background: var(--accent-soft);
+}
+
+.theme-toggle-icons {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    display: grid;
+    place-items: center;
+}
+
+.theme-icon {
+    grid-area: 1 / 1;
+    display: block;
+    transition:
+        opacity 0.28s ease,
+        transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.theme-icon-moon {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+    color: #52525b;
+}
+
+.theme-icon-sun {
+    opacity: 0;
+    transform: rotate(-50deg) scale(0.55);
+    color: var(--accent-deep);
+}
+
+html[data-theme="dark"] .theme-toggle {
+    color: #a0a0a0;
+    background: rgba(45, 45, 45, 0.94);
+    border-color: #4a4a4a;
+}
+
+html[data-theme="dark"] .theme-toggle:hover {
+    color: var(--accent);
+    border-color: #3d5f56;
+    background: var(--accent-soft);
+}
+
+html[data-theme="dark"] .theme-icon-moon {
+    opacity: 0;
+    transform: rotate(50deg) scale(0.55);
+}
+
+html[data-theme="dark"] .theme-icon-sun {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+    color: #98ddca;
+}
+
+

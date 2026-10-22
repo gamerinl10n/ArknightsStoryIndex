@@ -1,0 +1,2 @@
+{% extends 'base.html' %}
+{% block content %}<article class="document"><a href="/" class="back-link">← 대사 검색으로</a><h1>{{ title }}</h1><p class="document-date">{{ page.subtitle }}</p>{% for section in page.sections %}<section><h2>{{ section.title }}</h2>{% for paragraph in section.paragraphs %}<p>{{ paragraph }}</p>{% endfor %}</section>{% endfor %}{% if page.links %}<nav class="document-links">{% for link in page.links %}<a href="{{ link.url }}">{{ link.label }} ↗</a>{% endfor %}</nav>{% endif %}</article>{% endblock %}

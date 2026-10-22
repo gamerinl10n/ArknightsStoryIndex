@@ -1,42 +1,29 @@
 """Flask entrypoint shared by local development and Vercel Functions."""
 import argparse
 from contextlib import closing
-import hmac
 import json
 import os
 from pathlib import Path
 import sqlite3
-from flask import Flask, jsonify, request, send_file
-from core import connect, ingest, search, review, validate_review
-from review_store import PostgresReviews
+from flask import Flask, jsonify, request, send_file, render_template, abort
+from core import connect, ingest, search
+from pages import PAGES
 
 ROOT = Path(__file__).resolve().parent
 
 
-def create_app(database=None, readonly=None, store=None):
-    app = Flask(__name__, static_folder=None)
+def create_app(database=None, readonly=None):
+    app = Flask(__name__, static_folder=None, template_folder=str(ROOT / "web"))
     app.config['MAX_CONTENT_LENGTH'] = 16384
     readonly = bool(os.environ.get('VERCEL')) if readonly is None else readonly
     database = database or os.environ.get('ASI_DB') or str(ROOT / ('generated/search.sqlite' if readonly else 'data/index.sqlite'))
-    remote_url = os.environ.get('ASI_REVIEW_DATABASE_URL')
-    store = store or (PostgresReviews(remote_url) if remote_url else None)
-
-    def open_db(with_reviews=False):
+    def open_db():
         if readonly:
             path = Path(database).resolve()
             db = sqlite3.connect(path.as_uri() + '?mode=ro&immutable=1', uri=True)
             db.row_factory = sqlite3.Row
         else:
             db = connect(database)
-        if with_reviews and store:
-            try:
-                db.execute('CREATE TEMP TABLE reviews(line TEXT, target TEXT, expression TEXT, kind TEXT, hash TEXT, PRIMARY KEY(line,target))')
-                rows = store.load()
-                db.executemany('INSERT INTO temp.reviews VALUES(?,?,?,?,?)', rows)
-                db.commit()
-            except Exception:
-                db.close()
-                raise
         return db
 
     @app.after_request
@@ -57,7 +44,7 @@ def create_app(database=None, readonly=None, store=None):
 
     @app.route('/')
     def home():
-        return send_file(ROOT / 'web/index.html')
+        return render_template('index.html',title='대사 검색')
 
     @app.route('/app.js')
     def javascript():
@@ -67,6 +54,20 @@ def create_app(database=None, readonly=None, store=None):
     def stylesheet():
         return send_file(ROOT / 'web/style.css', mimetype='text/css')
 
+    @app.route('/theme.js')
+    @app.route('/chrome.js')
+    @app.route('/theme-control.css')
+    def shared_assets():
+        filename = request.path.lstrip('/')
+        return send_file(ROOT / 'web' / filename, mimetype='text/css' if filename.endswith('.css') else 'text/javascript')
+
+    @app.route('/<page>')
+    def document(page):
+        if page not in PAGES:
+            abort(404)
+        data = PAGES[page]
+        return render_template('document.html',title=data['title'],page=data)
+
     @app.route('/api/search')
     def find():
         q = request.args
@@ -75,17 +76,9 @@ def create_app(database=None, readonly=None, store=None):
             raise ValueError('말하는 인물을 선택하세요.')
         if any(len(q.get(key, '')) > 300 for key in ('speaker', 'target', 'q')):
             raise ValueError('검색어가 너무 깁니다.')
-        try:
-            with closing(open_db(with_reviews=True)) as db:
-                result = search(db, q.get('speaker','').strip(), q.get('target','').strip(), q.get('q',''), q.get('lang','ko_KR'), q.get('spoilers')=='1', max(0,int(q.get('offset',0))))
-            return jsonify(result)
-        except sqlite3.OperationalError:
-            raise
-        except ValueError:
-            raise
-        except Exception:
-            app.logger.exception('Persistent review retrieval failed')
-            return jsonify(error='검토 기록을 불러오지 못했습니다. 잠시 후 다시 시도하세요.'), 503
+        with closing(open_db()) as db:
+            result = search(db, q.get('speaker','').strip(), q.get('target','').strip(), q.get('q',''), q.get('lang','ko_KR'), q.get('spoilers')=='1', max(0,int(q.get('offset',0))))
+        return jsonify(result)
 
     @app.route('/api/status')
     def status():
@@ -93,7 +86,6 @@ def create_app(database=None, readonly=None, store=None):
             exists = db.execute("SELECT 1 FROM sqlite_master WHERE name='import_status'").fetchone()
             row = db.execute('SELECT payload FROM import_status WHERE id=1').fetchone() if exists else None
         result = json.loads(row[0]) if row else {'dialogue_lines':0}
-        result['reviews_enabled'] = bool(not readonly or store)
         result['readonly'] = readonly
         return jsonify(result)
 
@@ -107,25 +99,25 @@ def create_app(database=None, readonly=None, store=None):
             names = [r[0] for r in db.execute("SELECT DISTINCT l.speaker FROM lines l JOIN stories s ON s.id=l.story WHERE s.lang=? AND l.speaker!='' AND (? OR EXISTS(SELECT 1 FROM stories kr WHERE kr.lang='ko_KR' AND kr.path=s.path)) ORDER BY l.speaker", (lang, spoilers))]
         return jsonify(names)
 
-    @app.route('/api/review', methods=['POST'])
-    def save_review():
-        token = os.environ.get('ASI_ADMIN_TOKEN','')
-        if len(token) < 32 or not hmac.compare_digest(request.headers.get('Authorization','').encode(), ('Bearer '+token).encode()):
-            return jsonify(error='관리자 인증이 필요합니다.'), 401
-        if readonly and not store:
-            return jsonify(error='검토 기록의 영구 저장소가 연결되지 않았습니다.'), 503
-        payload = request.get_json(silent=True)
+    @app.route('/api/suggestions')
+    def suggestions():
+        lang = request.args.get('lang', 'ko_KR')
+        if lang not in ('ko_KR','zh_CN'):
+            raise ValueError('지원하지 않는 언어')
+        spoilers = request.args.get('spoilers') == '1'
         with closing(open_db()) as db:
-            if store:
-                payload = validate_review(db,payload)
-                try:
-                    store.save(payload)
-                except Exception:
-                    app.logger.exception('Persistent review save failed')
-                    return jsonify(error='검토 기록을 저장하지 못했습니다.'), 503
-            else:
-                review(db,payload)
-        return jsonify(ok=True)
+            counts = dict(db.execute("SELECT l.speaker,count(*) FROM lines l JOIN stories s ON s.id=l.story WHERE s.lang=? AND l.speaker!='' AND (? OR EXISTS(SELECT 1 FROM stories kr WHERE kr.lang='ko_KR' AND kr.path=s.path)) GROUP BY l.speaker",(lang,spoilers)))
+        result = {name: {'value':name, 'label':f'{count:,}개 대사', 'count':count} for name,count in counts.items()}
+        for character in json.loads((ROOT/'characters.json').read_text(encoding='utf-8')):
+            names = character['names'].get(lang, [])
+            count = sum(counts.get(name,0) for name in names)
+            if not count:
+                continue
+            alternate = character.get('aliases', []) + [n for group in character['names'].values() for n in group]
+            for alias in alternate:
+                if alias not in result:
+                    result[alias] = {'value':alias,'label':f"{' / '.join(names)} · {count:,}개 대사",'count':count}
+        return jsonify(sorted(result.values(),key=lambda r:r['value']))
 
     return app
 
