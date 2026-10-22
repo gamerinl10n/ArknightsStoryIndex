@@ -15,7 +15,7 @@ url='https://github.com/ArknightsAssets/ArknightsGamedata.git'
 def git(*args):
     return subprocess.check_output(['git','-C',str(root),*args],text=True).strip()
 if not (root/'.git').exists():
-    subprocess.run(['git','clone','--filter=blob:none','--no-checkout',url,str(root)],check=True)
+    subprocess.run(['git','clone','--depth=1','--filter=blob:none','--no-checkout',url,str(root)],check=True)
     git('sparse-checkout','set','kr/gamedata/story','cn/gamedata/story')
 git('fetch','origin',a.ref,'--depth=1')
 revision=git('rev-parse','FETCH_HEAD')

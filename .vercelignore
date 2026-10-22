@@ -1,0 +1,6 @@
+data/
+generated/
+.git/
+__pycache__/
+.env
+.env.*

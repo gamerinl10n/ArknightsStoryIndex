@@ -1,0 +1,12 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "flask",
+  "buildCommand": "python build.py",
+  "functions": {
+    "app.py": {
+      "includeFiles": "{generated/search.sqlite,characters.json,web/**}",
+      "excludeFiles": "{data/**,tests/**,docs/**,.git/**,__pycache__/**}",
+      "maxDuration": 60
+    }
+  }
+}

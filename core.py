@@ -126,20 +126,31 @@ def search(db, speaker='', target='', query='', lang='ko_KR', spoilers=False, of
     return {'total': total, 'items': results}
 
 
-def review(db, payload):
+def validate_review(db, payload):
     if not isinstance(payload, dict) or any(not isinstance(payload.get(k), str) for k in ('line','target','expression','kind','hash')):
         raise ValueError('검토 항목은 문자열이어야 합니다.')
-    payload = {**payload, 'target': payload['target'].strip()}
+    payload = {k: payload[k] for k in ('line','target','expression','kind','hash')}
+    payload['target'] = payload['target'].strip()
+    if any(len(payload[k]) > 2000 for k in payload):
+        raise ValueError('검토 항목이 너무 깁니다.')
     if payload['kind'] in ('direct','reference') and not payload['expression'].strip():
         raise ValueError('직접 호칭과 지칭에는 원문 표현이 필요합니다.')
+    story, separator, ordinal = payload['line'].rpartition(':')
+    if not separator or not ordinal.isdecimal():
+        raise ValueError('잘못된 대사 식별자입니다.')
+    line = db.execute('SELECT * FROM lines WHERE story=? AND ordinal=? AND id=?', (story,int(ordinal),payload['line'])).fetchone()
+    if not line or line['hash'] != payload['hash']:
+        raise ValueError('원문이 변경되었습니다. 새로 검색한 뒤 검토하세요.')
+    if payload['kind'] not in ('direct', 'reference', 'related', 'rejected'):
+        raise ValueError('잘못된 분류')
+    if not payload['target'] or (payload['expression'] and payload['expression'] not in line['text']):
+        raise ValueError('대상과 원문에 존재하는 표현을 입력하세요.')
+    return payload
+
+
+def review(db, payload):
     with db:
         db.execute('BEGIN IMMEDIATE')
-        line = db.execute('SELECT * FROM lines WHERE id=?', (payload['line'],)).fetchone()
-        if not line or line['hash'] != payload['hash']:
-            raise ValueError('원문이 변경되었습니다. 새로 검색한 뒤 검토하세요.')
-        if payload['kind'] not in ('direct', 'reference', 'related', 'rejected'):
-            raise ValueError('잘못된 분류')
-        if not payload['target'].strip() or (payload['expression'] and payload['expression'] not in line['text']):
-            raise ValueError('대상과 원문에 존재하는 표현을 입력하세요.')
-        db.execute('INSERT INTO history(line,target,payload) VALUES(?,?,?)', (line['id'],payload['target'],json.dumps(payload,ensure_ascii=False)))
-        db.execute('INSERT OR REPLACE INTO reviews VALUES(?,?,?,?,?)', (payload['line'],payload['target'],payload['expression'],payload['kind'],payload['hash']))
+        payload = validate_review(db,payload)
+        db.execute('INSERT INTO history(line,target,payload) VALUES(?,?,?)', (payload['line'],payload['target'],json.dumps(payload,ensure_ascii=False)))
+        db.execute('INSERT OR REPLACE INTO reviews VALUES(?,?,?,?,?)', tuple(payload[k] for k in ('line','target','expression','kind','hash')))
