@@ -66,3 +66,10 @@ for lang,text in [
  ('zh','移除了其他语言同位置台词候选，结果仅展示所选语言的台词和上下文。'),
  ('ja','他言語の同じ行位置の候補を削除し、選んだ言語の台詞と前後の文脈を表示する形に整理しました。')]:
  COPY[lang]['changelog'].insert(0,('2026-10-22',text))
+
+for lang,title,text in [
+ ('en','Result order and shared context','Two-character searches prioritize matches with a nearby turn by the other character in the same branch. Each direction examines up to six text rows within 60 source lines, stopping at another speaker or branch. This is ordering evidence, not confirmation of direct address or third-person mention. Lines without a name match are not added. Nearby matches in one file and branch share context. Subtitles, narration and choices without an explicit speaker remain unnamed.'),
+ ('zh','结果顺序与共享上下文','双角色搜索优先显示同一分支中附近有对方发言的匹配结果。每个方向最多检查原文60行内的6条文本，遇到其他说话者或分支即停止。这只是排序依据，不代表已确认直接对话或第三者提及，也不会添加不含姓名的台词。同一文件、分支中的邻近匹配共享上下文。没有明确说话者的字幕、旁白和选项不推测角色。'),
+ ('ja','結果の順序と共通の文脈','二人の検索では同じ分岐で相手の発言が近くにある一致を優先します。前後それぞれ原文60行以内のテキスト6行まで確認し、別の話者や分岐で止めます。直接の呼びかけや第三者への言及を確定するものではなく、名前が一致しない台詞は追加しません。同じファイル・分岐の近い一致は文脈を共有します。話者が明記されない字幕・地の文・選択肢に人物を推測して付けません。')]:
+ COPY[lang]['help'].append((title,text))
+ COPY[lang]['changelog'].insert(0,('2026-10-22 · Arknights Index',text))

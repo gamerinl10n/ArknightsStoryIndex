@@ -66,9 +66,27 @@ def search(
             return {"total": total, "items": [], "stories": facets}
         where += " AND s.path IN (" + ",".join("?" for _ in paths) + ")"
         args.extend(paths)
+    # Rank the complete match set before pagination, never just the visible page.
+    # Nearby turns are evidence for ordering, not proof of an addressee.
+    rank_sql = "0"
+    rank_args = []
+    if speaker and target:
+        target_names = aliases(target, lang)
+        placeholders = ",".join("?" for _ in target_names)
+        turns = []
+        for comparator, direction in (("<", "DESC"), (">", "ASC")):
+            turns.append(
+                f"""COALESCE((SELECT CASE WHEN n.branch=l.branch AND n.speaker IN ({placeholders}) THEN 1 ELSE 0 END
+                FROM (SELECT speaker,branch,ordinal FROM lines WHERE story=l.story
+                AND ordinal {comparator} l.ordinal AND ordinal BETWEEN l.ordinal-60 AND l.ordinal+60
+                ORDER BY ordinal {direction} LIMIT 6) n
+                WHERE n.speaker!=l.speaker OR n.branch!=l.branch ORDER BY n.ordinal {direction} LIMIT 1),0)"""
+            )
+            rank_args.extend(target_names)
+        rank_sql = " + ".join(turns)
     rows = db.execute(
-        f"SELECT l.*,s.lang,s.path,s.revision,s.source FROM lines l JOIN stories s ON s.id=l.story WHERE {where} ORDER BY s.path,l.ordinal LIMIT 50 OFFSET ?",
-        args + [page_offset],
+        f"SELECT l.*,s.lang,s.path,s.revision,s.source,({rank_sql}) AS nearby_turns FROM lines l JOIN stories s ON s.id=l.story WHERE {where} ORDER BY nearby_turns DESC,s.path,l.ordinal LIMIT 50 OFFSET ?",
+        rank_args + args + [page_offset],
     ).fetchall()
     results = []
     for row in rows:

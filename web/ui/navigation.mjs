@@ -8,7 +8,7 @@ export function createNavigation(experience) {
     const apply = () => {
       if (token !== viewVersion) return;
       experience.dataset.view = view;
-      document.title = "Arknights Story Index";
+      document.title = "Arknights Index";
       $("results-panel").hidden = view === "home";
       $("back-search").parentElement.hidden = view === "home";
       if (changed && view === "results")
