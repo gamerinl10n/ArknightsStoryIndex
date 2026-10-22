@@ -47,7 +47,7 @@ class DeploymentTest(unittest.TestCase):
         self.assertEqual(client.get('/api/status').status_code,503)
         self.assertFalse((self.root/'missing.sqlite').exists())
     def test_shared_pages_and_assets(self):
-        for url in ('/help','/privacy','/terms','/license','/changelog'):
+        for url in ('/privacy','/terms','/license','/changelog'):
             with self.client.get(url) as response:
                 self.assertEqual(response.status_code,200,url)
                 self.assertIn('id="themeButton"',response.text)
@@ -58,6 +58,10 @@ class DeploymentTest(unittest.TestCase):
         with self.client.get('/privacy') as response:
             self.assertIn('검색 요청은 URL',response.text)
             self.assertIn('서버에 전송',response.text)
+        redirect=self.client.get('/help?ui=ja')
+        self.assertEqual(redirect.status_code,302)
+        self.assertEqual(redirect.headers['Location'],'/?ui=ja&help=1')
+        self.assertIn('id="help-dialog"',self.client.get(redirect.headers['Location']).text)
         self.assertEqual(self.client.get('/unknown-document').status_code,404)
     def test_suggestions_include_alias_and_count_without_spoilers(self):
         rows=self.client.get('/api/suggestions').json

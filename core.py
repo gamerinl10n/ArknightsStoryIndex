@@ -90,7 +90,7 @@ def ingest(db, root, revision, source):
     return sum(len(x[3]) for x in batch)
 
 
-def search(db, speaker='', target='', query='', lang='ko_KR', spoilers=False, offset=0):
+def search(db, speaker='', target='', query='', lang='ko_KR', spoilers=False, offset=0, story=''):
     if lang not in LANGUAGES:
         raise ValueError('지원하지 않는 언어')
     clauses = ['s.lang=?']
@@ -109,6 +109,10 @@ def search(db, speaker='', target='', query='', lang='ko_KR', spoilers=False, of
         clauses.append('(' + ' OR '.join('instr(l.text,?)>0' for _ in names) + ')')
         args += names
     where = ' AND '.join(clauses)
+    facets = [dict(row) for row in db.execute(f'SELECT s.path,count(*) AS count FROM lines l JOIN stories s ON s.id=l.story WHERE {where} GROUP BY s.path ORDER BY s.path',args)]
+    if story:
+        where += ' AND s.path=?'
+        args.append(story)
     total = db.execute(f'SELECT count(*) FROM lines l JOIN stories s ON s.id=l.story WHERE {where}', args).fetchone()[0]
     rows = db.execute(f'SELECT l.*,s.lang,s.path,s.revision,s.source FROM lines l JOIN stories s ON s.id=l.story WHERE {where} ORDER BY s.path,l.ordinal LIMIT 50 OFFSET ?', args+[offset]).fetchall()
     results = []
@@ -118,7 +122,7 @@ def search(db, speaker='', target='', query='', lang='ko_KR', spoilers=False, of
         item['context'] = [dict(r) for r in db.execute('SELECT speaker,text,branch,ordinal FROM (SELECT speaker,text,branch,ordinal FROM lines WHERE story=? AND ordinal<? ORDER BY ordinal DESC LIMIT 3) UNION ALL SELECT speaker,text,branch,ordinal FROM (SELECT speaker,text,branch,ordinal FROM lines WHERE story=? AND ordinal>=? ORDER BY ordinal LIMIT 4) ORDER BY ordinal', (row['story'], row['ordinal'], row['story'], row['ordinal']))]
         item['parallel'] = [dict(r) for r in db.execute('SELECT l.speaker,l.text,s.lang FROM lines l JOIN stories s ON s.id=l.story WHERE s.path=? AND l.ordinal=? AND s.lang!=?', (row['path'], row['ordinal'], lang))]
         results.append(item)
-    return {'total': total, 'items': results}
+    return {'total': total, 'items': results, 'stories':facets}
 
 
 def context_window(db, story, ordinal, radius=15):

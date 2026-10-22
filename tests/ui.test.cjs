@@ -7,7 +7,7 @@ const html = execFileSync('python', ['-c', "from app import create_app; print(cr
 const uiCopy = execFileSync('python', ['-c', "from app import create_app; print(create_app(readonly=True).test_client().get('/i18n.js').text)"], {encoding:'utf8'});
 const source = name => fs.readFileSync('web/' + name, 'utf8');
 const tick = () => new Promise(resolve => setImmediate(resolve));
-const exampleItem = {story:'ko_KR:test.txt',speaker:'Mon3tr',text:'시험 대상의 시험 대사',path:'test.txt',ordinal:1,revision:'test-sha',source:'test/source',lang:'ko_KR',context:[{speaker:'Mon3tr',text:'시험 문맥',ordinal:1,branch:'main'}],parallel:[]};
+const exampleItem = {story:'ko_KR:test.txt',speaker:'Mon3tr',text:'시험 대상의 시험 대사',path:'test.txt',branch:'predicate:test',ordinal:1,revision:'test-sha',source:'test/source',lang:'ko_KR',context:[{speaker:'Mon3tr',text:'시험 문맥',ordinal:1,branch:'main'}],parallel:[]};
 function setup(options = {}) {
   const dom = new JSDOM(html, {runScripts:'outside-only',url:'https://asi.test/'+(options.query||'')});
   const w = dom.window, calls = [];
@@ -23,6 +23,8 @@ function setup(options = {}) {
     } else data=options.search ? await options.search(url,args) : {total:1,items:[exampleItem]};
     return {ok:true,json:async()=>data};
   };
+  w.HTMLDialogElement.prototype.showModal=function(){this.setAttribute('open','');this.querySelector('button')?.focus();};
+  w.HTMLDialogElement.prototype.close=function(){this.removeAttribute('open');this.dispatchEvent(new w.Event('close'));};
   w.eval(uiCopy); w.eval(source('theme.js')); w.eval(source('chrome.js')); w.eval(source('app.js'));
   return {dom,w,calls,$:id=>w.document.getElementById(id)};
 }
@@ -88,7 +90,7 @@ test('late responses cannot replace a newer search',async()=>{
 });
 
 test('expanded context loads a bounded window for the selected source',async()=>{
- const x=setup();try{enter(x);await tick();await tick();const button=x.$('results').querySelector('details button');button.click();await tick();await tick();assert(x.calls.some(url=>url.startsWith('/api/context?')&&url.includes('radius=18')&&url.includes('story=ko_KR')));assert.equal(button.disabled,false);}finally{x.dom.window.close();}
+ const x=setup();try{enter(x);await tick();await tick();const button=x.$('results').querySelector('details > button');button.click();await tick();await tick();assert(x.calls.some(url=>url.startsWith('/api/context?')&&url.includes('radius=18')&&url.includes('story=ko_KR')));assert.equal(button.disabled,false);}finally{x.dom.window.close();}
 });
 
 test('home and results are separate views; return and browser history preserve the draft',async()=>{
@@ -119,4 +121,36 @@ test('a delayed view transition cannot undo a newer navigation',async()=>{
  const x=setup();x.w.scrollTo=()=>{};const frames=[];
  x.w.document.startViewTransition=apply=>{frames.push(apply);return {finished:Promise.resolve(),skipTransition(){}};};
  try{enter(x);x.$('back-search').click();frames.forEach(apply=>apply());await tick();await tick();assert.equal(x.$('search-experience').dataset.view,'home');assert.equal(x.$('results-panel').hidden,true);}finally{x.dom.window.close();}
+});
+
+test('guide opens in place, closes and returns focus without clearing a draft',async()=>{
+ const x=setup();try{
+  x.$('speaker').value='M3';const url=x.w.location.href;x.$('help-button').click();
+  assert.equal(x.$('help-dialog').open,true);assert.equal(x.w.location.href,url);
+  assert(x.w.document.documentElement.classList.contains('modal-open'));
+  x.$('help-dialog').querySelector('[data-close-dialog]').click();
+  assert.equal(x.$('help-dialog').open,false);assert.equal(x.w.document.activeElement,x.$('help-button'));assert.equal(x.$('speaker').value,'M3');
+ }finally{x.dom.window.close();}
+});
+test('result and context metadata are available only through detail controls',async()=>{
+ const x=setup();try{
+  enter(x);await tick();await tick();const card=x.$('results').querySelector('article');
+  assert.equal(card.querySelector('.meta'),null);assert.equal(card.querySelector('.branch-note'),null);assert(!card.textContent.includes('predicate:test'));
+  card.querySelector('.info-button').click();assert.equal(x.$('info-dialog').open,true);assert.match(x.$('info-content').textContent,/predicate:test/);assert.match(x.$('info-content').textContent,/test.txt/);
+  x.$('info-dialog').close();card.querySelector('.context-line .info-button').click();assert.match(x.$('info-content').textContent,/기본 분기/);
+ }finally{x.dom.window.close();}
+});
+test('story filtering retains facets through search links and browser history',async()=>{
+ const stories=[{path:'test.txt',count:1},{path:'other.txt',count:2}];const x=setup({search:async()=>({total:1,items:[exampleItem],stories})});
+ try{enter(x);await tick();await tick();assert.equal(x.$('result-filters').hidden,false);x.$('story-filter').value='test.txt';x.$('story-filter').dispatchEvent(new x.w.Event('change'));await tick();await tick();
+ assert(x.calls.some(url=>url.startsWith('/api/search?')&&url.includes('story=test.txt')));assert.equal(x.$('story-filter').options.length,3);
+ const pop=new Promise(resolve=>x.w.addEventListener('popstate',resolve,{once:true}));x.w.history.back();await pop;await tick();await tick();assert.equal(x.$('story-filter').value,'');assert.equal(x.$('story-filter').options.length,3);
+ }finally{x.dom.window.close();}
+});
+test('language links preserve UI/corpus independence, draft and selected story',async()=>{
+ const x=setup({query:'?speaker=M3&lang=ja_JP&story=test.txt&view=home'});try{await tick();const link=x.w.document.querySelector('[data-ui="en"]');link.dispatchEvent(new x.w.Event('pointerdown'));const url=new URL(link.href);assert.equal(url.searchParams.get('ui'),'en');assert.equal(url.searchParams.get('lang'),'ja_JP');assert.equal(url.searchParams.get('speaker'),'M3');assert.equal(url.searchParams.get('story'),'test.txt');assert.equal(url.searchParams.get('view'),'home');}finally{x.dom.window.close();}
+});
+test('expression highlights preserve raw text and never execute markup',async()=>{
+ const text='<img src=x onerror=alert(1)> 시험 시험';const x=setup({search:async()=>({total:1,items:[{...exampleItem,text}]})});
+ try{x.$('query').value='시험';enter(x);await tick();await tick();const quote=x.$('results').querySelector('.quote');assert.equal(quote.textContent,text);assert.equal(quote.querySelectorAll('mark').length,2);assert.equal(quote.querySelector('img'),null);}finally{x.dom.window.close();}
 });

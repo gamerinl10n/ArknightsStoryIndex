@@ -24,7 +24,7 @@ class MultilingualTest(unittest.TestCase):
             self.assertEqual(client.get('/api/context?story=missing').status_code,400)
             for ui in ('ko','zh','ja','en'):
                 for page in ('','search','help','privacy','terms','license','changelog'):
-                    r=client.get('/'+page+'?ui='+ui)
+                    r=client.get('/'+page+'?ui='+ui,follow_redirects=True)
                     self.assertEqual(r.status_code,200)
                     self.assertIn(f'<html lang="{ui}">',r.text)
                     self.assertIn('https://tally.so/r/lb2Lxo',r.text)
