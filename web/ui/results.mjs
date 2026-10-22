@@ -87,7 +87,6 @@ function renderCard(item, needle, index) {
       detailRequest = item.context
         ? Promise.resolve({
             items: item.context,
-            parallel: item.parallel || [],
             has_more: true,
           })
         : api(
@@ -96,7 +95,6 @@ function renderCard(item, needle, index) {
                 story: item.story,
                 ordinal: item.ordinal,
                 radius: 3,
-                parallel: "1",
               }),
           );
       detailRequest = detailRequest.catch((error) => {
@@ -168,16 +166,6 @@ function renderCard(item, needle, index) {
       }
     };
     content.replaceChildren(lines, expand);
-  });
-  section("parallel", (content, data) => {
-    const rows = data.parallel.map((row) => {
-      const line = el("p", `[${row.lang}] ${row.speaker}: ${row.text}`);
-      line.lang = row.lang.replace("_", "-");
-      return line;
-    });
-    content.replaceChildren(
-      ...(rows.length ? rows : [el("p", t("no_parallel"))]),
-    );
   });
 
   return card;
