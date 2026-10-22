@@ -1,17 +1,17 @@
 {% extends 'base.html' %}
-{% block preload %}{% for module in ['api','navigation','autocomplete','results','portraits'] %}<link rel="modulepreload" href="{{ asset('ui/'+module+'.mjs') }}">{% endfor %}{% endblock %}
+{% block preload %}{% for module in ['api','navigation','autocomplete','results','portraits','corpus-control'] %}<link rel="modulepreload" href="{{ asset('ui/'+module+'.mjs') }}">{% endfor %}{% endblock %}
 {% block content %}
 <h1 class="sr-only">{{ t('search') }}</h1>
 <div id="search-experience" class="search-experience" data-view="{{ initial_view }}">
 <div class="search-navigation" {% if initial_view=='home' %}hidden{% endif %}><button type="button" id="back-search" class="button button-quiet"><span aria-hidden="true">←</span> {{ t('back') }}</button></div>
 <section class="search-panel" aria-label="{{ t('search') }}">
-<form id="search">
-<div class="filters"><div class="keyword-field"><label class="sr-only" for="query">{{ t('expression') }}</label><input id="query" placeholder="{{ t('expression') }}" autocomplete="off"></div><div><label class="sr-only" for="lang">{{ t('corpus') }}</label><select id="lang">{% for code,label in corpus_languages.items() %}<option value="{{ code }}">{{ label }}</option>{% endfor %}</select></div><button id="submit-search" class="primary">{{ t('search') }} <span aria-hidden="true">↗</span></button></div>
-<div class="people">
-<div class="field autocomplete"><label class="sr-only" for="speaker">{{ t('speaker') }}</label><input id="speaker" placeholder="{{ t('speaker_optional') }}" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="speaker-options"><div id="speaker-options" class="suggestions" role="listbox" hidden></div></div>
+<form id="search" class="search-form">
+<div class="keyword-field"><label class="sr-only" for="query">{{ t('expression') }}</label><input id="query" placeholder="{{ t('expression') }}" autocomplete="off"></div>
+<div class="field autocomplete speaker-field"><label class="sr-only" for="speaker">{{ t('speaker') }}</label><input id="speaker" placeholder="{{ t('speaker_optional') }}" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="speaker-options"><div id="speaker-options" class="suggestions" role="listbox" hidden></div></div>
+<div class="field autocomplete target-field"><label class="sr-only" for="target">{{ t('target') }}</label><input id="target" placeholder="{{ t('target_optional') }}" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="target-options"><div id="target-options" class="suggestions" role="listbox" hidden></div></div>
+<button id="submit-search" class="primary">{{ t('search') }} <span aria-hidden="true">↗</span></button>
+<div class="corpus-field"><span class="sr-only" id="corpus-label">{{ t('corpus') }}</span><select id="lang" hidden tabindex="-1" aria-hidden="true">{% for code,label in corpus_languages.items() %}<option value="{{ code }}">{{ label }}</option>{% endfor %}</select><button type="button" id="corpus-button" class="corpus-button" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-controls="corpus-options" aria-labelledby="corpus-label corpus-value"><span id="corpus-value">한국어</span><span class="corpus-chevron" aria-hidden="true"></span></button><div id="corpus-options" class="corpus-options" role="listbox" aria-labelledby="corpus-label" hidden></div></div>
 <button type="button" id="swap" aria-label="{{ t('swap') }}" title="{{ t('swap') }}">⇄</button>
-<div class="field autocomplete"><label class="sr-only" for="target">{{ t('target') }}</label><input id="target" placeholder="{{ t('target_optional') }}" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="target-options"><div id="target-options" class="suggestions" role="listbox" hidden></div></div>
-</div>
 <div class="search-bottom"><label class="check"><input type="checkbox" id="spoilers"> {{ t('spoilers') }}</label></div>
 </form>
 </section>

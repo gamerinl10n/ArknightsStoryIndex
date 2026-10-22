@@ -53,3 +53,10 @@ for lang,text in [
  ('zh','移除了搜索链接复制、台词出处复制及剧情文件下拉菜单。点击台词旁的小问号可查看出处。'),
  ('ja','検索リンクのコピー、台詞・出典のコピー、ストーリーファイル選択を削除しました。台詞横の小さな？から出典を確認できます。')]:
  COPY[lang]['changelog'].insert(0,('2026-10-22',text))
+
+for lang,title,text in [
+ ('en','Keyboard and language selection','Tab moves from words to speaker, mentioned character, then Search; Shift+Tab reverses the order. Use arrows and Enter in the dialogue language menu, and Escape to close it. Character names entered in another language suggest names in the selected dialogue language.'),
+ ('zh','键盘与语言选择','Tab 按关键词、说话角色、提及角色、搜索的顺序移动，Shift+Tab 反向移动。台词语言菜单可用方向键和 Enter 选择、Esc 关闭。输入其他语言的角色名时，候选项会显示当前台词语言的对应名称。'),
+ ('ja','キーボードと言語選択','Tabは語句、話す人物、言及する人物、検索の順に移動し、Shift+Tabは逆順です。台詞の言語メニューは方向キーとEnterで選択し、Escで閉じます。別の言語で人物名を入力しても、選んだ台詞言語の名前が候補に表示されます。')]:
+ COPY[lang]['help'].append((title,text))
+ COPY[lang]['changelog'].insert(0,('2026-10-22',text))

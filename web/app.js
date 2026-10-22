@@ -2,6 +2,7 @@ import { $, t, reducedMotion } from "./ui/dom.mjs";
 import { api } from "./ui/api.mjs";
 import { readForm } from "./ui/form-state.mjs";
 import { createNavigation } from "./ui/navigation.mjs";
+import { createCorpusControl } from "./ui/corpus-control.mjs";
 import { createAutocomplete } from "./ui/autocomplete.mjs";
 import { renderBatch } from "./ui/results.mjs";
 import { setResultTitle } from "./ui/portraits.mjs";
@@ -12,6 +13,7 @@ let offset = 0,
   controller,
   renderedKey = null;
 const setView = createNavigation($("search-experience"));
+const corpusControl = createCorpusControl();
 const autocomplete = createAutocomplete();
 function stopSearch() {
   ++requestVersion;
@@ -143,6 +145,7 @@ function restore(initial = false) {
   $("lang").value = [...$("lang").options].some((o) => o.value === lang)
     ? lang
     : { ko: "ko_KR", zh: "zh_CN", ja: "ja_JP", en: "en_US" }[window.ASI.ui];
+  corpusControl.refresh();
   $("spoilers").checked = (params.get("spoilers") ?? draft.spoilers) === "1";
   autocomplete.load();
   const showResults =

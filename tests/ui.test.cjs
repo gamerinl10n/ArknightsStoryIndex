@@ -224,3 +224,13 @@ test('Korean names find localized English and Japanese suggestions without forei
 test('tab title stays the brand through search and return',async()=>{
  const x=await setup();try{assert.equal(x.w.document.title,'Arknights Story Index');enter(x);await tick();await tick();assert.equal(x.w.document.title,'Arknights Story Index');x.$('back-search').click();assert.equal(x.w.document.title,'Arknights Story Index');}finally{x.dom.window.close();}
 });
+
+test('search uses native task-order tabbing without positive tabindex or focus traps',async()=>{
+ const x=await setup();try{const controls=[...x.$('search').querySelectorAll('input,select,button')].filter(node=>node.tabIndex>=0&&!node.disabled);assert.deepEqual(controls.map(node=>node.id),['query','speaker','target','submit-search','corpus-button','swap','spoilers']);assert.equal(x.$('search').querySelector('[tabindex]:not([tabindex="-1"])'),null);}finally{x.dom.window.close();}
+});
+
+test('styled corpus picker supports selection, Escape and Tab without trapping focus',async()=>{
+ const x=await setup();try{await tick();const button=x.$('corpus-button');button.click();assert.equal(x.$('corpus-options').hidden,false);button.dispatchEvent(new x.w.KeyboardEvent('keydown',{key:'ArrowDown',cancelable:true}));button.dispatchEvent(new x.w.KeyboardEvent('keydown',{key:'Enter',cancelable:true}));assert.equal(x.$('lang').value,'zh_CN');assert.equal(x.$('corpus-value').textContent,'中文');assert.equal(x.$('corpus-options').hidden,true);await tick();assert(x.calls.some(url=>url.startsWith('/api/suggestions?')&&url.includes('lang=zh_CN')));
+ button.click();button.dispatchEvent(new x.w.KeyboardEvent('keydown',{key:'Escape',cancelable:true}));assert.equal(x.$('corpus-options').hidden,true);assert.equal(x.$('lang').value,'zh_CN');button.click();const tab=new x.w.KeyboardEvent('keydown',{key:'Tab',cancelable:true});button.dispatchEvent(tab);assert.equal(tab.defaultPrevented,false);assert.equal(x.$('corpus-options').hidden,true);
+ }finally{x.dom.window.close();}
+});
