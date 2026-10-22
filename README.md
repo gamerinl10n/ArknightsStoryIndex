@@ -32,9 +32,9 @@ python app.py --import-root /path/to/ArknightsGamedata --revision <commit-sha>
 
 ## Vercel 배포
 
-저장소 루트를 Root Directory로 사용하고 Output Directory 수동 지정은 비워두세요. `vercel.json`이 Flask 진입점 및 `python build.py`를 지정합니다. 빌드에서 원본을 가져와 읽기 전용 `generated/search.sqlite`를 생성합니다. 다운로드나 변환 실패 시 빌드를 실패시켜 빈 데이터를 배포하지 않습니다. 데이터 갱신은 재배포 시 반영됩니다. `ASI_SOURCE_REF`로 원본 commit SHA를 고정할 수 있습니다.
+저장소 루트를 Root Directory로 사용하고 Output Directory 수동 지정은 비워두세요. `vercel.json`이 Flask 진입점 및 `python build.py`를 지정합니다. 빌드에서 원본을 가져와 읽기 전용 검색 DB와 압축 번들 `generated/search.sqlite.gz`를 생성합니다. 다운로드나 변환 실패 시 빌드를 실패시켜 빈 데이터를 배포하지 않습니다. 데이터 갱신은 재배포 시 반영됩니다. `ASI_SOURCE_REF`로 원본 commit SHA를 고정할 수 있습니다.
 
-원본·스냅샷은 Function 번들에서 제외합니다. Vercel 빌드 디렉터리는 영구 아카이브가 아니므로 별도 원본 백업이 필요합니다. 2026-10-22 기준 검색 DB는 약 208MiB이며, 450MiB를 넘으면 빌드를 차단합니다. 의존성을 포함한 최종 크기는 Vercel에서 확인하세요.
+원본·스냅샷은 Function 번들에서 제외합니다. Vercel 빌드 디렉터리는 영구 아카이브가 아니므로 별도 원본 백업이 필요합니다. 2026-10-22 기준 네 언어 검색 DB는 약 419MiB, 압축 번들은 약 141MiB이며, 450MiB를 넘으면 빌드를 차단합니다. 의존성을 포함한 최종 크기는 Vercel에서 확인하세요.
 
 ```sh
 python build.py --source-db data/index.sqlite
@@ -70,3 +70,5 @@ L10ndiff의 민트·틸 팔레트와 달/해 테마 버튼(SVG·전환 모션)�
 L10ndiff의 업데이트 감지 모듈을 재사용해 /version.json을 60초마다 확인합니다. 숨겨진 탭·오프라인에서는 확인을 쉬며 30분 다시 알림은 sessionStorage에 저장합니다. 즉시 업데이트 시 입력 중인 검색 조건을 URL에 보존합니다. 화면 안내와 개인정보 페이지도 네 언어로 제공합니다.
 
 빌드 중간 DB는 재생성 가능한 임시 자료로 journal_mode=MEMORY를 사용합니다. 영구 원본 아카이브를 갱신하는 일반 sync.py에는 이 설정을 사용하지 않습니다. 최종 검색 DB는 quick_check 후 교체하며 원본은 번들에서 제외합니다.
+
+배포 번들에는 gzip 파일만 포함하며 원본 SQLite는 제외합니다. 런타임은 파일 잠금으로 중복 해제를 막고 /tmp에 한 번 압축을 풀어 immutable 읽기 전용으로 엽니다. /tmp의 DB는 재생성 가능한 임시 캐시이고 원본 아카이브가 아닙니다.

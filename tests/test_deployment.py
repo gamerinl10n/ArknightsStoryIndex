@@ -66,3 +66,14 @@ class DeploymentTest(unittest.TestCase):
         self.assertIn('Mon3tr',by_name['M3']['label'])
         self.assertIn('凯尔希',by_name)
         self.assertEqual(self.client.get('/api/suggestions?lang=bad').status_code,400)
+
+    def test_compressed_bundle_is_unpacked_for_readonly_queries(self):
+        import gzip
+        from runtime_snapshot import materialize
+        compressed=self.root/'search.sqlite.gz'
+        with gzip.open(compressed,'wb') as f:f.write(self.snapshot.read_bytes())
+        unpacked=materialize(compressed,self.root)
+        self.assertEqual(unpacked.read_bytes(),self.snapshot.read_bytes())
+        self.assertEqual(materialize(compressed,self.root),unpacked)
+        client=create_app(str(compressed),True).test_client()
+        self.assertEqual(client.get('/api/search?speaker=M3').json['total'],1)

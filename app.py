@@ -11,6 +11,7 @@ from pages import PAGES
 from translations import STRINGS, UI_LANGS, tr
 from localized_pages import get_page
 import hashlib
+from runtime_snapshot import materialize
 
 ROOT = Path(__file__).resolve().parent
 
@@ -19,10 +20,10 @@ def create_app(database=None, readonly=None):
     app = Flask(__name__, static_folder=None, template_folder=str(ROOT / "web"))
     app.config['MAX_CONTENT_LENGTH'] = 16384
     readonly = bool(os.environ.get('VERCEL')) if readonly is None else readonly
-    database = database or os.environ.get('ASI_DB') or str(ROOT / ('generated/search.sqlite' if readonly else 'data/index.sqlite'))
+    database = database or os.environ.get('ASI_DB') or str(ROOT / ('generated/search.sqlite.gz' if readonly else 'data/index.sqlite'))
     def open_db():
         if readonly:
-            path = Path(database).resolve()
+            path = materialize(database)
             db = sqlite3.connect(path.as_uri() + '?mode=ro&immutable=1', uri=True)
             db.row_factory = sqlite3.Row
         else:
