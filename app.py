@@ -29,6 +29,11 @@ class Handler(BaseHTTPRequestHandler):
                 with connect(DB) as db:
                     data = search(db, q.get('speaker',''),q.get('target',''),q.get('q',''),q.get('lang','ko_KR'),q.get('spoilers')=='1',max(0,int(q.get('offset',0))))
                 return self.reply(200,data)
+            if u.path == '/api/status':
+                with connect(DB) as db:
+                    exists = db.execute("SELECT 1 FROM sqlite_master WHERE name='import_status'").fetchone()
+                    row = db.execute('SELECT payload FROM import_status WHERE id=1').fetchone() if exists else None
+                return self.reply(200,json.loads(row[0]) if row else {'dialogue_lines':0})
             if u.path == '/api/speakers':
                 with connect(DB) as db:
                     data = [r[0] for r in db.execute("SELECT DISTINCT speaker FROM lines WHERE speaker!='' ORDER BY speaker")]

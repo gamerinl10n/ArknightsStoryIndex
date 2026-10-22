@@ -1,0 +1,27 @@
+[
+  {
+    "id": "kaltsit",
+    "names": {
+      "ko_KR": [
+        "켈시"
+      ],
+      "zh_CN": [
+        "凯尔希"
+      ]
+    }
+  },
+  {
+    "id": "mon3tr",
+    "names": {
+      "ko_KR": [
+        "Mon3tr"
+      ],
+      "zh_CN": [
+        "Mon3tr"
+      ]
+    },
+    "aliases": [
+      "M3"
+    ]
+  }
+]

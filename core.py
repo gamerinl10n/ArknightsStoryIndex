@@ -5,6 +5,15 @@ import re
 import sqlite3
 from pathlib import Path
 
+def aliases(value, lang):
+    path = Path(__file__).parent / 'characters.json'
+    for character in json.loads(path.read_text(encoding='utf-8')):
+        all_names = [character['id']] + character.get('aliases', []) + [n for names in character['names'].values() for n in names]
+        if value.casefold() in [n.casefold() for n in all_names]:
+            return character['names'].get(lang, [value])
+    return [value]
+
+
 
 def connect(path):
     db = sqlite3.connect(path)
@@ -13,6 +22,7 @@ def connect(path):
     CREATE TABLE IF NOT EXISTS stories(id TEXT PRIMARY KEY, lang TEXT, path TEXT, revision TEXT, source TEXT, raw TEXT);
     CREATE TABLE IF NOT EXISTS snapshots(story TEXT, revision TEXT, raw TEXT, PRIMARY KEY(story,revision));
     CREATE TABLE IF NOT EXISTS lines(id TEXT PRIMARY KEY, story TEXT, ordinal INTEGER, speaker TEXT, text TEXT, branch TEXT, hash TEXT);
+    CREATE INDEX IF NOT EXISTS story_path_idx ON stories(path,lang);
     CREATE INDEX IF NOT EXISTS speaker_idx ON lines(speaker);
     CREATE INDEX IF NOT EXISTS story_idx ON lines(story,ordinal);
     CREATE TABLE IF NOT EXISTS reviews(line TEXT, target TEXT, expression TEXT, kind TEXT, hash TEXT, PRIMARY KEY(line,target));
@@ -46,16 +56,22 @@ def ingest(db, root, revision, source):
     """Validate entire batch before transactional replacement; raw snapshots stay in SQLite."""
     root = Path(root)
     batch = []
+    report = {'files': 0, 'dialogue_lines': 0, 'unparsed_text_lines': 0}
+
     for lang, folder in [('ko_KR', 'kr'), ('zh_CN', 'cn')]:
         for f in sorted((root / folder / 'gamedata/story').rglob('*.txt')):
             raw = f.read_text(encoding='utf-8-sig')
             rows = list(parse(raw))
-            if not rows:
-                continue
+            report['files'] += 1
+            report['dialogue_lines'] += len(rows)
+            report['unparsed_text_lines'] += sum(bool(x.strip()) and not x.lstrip().startswith(('[','//')) for x in raw.splitlines())
             path = f.relative_to(root / folder / 'gamedata/story').as_posix()
             batch.append((lang, path, raw, rows))
-    if not batch or not any(x[0] == 'ko_KR' for x in batch):
+    if not batch or not any(x[0] == 'ko_KR' and x[3] for x in batch):
         raise ValueError('한국어 대사가 없는 입력입니다. 기존 데이터를 유지합니다.')
+    old_count = db.execute('SELECT count(*) FROM lines').fetchone()[0]
+    if old_count >= 100 and report['dialogue_lines'] < old_count * 0.8:
+        raise ValueError('대사 수가 20% 이상 감소했습니다. 기존 데이터를 유지합니다.')
     with db:
         for lang, path, raw, rows in batch:
             sid = f'{lang}:{path}'
@@ -65,6 +81,8 @@ def ingest(db, root, revision, source):
             for n, speaker, text, branch in rows:
                 digest = hashlib.sha256(json.dumps([speaker, text, branch], ensure_ascii=False).encode()).hexdigest()
                 db.execute('INSERT INTO lines VALUES(?,?,?,?,?,?,?)', (f'{sid}:{n}', sid, n, speaker, text, branch, digest))
+        db.execute('CREATE TABLE IF NOT EXISTS import_status(id INTEGER PRIMARY KEY CHECK(id=1), payload TEXT)')
+        db.execute('INSERT OR REPLACE INTO import_status VALUES(1,?)', (json.dumps({**report, 'revision': revision, 'source': source}),))
     return sum(len(x[3]) for x in batch)
 
 
@@ -73,15 +91,24 @@ def search(db, speaker='', target='', query='', lang='ko_KR', spoilers=False, of
         raise ValueError('지원하지 않는 언어')
     clauses = ['s.lang=?']
     args = [lang]
-    for col, val in [('l.speaker', speaker), ('l.text', query)]:
-        if val:
-            clauses.append(f'instr({col},?)>0')
-            args.append(val)
+    if speaker:
+        names = aliases(speaker, lang)
+        clauses.append('l.speaker IN (' + ','.join('?' for _ in names) + ')')
+        args.extend(names)
+    if query:
+        clauses.append('instr(l.text,?)>0')
+        args.append(query)
     if not spoilers:
         clauses.append("EXISTS(SELECT 1 FROM stories kr WHERE kr.lang='ko_KR' AND kr.path=s.path)")
     if target:
-        clauses.append('(instr(l.text,?)>0 OR EXISTS(SELECT 1 FROM reviews r WHERE r.line=l.id AND r.target=?))')
-        args += [target, target]
+        names = aliases(target, lang)
+        # Review targets may be entered in either supported language.
+        review_names = sorted(set(names + aliases(target, 'ko_KR') + aliases(target, 'zh_CN') + [target]))
+        placeholders = ','.join('?' for _ in review_names)
+        clauses.append('(' + ' OR '.join('instr(l.text,?)>0' for _ in names) + f' OR EXISTS(SELECT 1 FROM reviews r WHERE r.line=l.id AND r.target IN ({placeholders}) AND r.kind!="rejected"))')
+        args += names + review_names
+        clauses.append(f'NOT EXISTS(SELECT 1 FROM reviews r WHERE r.line=l.id AND r.target IN ({placeholders}) AND r.kind="rejected" AND r.hash=l.hash)')
+        args += review_names
     where = ' AND '.join(clauses)
     total = db.execute(f'SELECT count(*) FROM lines l JOIN stories s ON s.id=l.story WHERE {where}', args).fetchone()[0]
     rows = db.execute(f'SELECT l.*,s.lang,s.path,s.revision,s.source FROM lines l JOIN stories s ON s.id=l.story WHERE {where} ORDER BY s.path,l.ordinal LIMIT 50 OFFSET ?', args+[offset]).fetchall()
@@ -93,20 +120,26 @@ def search(db, speaker='', target='', query='', lang='ko_KR', spoilers=False, of
             r['status'] = 'reviewed' if r['hash'] == row['hash'] else 'needs_review'
         item['reviews'] = reviews
         # Physical neighbours are explicitly not inferred conversation partners.
-        item['context'] = [dict(r) for r in db.execute('SELECT speaker,text,branch,ordinal FROM lines WHERE story=? AND ordinal BETWEEN ? AND ? ORDER BY ordinal', (row['story'], row['ordinal']-8, row['ordinal']+8))]
+        item['context'] = [dict(r) for r in db.execute('SELECT speaker,text,branch,ordinal FROM (SELECT speaker,text,branch,ordinal FROM lines WHERE story=? AND ordinal<? ORDER BY ordinal DESC LIMIT 3) UNION ALL SELECT speaker,text,branch,ordinal FROM (SELECT speaker,text,branch,ordinal FROM lines WHERE story=? AND ordinal>=? ORDER BY ordinal LIMIT 4) ORDER BY ordinal', (row['story'], row['ordinal'], row['story'], row['ordinal']))]
         item['parallel'] = [dict(r) for r in db.execute('SELECT l.speaker,l.text,s.lang FROM lines l JOIN stories s ON s.id=l.story WHERE s.path=? AND l.ordinal=? AND s.lang!=?', (row['path'], row['ordinal'], lang))]
         results.append(item)
     return {'total': total, 'items': results}
 
 
 def review(db, payload):
-    line = db.execute('SELECT * FROM lines WHERE id=?', (payload['line'],)).fetchone()
-    if not line or line['hash'] != payload['hash']:
-        raise ValueError('원문이 변경되었습니다. 새로 검색한 뒤 검토하세요.')
-    if payload['kind'] not in ('direct', 'reference', 'related', 'rejected'):
-        raise ValueError('잘못된 분류')
-    if not payload['target'].strip() or (payload['expression'] and payload['expression'] not in line['text']):
-        raise ValueError('대상과 원문에 존재하는 표현을 입력하세요.')
+    if not isinstance(payload, dict) or any(not isinstance(payload.get(k), str) for k in ('line','target','expression','kind','hash')):
+        raise ValueError('검토 항목은 문자열이어야 합니다.')
+    payload = {**payload, 'target': payload['target'].strip()}
+    if payload['kind'] in ('direct','reference') and not payload['expression'].strip():
+        raise ValueError('직접 호칭과 지칭에는 원문 표현이 필요합니다.')
     with db:
+        db.execute('BEGIN IMMEDIATE')
+        line = db.execute('SELECT * FROM lines WHERE id=?', (payload['line'],)).fetchone()
+        if not line or line['hash'] != payload['hash']:
+            raise ValueError('원문이 변경되었습니다. 새로 검색한 뒤 검토하세요.')
+        if payload['kind'] not in ('direct', 'reference', 'related', 'rejected'):
+            raise ValueError('잘못된 분류')
+        if not payload['target'].strip() or (payload['expression'] and payload['expression'] not in line['text']):
+            raise ValueError('대상과 원문에 존재하는 표현을 입력하세요.')
         db.execute('INSERT INTO history(line,target,payload) VALUES(?,?,?)', (line['id'],payload['target'],json.dumps(payload,ensure_ascii=False)))
         db.execute('INSERT OR REPLACE INTO reviews VALUES(?,?,?,?,?)', (payload['line'],payload['target'],payload['expression'],payload['kind'],payload['hash']))
