@@ -11,8 +11,8 @@ if (currentVersion && currentVersion !== 'development') {
   banner.setAttribute('aria-live', 'polite');
   const message = document.createElement('div');
   message.className = 'site-update-message';
-  const icon = document.createElement('span');
-  icon.className='brand-mark';icon.textContent='AI';icon.setAttribute('aria-hidden','true');
+  const icon = document.createElement('img');
+  icon.className='brand-logo';icon.src=new URL('brand/operator-96.png',import.meta.url).href;icon.width=40;icon.height=40;icon.alt='';
   const text = document.createElement('p');
   message.append(icon, text);
   const actions = document.createElement('div');

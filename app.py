@@ -157,6 +157,9 @@ def create_app(database=None, readonly=None, portrait_root=None):
             ".otf",
             ".woff2",
             ".txt",
+            ".png",
+            ".ico",
+            ".svg",
         ):
             abort(404)
         return send_from_directory(ROOT / "web", filename)

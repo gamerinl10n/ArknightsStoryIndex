@@ -20,9 +20,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,su
 header{width:100%;max-width:1160px;margin:0 auto;padding:23px 28px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-shrink:0}
 .brand{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none;font-size:15px;font-weight:650}
 .brand small{display:block;font-size:11px;font-weight:400;color:var(--muted);margin-top:4px}
-.brand-mark{position:relative;display:grid;place-items:center;background:var(--accent);color:#182c25;width:40px;height:40px;flex-shrink:0;font-size:13px;letter-spacing:-1px;border-radius:15px;box-shadow:0 4px 12px #0f766e12;transition:transform 220ms var(--ease)}
-.brand-mark::after{content:"";position:absolute;bottom:-3px;left:10px;width:9px;height:9px;background:var(--accent);transform:rotate(25deg);border-radius:3px}
-.brand:hover .brand-mark{transform:rotate(-6deg)}
+
+
+
 .header-actions{display:flex;align-items:center;gap:12px}
 main{width:100%;max-width:1104px;margin:0 auto;padding:16px 28px 28px;flex:1;display:flex;flex-direction:column}
 .search-experience{width:100%;flex:1;min-width:0}
@@ -102,7 +102,7 @@ html[data-theme=dark] .site-footer{background:#1a1d1bed}
 @keyframes fade-in{from{opacity:0}to{opacity:1}}@keyframes fade-out{from{opacity:1}to{opacity:0}}
 @keyframes spin{to{transform:rotate(360deg)}}@keyframes shimmer{from{background-position:120% 0}to{background-position:-80% 0}}
 @media(max-width:640px){
- header{padding:16px;gap:10px}.brand{gap:7px;font-size:11px}.brand small{font-size:9px}.brand-mark{width:32px;height:32px;border-radius:12px}.header-actions{gap:7px}.btn-icon{width:38px;height:38px;min-width:38px;min-height:38px}
+ header{padding:16px;gap:10px}.brand{gap:7px;font-size:11px}.brand small{font-size:9px}.header-actions{gap:7px}.btn-icon{width:38px;height:38px;min-width:38px;min-height:38px}
  main{padding:10px 16px 24px}.search-experience[data-view=home]{padding:24px 0 40px;min-height:360px}.search-panel{padding:22px 18px;border-radius:30px}#swap{width:30px}.primary{grid-column:1/-1;justify-content:center}.search-bottom{margin-top:14px}.search-navigation{margin-bottom:12px}.results-panel{margin-top:22px}.results-heading{align-items:flex-start;gap:12px;flex-wrap:wrap}.results-heading h2{font-size:14px}.result-tools{gap:10px}article{padding:18px;border-radius:26px}.quote{font-size:16px}.document{padding:24px 20px}.site-footer{padding:12px 14px 10px}.footer-links{gap:8px 14px;margin-bottom:8px}.footer-links a{font-size:11px}.site-update{bottom:calc(var(--footer-space,100px) + 10px)}
 }
 @media(max-height:620px){.search-experience[data-view=home]{justify-content:flex-start;min-height:0;padding:16px 0 30px}}
@@ -175,3 +175,13 @@ mark{background:#98ddca70;color:inherit;border-radius:4px;padding:1px 2px;box-de
 @media(prefers-reduced-motion:reduce){.corpus-chevron,.corpus-option{transition:none}}
 
 .evidence-label { display: inline-flex; padding: .3rem .65rem; border-radius: 999px; font-size: .75rem; color: var(--accent-deep); background: var(--accent-soft); margin-bottom: .65rem; }
+
+/* The home mark shares the centered search layout; result navigation stays compact. */
+.brand-logo{width:40px;height:40px;object-fit:contain;flex-shrink:0;transition:transform 220ms var(--ease)}
+.brand:hover .brand-logo{transform:rotate(-4deg)}
+.home-brand{display:flex;flex-direction:column;align-items:center;gap:12px;margin:0 0 28px;color:var(--ink)}
+.home-logo{width:128px;height:128px;object-fit:contain}
+.home-brand>span{font-size:24px;font-weight:700;letter-spacing:-.6px}
+[data-view=results] .home-brand{display:none}
+html[data-theme=dark] .brand-logo,html[data-theme=dark] .home-logo{filter:brightness(0) invert(1)}
+@media(max-width:640px){.brand-logo{width:32px;height:32px}.home-logo{width:104px;height:104px}.home-brand{gap:8px;margin-bottom:22px}.home-brand>span{font-size:21px}}
