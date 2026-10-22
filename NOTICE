@@ -1,0 +1,17 @@
+Arknights Story Index — source and third-party notices
+
+Copyright 2026 gamerinl10n.
+Mint/teal palette, theme toggle SVG and theme control CSS adapted from the same
+owner's L10ndiff (https://github.com/gamerinl10n/l10ndiff), as explicitly requested
+by the owner for this project. Original L10ndiff code remains proprietary.
+
+Game text source: https://github.com/ArknightsAssets/ArknightsGamedata
+Game content and names remain the property of their respective rights holders.
+The code license does not license game content.
+
+Flask: Copyright Pallets and contributors, BSD-3-Clause.
+Werkzeug, Jinja2, MarkupSafe, itsdangerous, Click and Blinker retain their own
+package license files. Dependency license files are distributed with their
+installed packages. Python is under the PSF license; SQLite is public domain.
+No third-party web fonts, analytics, advertising or feedback form scripts are
+bundled in this application.

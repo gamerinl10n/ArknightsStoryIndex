@@ -1,36 +1,109 @@
-const $=id=>document.getElementById(id);
-let token='',offset=0,last=null,reviewsEnabled=true;
-const el=(tag,text,cls)=>{const e=document.createElement(tag);e.textContent=text;if(cls)e.className=cls;return e;};
-async function api(url,options){const r=await fetch(url,options);const data=await r.json();if(!r.ok)throw Error(data.error||'요청 실패');return data;}
-$('admin').onclick=()=>{token=prompt('관리자 토큰을 입력하세요. 이 탭 메모리에만 유지됩니다.')||'';$('admin').textContent=token?'관리자 토큰 입력됨':'관리자 인증';};
-$('swap').onclick=()=>{const a=$('speaker').value;$('speaker').value=$('target').value;$('target').value=a;};
-api('/api/status').then(s=>{reviewsEnabled=s.reviews_enabled;$('admin').hidden=!reviewsEnabled;if(!reviewsEnabled)$('review-status').textContent='검색은 이용할 수 있습니다. 관리자 검토는 영구 저장소 연결 후 사용할 수 있습니다.';if(!s.dialogue_lines)$('notice').textContent='아직 수집된 데이터가 없습니다. 원본 동기화 후 검색할 수 있습니다.';}).catch(()=>{});
-async function loadSpeakers(){
- const params=new URLSearchParams({lang:$('lang').value,spoilers:$('spoilers').checked?'1':'0'});
- try{const names=await api('/api/speakers?'+params);$('characters').replaceChildren();names.forEach(n=>{const o=el('option','');o.value=n;$('characters').append(o);});}
- catch(e){$('notice').textContent=e.message;}
+const $ = id => document.getElementById(id);
+const el = (tag, text, cls) => { const node = document.createElement(tag); node.textContent = text; if (cls) node.className = cls; return node; };
+let offset = 0, last = null, suggestions = [], suggestionVersion = 0, requestVersion = 0, controller;
+async function api(url, options) {
+  const response = await fetch(url, options);
+  const data = await response.json();
+  if (!response.ok) throw Error(data.error || '요청을 처리하지 못했어요. 다시 시도해주세요.');
+  return data;
 }
-$('lang').addEventListener('change',loadSpeakers);
-$('spoilers').addEventListener('change',loadSpeakers);
+function guide() {
+  const speaker = $('speaker').value.trim(), target = $('target').value.trim();
+  const match = suggestions.find(row => row.value.toLocaleLowerCase() === speaker.toLocaleLowerCase());
+  $('speaker').setCustomValidity('');
+  $('speaker-help').textContent = match ? `${match.label} · 이 이름으로 검색할 수 있어요.` : '이름 일부를 입력하고 자동완성 목록에서 골라보세요.';
+  $('target-help').textContent = target ? `‘${target}’의 이름·등록 별칭이 나오는 대사를 찾아요.` : '비워두면 말하는 인물의 전체 대사를 볼 수 있어요.';
+  $('search-mode').textContent = !speaker ? '말하는 인물을 선택해 시작하세요.' : target ? `${speaker}의 대사에서 ${target} 찾기` : `${speaker}의 전체 대사 찾기`;
+}
+$('speaker').addEventListener('input', guide);
+$('target').addEventListener('input', guide);
+$('swap').onclick = () => { const speaker = $('speaker').value; $('speaker').value = $('target').value; $('target').value = speaker; guide(); $('speaker').focus(); };
+api('/api/status').then(data => {
+  if (data.dialogue_lines) $('data-status').textContent = `${data.dialogue_lines.toLocaleString()}개 대사`;
+  else $('notice').textContent = '아직 수집된 데이터가 없습니다. 원본 동기화 후 검색할 수 있습니다.';
+}).catch(() => {});
+async function loadSpeakers() {
+  const version = ++suggestionVersion;
+  const params = new URLSearchParams({lang: $('lang').value, spoilers: $('spoilers').checked ? '1' : '0'});
+  try {
+    const rows = await api('/api/suggestions?' + params);
+    if (version !== suggestionVersion) return;
+    suggestions = rows;
+    $('characters').replaceChildren();
+    const fragment = document.createDocumentFragment();
+    rows.forEach(row => { const option = el('option', ''); option.value = row.value; option.label = row.label; fragment.append(option); });
+    $('characters').append(fragment);
+    guide();
+  } catch (error) {
+    if (version !== suggestionVersion) return;
+    suggestions = []; $('characters').replaceChildren();
+    $('speaker-help').textContent = '자동완성을 불러오지 못했어요. 이름을 직접 입력해 검색할 수 있습니다.';
+  }
+}
+$('lang').addEventListener('change', loadSpeakers);
+$('spoilers').addEventListener('change', loadSpeakers);
 loadSpeakers();
-function render(item){
- const card=el('article','');
- const verified=item.reviews.filter(r=>r.status==='reviewed'&&r.kind!=='rejected'&&(!last.target||r.target===last.target));
- card.append(el('h2',item.speaker+' · '+(verified.length?'검토 완료 용례':item.reviews.some(r=>r.status==='needs_review')?'재검토 필요':'미검토 대사')));
- card.append(el('p',item.text,'quote'));
- verified.forEach(r=>card.append(el('p',`${r.target} → ${r.expression||'호칭 없음'} · ${{direct:'직접 호칭',reference:'제삼자 지칭',related:'관련 대사'}[r.kind]}`)));
- card.append(el('p',`${item.path} · 원본 ${item.ordinal+1}행 · ${item.revision.slice(0,12)}`,'meta'));
- const context=el('details','');context.append(el('summary','앞뒤 문맥 · 분기 표기 포함'));
- item.context.forEach(r=>context.append(el('p',`[${r.branch}] ${r.speaker}: ${r.text}`)));
- card.append(context);
- if(item.parallel.length){const d=el('details','');d.append(el('summary','다른 언어의 같은 줄 위치 · 대응 미확인'));item.parallel.forEach(r=>d.append(el('p',`${r.speaker}: ${r.text}`)));card.append(d);}
- const copy=el('button','대사·출처 복사');copy.onclick=async()=>{try{await navigator.clipboard.writeText(`${item.speaker}: ${item.text}\n${item.source}@${item.revision} / ${item.lang}/${item.path}:${item.ordinal+1}`);copy.textContent='복사됨';}catch{copy.textContent='복사 실패';}};card.append(copy);
- if(!reviewsEnabled){$('results').append(card);return;}
- const d=el('details','');d.append(el('summary','관리자 검토'));
- const f=el('form','','review');const target=el('input','');target.placeholder='대상 인물';target.value=$('target').value;target.required=true;
- const exp=el('input','');exp.placeholder='원문 속 호칭 표현';const kind=el('select','');Object.entries({direct:'직접 호칭',reference:'제삼자 지칭',related:'관련 대사',rejected:'후보 제외'}).forEach(([v,t])=>{const o=el('option',t);o.value=v;kind.append(o);});
- const save=el('button','검토 저장');f.append(target,exp,kind,save);f.onsubmit=async e=>{e.preventDefault();try{await api('/api/review',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({line:item.id,hash:item.hash,target:target.value,expression:exp.value,kind:kind.value})});save.textContent='저장 완료 · 재검색 시 반영';}catch(err){$('notice').textContent=err.message;}};d.append(f);card.append(d);$('results').append(card);
+function render(item) {
+  const card = el('article', '');
+  card.append(el('h2', item.speaker));
+  card.append(el('p', item.text, 'quote'));
+  card.append(el('p', `${item.path} · 원본 ${item.ordinal + 1}행 · ${item.revision.slice(0, 12)}`, 'meta'));
+  const context = el('details', ''); context.append(el('summary', '앞뒤 문맥 펼쳐보기'));
+  item.context.forEach(row => {
+    const paragraph = el('p', `${row.speaker || '이름 없음'}: ${row.text}`, row.ordinal === item.ordinal ? 'current-line' : '');
+    if (row.branch !== 'main') paragraph.append(el('small', `\n분기: ${row.branch}`, 'branch-note'));
+    context.append(paragraph);
+  });
+  card.append(context);
+  if (item.parallel.length) {
+    const parallel = el('details', ''); parallel.append(el('summary', '다른 언어 대사 · 같은 줄 위치의 대응 후보'));
+    item.parallel.forEach(row => parallel.append(el('p', `${row.speaker}: ${row.text}`)));
+    card.append(parallel);
+  }
+  const actions = el('div', '', 'result-actions');
+  const copy = el('button', '대사·출처 복사'); copy.type = 'button';
+  copy.onclick = async () => {
+    try { await navigator.clipboard.writeText(`${item.speaker}: ${item.text}\n${item.source}@${item.revision} / ${item.lang}/${item.path}:${item.ordinal + 1}`); copy.textContent = '복사했어요 ✓'; }
+    catch { copy.textContent = '복사하지 못했어요'; }
+  };
+  actions.append(copy); card.append(actions); $('results').append(card);
 }
-let requestVersion=0;
-async function run(append=false){const version=++requestVersion;const request={...last};$('more').disabled=true;try{const params=new URLSearchParams(request);params.set('offset',offset);const data=await api('/api/search?'+params);if(version!==requestVersion)return;if(!append)$('results').replaceChildren();data.items.forEach(render);offset+=data.items.length;$('more').hidden=offset>=data.total;$('notice').textContent=`${data.total.toLocaleString()}개 대사 · ${last.target?'이름·등록 별칭 후보와 검토 기록을 검색했습니다. 대상 인물의 별칭·대명사는 검토 전 누락될 수 있습니다.':'화자 이름·등록 약칭 기준 검색입니다.'}`;}catch(e){if(version===requestVersion)$('notice').textContent=e.message;}finally{if(version===requestVersion)$('more').disabled=false;}}
-$('search').onsubmit=e=>{e.preventDefault();offset=0;last={speaker:$('speaker').value.trim(),target:$('target').value.trim(),q:$('query').value,lang:$('lang').value,spoilers:$('spoilers').checked?'1':'0'};run();};$('more').onclick=()=>run(true);
+function empty(title, description) {
+  $('empty-state').hidden = false;
+  $('empty-state').querySelector('h3').textContent = title;
+  $('empty-state').querySelector('p').textContent = description;
+}
+async function run(append = false) {
+  const version = ++requestVersion, search = {...last};
+  controller?.abort(); controller = new AbortController();
+  $('more').disabled = true; $('submit-search').disabled = true; $('submit-search').textContent = '찾고 있어요…'; $('results').setAttribute('aria-busy', 'true');
+  if (!append) { $('results').replaceChildren(); $('more').hidden = true; $('result-count').textContent = ''; $('empty-state').hidden = true; }
+  $('notice').textContent = '대사를 찾고 있어요…';
+  try {
+    const params = new URLSearchParams(search); params.set('offset', offset);
+    const data = await api('/api/search?' + params, {signal: controller.signal});
+    if (version !== requestVersion) return;
+    data.items.forEach(render); offset += data.items.length;
+    $('more').hidden = offset >= data.total;
+    $('results-title').textContent = search.target ? `${search.speaker}의 대사에서 ${search.target} 찾기` : `${search.speaker}의 전체 대사`;
+    $('result-count').textContent = `${data.total.toLocaleString()}개 대사`;
+    $('notice').textContent = search.target ? '이름·등록 별칭이 포함된 대사예요. 호칭과 지칭 대상은 앞뒤 문맥에서 확인하세요.' : '앞뒤 문맥을 펼쳐 말투와 대화 흐름을 살펴보세요.';
+    if (!data.total) empty('조건에 맞는 대사를 찾지 못했어요', '자동완성에서 말하는 인물의 이름을 확인하거나, 찾을 인물·대사 속 표현을 지우고 다시 검색해보세요.');
+  } catch (error) {
+    if (version !== requestVersion || error.name === 'AbortError') return;
+    $('notice').textContent = error.message;
+    if (!append) empty('검색을 잠시 마치지 못했어요', '입력한 내용은 그대로 있어요. 검색 버튼을 눌러 다시 시도해주세요.');
+  } finally {
+    if (version === requestVersion) { $('more').disabled = false; $('submit-search').disabled = false; $('submit-search').textContent = '대사 검색 ↗'; $('results').setAttribute('aria-busy', 'false'); }
+  }
+}
+function submit() {
+  if (!$('speaker').value.trim()) { $('speaker').setCustomValidity('말하는 인물의 이름을 입력해주세요.'); $('speaker').reportValidity(); return; }
+  offset = 0;
+  last = {speaker: $('speaker').value.trim(), target: $('target').value.trim(), q: $('query').value.trim(), lang: $('lang').value, spoilers: $('spoilers').checked ? '1' : '0'};
+  run();
+}
+$('search').onsubmit = event => { event.preventDefault(); submit(); };
+$('more').onclick = () => run(true);
+$('example-pair').onclick = () => { $('speaker').value = 'M3'; $('target').value = $('lang').value === 'ko_KR' ? '켈시' : '凯尔希'; $('query').value = ''; guide(); submit(); };
+$('example-solo').onclick = () => { $('speaker').value = $('lang').value === 'ko_KR' ? '켈시' : '凯尔希'; $('target').value = ''; $('query').value = ''; guide(); submit(); };

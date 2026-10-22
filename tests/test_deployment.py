@@ -9,11 +9,6 @@ from app import create_app
 from build import export_snapshot
 from core import connect,ingest
 
-class MemoryReviews:
-    def __init__(self):self.rows={}
-    def load(self):return list(self.rows.values())
-    def save(self,p):self.rows[(p['line'],p['target'])]=tuple(p[k] for k in ('line','target','expression','kind','hash'))
-
 class DeploymentTest(unittest.TestCase):
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory();self.root=Path(self.tmp.name)
@@ -27,55 +22,47 @@ class DeploymentTest(unittest.TestCase):
     def test_root_assets_and_readonly_search(self):
         before=self.snapshot.read_bytes()
         for url in ('/','/app.js','/style.css','/api/status','/api/speakers'):
-            with self.client.get(url) as response:
-                self.assertEqual(response.status_code,200,url)
+            with self.client.get(url) as response:self.assertEqual(response.status_code,200,url)
         response=self.client.get('/api/search?speaker=M3&target=켈시')
         self.assertEqual(response.json['total'],1)
-        self.assertFalse(self.client.get('/api/status').json['reviews_enabled'])
+        self.assertNotIn('reviews',response.json['items'][0])
         self.assertEqual(before,self.snapshot.read_bytes())
-    def test_snapshot_excludes_raw_and_review_history(self):
+    def test_snapshot_has_only_search_tables(self):
         with closing(sqlite3.connect(self.snapshot)) as db:
             tables={r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
-            self.assertNotIn('snapshots',tables);self.assertNotIn('history',tables)
+            self.assertEqual(tables,{'stories','lines','import_status'})
             self.assertNotIn('raw',[r[1] for r in db.execute('PRAGMA table_info(stories)')])
-            self.assertEqual(db.execute('SELECT count(*) FROM reviews').fetchone()[0],0)
-    def test_no_ephemeral_review_writes(self):
-        self.assertEqual(self.client.post('/api/review',json={}).status_code,401)
-        with patch.dict(os.environ,{'ASI_ADMIN_TOKEN':'x'*32}):
-            self.assertEqual(self.client.post('/api/review',json={},headers={'Authorization':'Bearer '+'x'*32}).status_code,503)
-    def test_durable_overlay_and_new_app_instance(self):
-        store=MemoryReviews();app=create_app(str(self.snapshot),True,store);client=app.test_client()
-        item=client.get('/api/search?speaker=M3&target=켈시').json['items'][0]
-        payload=dict(line=item['id'],hash=item['hash'],target='켈시',expression='선생님',kind='direct')
-        with patch.dict(os.environ,{'ASI_ADMIN_TOKEN':'x'*32}):
-            r=client.post('/api/review',json=payload,headers={'Authorization':'Bearer '+'x'*32})
-        self.assertEqual(r.status_code,200)
-        new_client=create_app(str(self.snapshot),True,store).test_client()
-        data=new_client.get('/api/search?speaker=M3&target=켈시').json
-        self.assertEqual(data['items'][0]['reviews'][0]['status'],'reviewed')
-        store.rows.clear()
-        self.assertEqual(new_client.get('/api/search?speaker=M3&target=켈시').json['items'][0]['reviews'],[])
+    def test_removed_admin_route_and_ui(self):
+        self.assertEqual(self.client.post('/api/review',json={}).status_code,404)
+        with self.client.get('/') as response:self.assertNotIn('관리자',response.text)
+        with self.client.get('/app.js') as response:self.assertNotIn('/api/review',response.text)
+    def test_old_environment_does_not_require_external_storage(self):
+        with patch.dict(os.environ,{'ASI_REVIEW_DATABASE_URL':'invalid','ASI_ADMIN_TOKEN':'unused'}):
+            client=create_app(str(self.snapshot),True).test_client()
+            self.assertEqual(client.get('/api/search?speaker=M3').status_code,200)
     def test_bad_search_and_missing_data(self):
         self.assertEqual(self.client.get('/api/search?speaker=M3&offset=bad').status_code,400)
         self.assertEqual(self.client.get('/api/search').status_code,400)
         client=create_app(str(self.root/'missing.sqlite'),True).test_client()
         self.assertEqual(client.get('/api/status').status_code,503)
         self.assertFalse((self.root/'missing.sqlite').exists())
-
-    def test_store_failure_never_returns_unreviewed_success(self):
-        class BrokenStore:
-            def load(self):raise RuntimeError('unavailable')
-            def save(self,payload):raise RuntimeError('unavailable')
-        client=create_app(str(self.snapshot),True,BrokenStore()).test_client()
-        self.assertEqual(client.get('/api/search?speaker=M3').status_code,503)
-        item=self.client.get('/api/search?speaker=M3').json['items'][0]
-        payload=dict(line=item['id'],hash=item['hash'],target='켈시',expression='선생님',kind='direct')
-        with patch.dict(os.environ,{'ASI_ADMIN_TOKEN':'x'*32}):
-            self.assertEqual(client.post('/api/review',json=payload,headers={'Authorization':'Bearer '+'x'*32}).status_code,503)
-
-    def test_stale_source_cannot_be_saved_to_remote(self):
-        store=MemoryReviews();client=create_app(str(self.snapshot),True,store).test_client()
-        payload=dict(line='ko_KR:test.txt:0',hash='old',target='켈시',expression='선생님',kind='direct')
-        with patch.dict(os.environ,{'ASI_ADMIN_TOKEN':'x'*32}):
-            self.assertEqual(client.post('/api/review',json=payload,headers={'Authorization':'Bearer '+'x'*32}).status_code,400)
-        self.assertEqual(store.rows,{})
+    def test_shared_pages_and_assets(self):
+        for url in ('/help','/privacy','/terms','/license','/changelog'):
+            with self.client.get(url) as response:
+                self.assertEqual(response.status_code,200,url)
+                self.assertIn('id="themeButton"',response.text)
+                self.assertIn('href="/privacy"',response.text)
+                self.assertNotIn('/app.js',response.text)
+        for url in ('/theme.js','/chrome.js','/theme-control.css'):
+            with self.client.get(url) as response:self.assertEqual(response.status_code,200,url)
+        with self.client.get('/privacy') as response:
+            self.assertIn('검색 요청은 URL',response.text)
+            self.assertIn('서버에 전송',response.text)
+        self.assertEqual(self.client.get('/unknown-document').status_code,404)
+    def test_suggestions_include_alias_and_count_without_spoilers(self):
+        rows=self.client.get('/api/suggestions').json
+        by_name={row['value']:row for row in rows}
+        self.assertEqual(by_name['M3']['count'],1)
+        self.assertIn('Mon3tr',by_name['M3']['label'])
+        self.assertIn('凯尔希',by_name)
+        self.assertEqual(self.client.get('/api/suggestions?lang=bad').status_code,400)
