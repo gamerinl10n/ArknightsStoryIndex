@@ -1,109 +1,82 @@
 const $ = id => document.getElementById(id);
-const el = (tag, text, cls) => { const node = document.createElement(tag); node.textContent = text; if (cls) node.className = cls; return node; };
-let offset = 0, last = null, suggestions = [], suggestionVersion = 0, requestVersion = 0, controller;
-async function api(url, options) {
-  const response = await fetch(url, options);
-  const data = await response.json();
-  if (!response.ok) throw Error(data.error || '요청을 처리하지 못했어요. 다시 시도해주세요.');
-  return data;
-}
-function guide() {
-  const speaker = $('speaker').value.trim(), target = $('target').value.trim();
-  const match = suggestions.find(row => row.value.toLocaleLowerCase() === speaker.toLocaleLowerCase());
-  $('speaker').setCustomValidity('');
-  $('speaker-help').textContent = match ? match.label : '이름 일부를 입력하면 자동완성 목록이 나타납니다.';
-  $('target-help').textContent = target ? `‘${target}’의 이름·등록 별칭이 나오는 대사를 찾아요.` : '비워두면 말하는 인물의 전체 대사를 볼 수 있어요.';
-  $('search-mode').textContent = !speaker ? '말하는 인물을 선택해 시작하세요.' : target ? `${speaker}의 대사에서 ${target} 찾기` : `${speaker}의 전체 대사 찾기`;
-}
-$('speaker').addEventListener('input', guide);
-$('target').addEventListener('input', guide);
-$('swap').onclick = () => { const speaker = $('speaker').value; $('speaker').value = $('target').value; $('target').value = speaker; guide(); $('speaker').focus(); };
-api('/api/status').then(data => {
-  if (data.dialogue_lines) $('data-status').textContent = `${data.dialogue_lines.toLocaleString()}개 대사`;
-  else $('notice').textContent = '아직 수집된 데이터가 없습니다. 원본 동기화 후 검색할 수 있습니다.';
-}).catch(() => {});
-async function loadSpeakers() {
-  const version = ++suggestionVersion;
-  const params = new URLSearchParams({lang: $('lang').value, spoilers: $('spoilers').checked ? '1' : '0'});
-  try {
-    const rows = await api('/api/suggestions?' + params);
-    if (version !== suggestionVersion) return;
-    suggestions = rows;
-    $('characters').replaceChildren();
-    const fragment = document.createDocumentFragment();
-    rows.forEach(row => { const option = el('option', ''); option.value = row.value; option.label = row.label; fragment.append(option); });
-    $('characters').append(fragment);
-    guide();
-  } catch (error) {
-    if (version !== suggestionVersion) return;
-    suggestions = []; $('characters').replaceChildren();
-    $('speaker-help').textContent = '자동완성을 불러오지 못했어요. 이름을 직접 입력해 검색할 수 있습니다.';
+const t = (key, values={}) => Object.entries(values).reduce((s,[k,v])=>s.replaceAll('{'+k+'}',String(v)), window.ASI.strings[key] || key);
+const el = (tag, text, cls) => { const node=document.createElement(tag); node.textContent=text; if(cls) node.className=cls; return node; };
+let offset=0, last=null, suggestions=[], suggestionVersion=0, requestVersion=0, controller;
+async function api(url, options) { const response=await fetch(url,options); const data=await response.json(); if(!response.ok) throw Error(t('failed')); return data; }
+function completion(id) {
+  const input=$(id), list=$(id+'-options'); let active=-1, rows=[];
+  const close=()=>{list.hidden=true;input.setAttribute('aria-expanded','false');input.removeAttribute('aria-activedescendant');active=-1;};
+  function draw() {
+    const query=input.value.trim().toLocaleLowerCase();
+    rows=suggestions.filter(row=>!query || (row.value+' '+row.label).toLocaleLowerCase().includes(query)).sort((a,b)=>(b.value.toLocaleLowerCase()===query)-(a.value.toLocaleLowerCase()===query) || b.count-a.count).slice(0,12);
+    active=-1;list.replaceChildren();input.removeAttribute('aria-activedescendant');
+    rows.forEach((row,index)=>{
+      const option=el('div','', 'suggestion'); option.id=id+'-option-'+index; option.setAttribute('role','option');option.setAttribute('aria-selected','false');
+      option.append(el('span',row.value)); if(row.label!==row.value) option.append(el('small',row.label));
+      option.addEventListener('pointerdown',event=>event.preventDefault());
+      option.addEventListener('click',()=>{input.value=row.value;input.setCustomValidity('');close();input.focus();});list.append(option);
+    });
+    list.hidden=!rows.length;input.setAttribute('aria-expanded',String(rows.length>0));
   }
-}
-$('lang').addEventListener('change', loadSpeakers);
-$('spoilers').addEventListener('change', loadSpeakers);
-loadSpeakers();
-function render(item) {
-  const card = el('article', '');
-  card.append(el('h2', item.speaker));
-  card.append(el('p', item.text, 'quote'));
-  card.append(el('p', `${item.path} · 원본 ${item.ordinal + 1}행 · ${item.revision.slice(0, 12)}`, 'meta'));
-  const context = el('details', ''); context.append(el('summary', '앞뒤 문맥 펼쳐보기'));
-  item.context.forEach(row => {
-    const paragraph = el('p', `${row.speaker || '이름 없음'}: ${row.text}`, row.ordinal === item.ordinal ? 'current-line' : '');
-    if (row.branch !== 'main') paragraph.append(el('small', `\n분기: ${row.branch}`, 'branch-note'));
-    context.append(paragraph);
+  input.addEventListener('input',()=>{input.setCustomValidity('');draw();});input.addEventListener('focus',draw);
+  input.addEventListener('blur',close);
+  input.addEventListener('keydown',event=>{
+    if(event.key==='Escape') {event.preventDefault();close();return;}
+    if(event.key==='ArrowDown'||event.key==='ArrowUp') {
+      event.preventDefault();if(list.hidden)draw();if(!rows.length)return;
+      active=(active+(event.key==='ArrowDown'?1:-1)+rows.length)%rows.length;
+      [...list.children].forEach((node,i)=>node.setAttribute('aria-selected',String(i===active)));
+      input.setAttribute('aria-activedescendant',list.children[active].id);list.children[active].scrollIntoView?.({block:'nearest'});
+    } else if(event.key==='Enter' && !list.hidden && active>=0) {event.preventDefault();input.value=rows[active].value;close();}
   });
-  card.append(context);
-  if (item.parallel.length) {
-    const parallel = el('details', ''); parallel.append(el('summary', '다른 언어 대사 · 같은 줄 위치의 대응 후보'));
-    item.parallel.forEach(row => parallel.append(el('p', `${row.speaker}: ${row.text}`)));
-    card.append(parallel);
-  }
-  const actions = el('div', '', 'result-actions');
-  const copy = el('button', '대사·출처 복사'); copy.type = 'button';
-  copy.onclick = async () => {
-    try { await navigator.clipboard.writeText(`${item.speaker}: ${item.text}\n${item.source}@${item.revision} / ${item.lang}/${item.path}:${item.ordinal + 1}`); copy.textContent = '복사했어요 ✓'; }
-    catch { copy.textContent = '복사하지 못했어요'; }
-  };
-  actions.append(copy); card.append(actions); $('results').append(card);
+  return {refresh:()=>{if(document.activeElement===input)draw();},close};
 }
-function empty(title, description) {
-  $('empty-state').hidden = false;
-  $('empty-state').querySelector('h3').textContent = title;
-  $('empty-state').querySelector('p').textContent = description;
+const completions=[completion('speaker'),completion('target')];
+$('swap').onclick=()=>{const a=$('speaker').value;$('speaker').value=$('target').value;$('target').value=a;completions.forEach(c=>c.close());};
+async function loadSpeakers() {
+  const version=++suggestionVersion;suggestions=[];completions.forEach(c=>c.close());
+  try {const params=new URLSearchParams({lang:$('lang').value,spoilers:$('spoilers').checked?'1':'0'});const rows=await api('/api/suggestions?'+params);if(version!==suggestionVersion)return;suggestions=rows;completions.forEach(c=>c.refresh());}
+  catch {if(version===suggestionVersion)suggestions=[];}
 }
-async function run(append = false) {
-  const version = ++requestVersion, search = {...last};
-  controller?.abort(); controller = new AbortController();
-  $('more').disabled = true; $('submit-search').disabled = true; $('submit-search').textContent = '찾고 있어요…'; $('results').setAttribute('aria-busy', 'true');
-  if (!append) { $('results').replaceChildren(); $('more').hidden = true; $('result-count').textContent = ''; $('empty-state').hidden = true; }
-  $('notice').textContent = '대사를 찾고 있어요…';
-  try {
-    const params = new URLSearchParams(search); params.set('offset', offset);
-    const data = await api('/api/search?' + params, {signal: controller.signal});
-    if (version !== requestVersion) return;
-    data.items.forEach(render); offset += data.items.length;
-    $('more').hidden = offset >= data.total;
-    $('results-title').textContent = search.target ? `${search.speaker}의 대사에서 ${search.target} 찾기` : `${search.speaker}의 전체 대사`;
-    $('result-count').textContent = `${data.total.toLocaleString()}개 대사`;
-    $('notice').textContent = '';
-    if (!data.total) empty('조건에 맞는 대사를 찾지 못했어요', '자동완성에서 말하는 인물의 이름을 확인하거나, 찾을 인물·대사 속 표현을 지우고 다시 검색해보세요.');
-  } catch (error) {
-    if (version !== requestVersion || error.name === 'AbortError') return;
-    $('notice').textContent = error.message;
-    if (!append) empty('검색을 잠시 마치지 못했어요', '입력한 내용은 그대로 있어요. 검색 버튼을 눌러 다시 시도해주세요.');
-  } finally {
-    if (version === requestVersion) { $('more').disabled = false; $('submit-search').disabled = false; $('submit-search').textContent = '대사 검색 ↗'; $('results').setAttribute('aria-busy', 'false'); }
-  }
+$('lang').addEventListener('change',loadSpeakers);$('spoilers').addEventListener('change',loadSpeakers);
+function contextRows(container,rows,ordinal) {
+  container.replaceChildren();rows.forEach(row=>{const p=el('p',`${row.speaker||t('unnamed')}: ${row.text}`,row.ordinal===ordinal?'current-line':'');if(row.branch!=='main')p.append(el('small',`\n${t('branch')}: ${row.branch}`,'branch-note'));container.append(p);});
 }
-function submit() {
-  if (!$('speaker').value.trim()) { $('speaker').setCustomValidity('말하는 인물의 이름을 입력해주세요.'); $('speaker').reportValidity(); return; }
-  offset = 0;
-  last = {speaker: $('speaker').value.trim(), target: $('target').value.trim(), q: $('query').value.trim(), lang: $('lang').value, spoilers: $('spoilers').checked ? '1' : '0'};
+function render(item) {
+  const card=el('article','');card.append(el('h2',item.speaker),el('p',item.text,'quote'),el('p',`${item.path} · ${t('line',{n:item.ordinal+1})} · ${item.revision.slice(0,12)}`,'meta'));
+  const context=el('details','');context.append(el('summary',t('context')));const lines=el('div','');contextRows(lines,item.context,item.ordinal);context.append(lines);
+  const expand=el('button',t('context_more'));expand.type='button';let radius=3;
+  expand.onclick=async()=>{expand.disabled=true;try {const next=Math.min(radius+15,100);const data=await api('/api/context?'+new URLSearchParams({story:item.story,ordinal:item.ordinal,radius:next}));contextRows(lines,data.items,item.ordinal);radius=next;expand.hidden=!data.has_more||radius>=100;}catch{expand.textContent=t('retry');}finally{expand.disabled=false;}};
+  context.append(expand);card.append(context);
+  if(item.parallel.length) {const parallel=el('details','');parallel.append(el('summary',t('parallel')));item.parallel.forEach(row=>parallel.append(el('p',`[${row.lang}] ${row.speaker}: ${row.text}`)));card.append(parallel);}
+  const actions=el('div','','result-actions'),copy=el('button',t('copy'));copy.type='button';copy.onclick=async()=>{try{await navigator.clipboard.writeText(`${item.speaker}: ${item.text}\n${item.source}@${item.revision} / ${item.lang}/${item.path}:${item.ordinal+1}`);copy.textContent=t('copied');}catch{copy.textContent=t('copy_failed');}};actions.append(copy);card.append(actions);$('results').append(card);
+}
+function empty(title,description) {$('empty-state').hidden=false;$('empty-state').querySelector('h3').textContent=title;$('empty-state').querySelector('p').textContent=description;}
+async function run(append=false) {
+  const version=++requestVersion,search={...last};controller?.abort();controller=new AbortController();
+  $('more').disabled=true;$('submit-search').disabled=true;$('submit-search').textContent=t('loading');$('results').setAttribute('aria-busy','true');
+  if(!append){$('results').replaceChildren();$('more').hidden=true;$('result-count').textContent='';$('empty-state').hidden=true;}
+  $('notice').textContent=t('loading');
+  try {const params=new URLSearchParams(search);params.set('offset',offset);const data=await api('/api/search?'+params,{signal:controller.signal});if(version!==requestVersion)return;
+    data.items.forEach(render);offset+=data.items.length;$('more').hidden=offset>=data.total;
+    $('results-title').textContent=search.target?t('search_pair',{a:search.speaker,b:search.target}):t('search_solo',{a:search.speaker});$('result-count').textContent=t('count',{n:data.total.toLocaleString()});$('notice').textContent='';$('share-search').hidden=false;
+    if(!data.total)empty(t('no_results'),t('broaden'));
+  }catch(error){if(version!==requestVersion||error.name==='AbortError')return;$('notice').textContent=t('failed');if(!append)empty(t('failed'),t('retry'));}
+  finally{if(version===requestVersion){$('more').disabled=false;$('submit-search').disabled=false;$('submit-search').textContent=t('search');$('results').setAttribute('aria-busy','false');}}
+}
+function submit(updateUrl=true) {
+  if(!$('speaker').value.trim()){$('speaker').setCustomValidity(t('search_error'));$('speaker').reportValidity();return;}
+  offset=0;last={speaker:$('speaker').value.trim(),target:$('target').value.trim(),q:$('query').value.trim(),lang:$('lang').value,spoilers:$('spoilers').checked?'1':'0'};
+  completions.forEach(c=>c.close());
+  if(updateUrl){const params=new URLSearchParams(last);params.set('ui',window.ASI.ui);history.pushState(null,'','/?'+params);}
   run();
 }
-$('search').onsubmit = event => { event.preventDefault(); submit(); };
-$('more').onclick = () => run(true);
-$('example-pair').onclick = () => { $('speaker').value = 'M3'; $('target').value = $('lang').value === 'ko_KR' ? '켈시' : '凯尔希'; $('query').value = ''; guide(); submit(); };
-$('example-solo').onclick = () => { $('speaker').value = $('lang').value === 'ko_KR' ? '켈시' : '凯尔希'; $('target').value = ''; $('query').value = ''; guide(); submit(); };
+function restore() {
+  const params=new URLSearchParams(location.search);for(const key of ['speaker','target'])$(key).value=(params.get(key)||'').slice(0,300);$('query').value=(params.get('q')||'').slice(0,300);
+  if([...$('lang').options].some(o=>o.value===params.get('lang')))$('lang').value=params.get('lang');else $('lang').value=({ko:'ko_KR',zh:'zh_CN',ja:'ja_JP',en:'en_US'})[window.ASI.ui];
+  $('spoilers').checked=params.get('spoilers')==='1';loadSpeakers();
+  if($('speaker').value)submit(false);else{++requestVersion;controller?.abort();last=null;offset=0;$('results').replaceChildren();$('notice').textContent='';$('result-count').textContent='';$('results-title').textContent=t('results');$('more').hidden=true;$('share-search').hidden=true;$('empty-state').hidden=true;$('submit-search').disabled=false;$('submit-search').textContent=t('search');$('results').setAttribute('aria-busy','false');}
+}
+$('search').onsubmit=event=>{event.preventDefault();submit();};$('more').onclick=()=>run(true);
+$('share-search').onclick=async()=>{try{await navigator.clipboard.writeText(location.href);$('share-search').textContent=t('shared');}catch{$('share-search').textContent=t('copy_failed');}};
+window.addEventListener('popstate',restore);restore();

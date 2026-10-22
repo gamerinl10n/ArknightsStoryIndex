@@ -5,18 +5,24 @@ import re
 import sqlite3
 from pathlib import Path
 
+LANGUAGES = {'ko_KR':'kr', 'zh_CN':'cn', 'ja_JP':'jp', 'en_US':'en'}
+
 def aliases(value, lang):
     path = Path(__file__).parent / 'characters.json'
+    result=[]
     for character in json.loads(path.read_text(encoding='utf-8')):
-        all_names = [character['id']] + character.get('aliases', []) + [n for names in character['names'].values() for n in names]
+        all_names=[character['id']]+character.get('aliases',[])+[n for names in character['names'].values() for n in names]
         if value.casefold() in [n.casefold() for n in all_names]:
-            return character['names'].get(lang, [value])
-    return [value]
+            result.extend(character['names'].get(lang,[]))
+    return list(dict.fromkeys(result)) or [value]
 
 
 
-def connect(path):
+
+def connect(path, ephemeral=False):
     db = sqlite3.connect(path)
+    if ephemeral:
+        db.execute("PRAGMA journal_mode=MEMORY")
     db.row_factory = sqlite3.Row
     db.executescript('''
     CREATE TABLE IF NOT EXISTS stories(id TEXT PRIMARY KEY, lang TEXT, path TEXT, revision TEXT, source TEXT, raw TEXT);
@@ -56,7 +62,7 @@ def ingest(db, root, revision, source):
     batch = []
     report = {'files': 0, 'dialogue_lines': 0, 'unparsed_text_lines': 0}
 
-    for lang, folder in [('ko_KR', 'kr'), ('zh_CN', 'cn')]:
+    for lang, folder in LANGUAGES.items():
         for f in sorted((root / folder / 'gamedata/story').rglob('*.txt')):
             raw = f.read_text(encoding='utf-8-sig')
             rows = list(parse(raw))
@@ -85,7 +91,7 @@ def ingest(db, root, revision, source):
 
 
 def search(db, speaker='', target='', query='', lang='ko_KR', spoilers=False, offset=0):
-    if lang not in ('ko_KR', 'zh_CN'):
+    if lang not in LANGUAGES:
         raise ValueError('지원하지 않는 언어')
     clauses = ['s.lang=?']
     args = [lang]
@@ -113,3 +119,14 @@ def search(db, speaker='', target='', query='', lang='ko_KR', spoilers=False, of
         item['parallel'] = [dict(r) for r in db.execute('SELECT l.speaker,l.text,s.lang FROM lines l JOIN stories s ON s.id=l.story WHERE s.path=? AND l.ordinal=? AND s.lang!=?', (row['path'], row['ordinal'], lang))]
         results.append(item)
     return {'total': total, 'items': results}
+
+
+def context_window(db, story, ordinal, radius=15):
+    row = db.execute('SELECT * FROM stories WHERE id=?', (story,)).fetchone()
+    if not row:
+        raise ValueError('Story not found')
+    radius = max(3, min(100, radius))
+    before = db.execute('SELECT speaker,text,branch,ordinal FROM lines WHERE story=? AND ordinal<? ORDER BY ordinal DESC LIMIT ?', (story,ordinal,radius)).fetchall()
+    after = db.execute('SELECT speaker,text,branch,ordinal FROM lines WHERE story=? AND ordinal>=? ORDER BY ordinal LIMIT ?', (story,ordinal,radius+1)).fetchall()
+    rows = list(reversed(before)) + list(after)
+    return {'items':[dict(r) for r in rows], 'has_more':len(before)==radius or len(after)==radius+1}

@@ -51,7 +51,7 @@ class DeploymentTest(unittest.TestCase):
             with self.client.get(url) as response:
                 self.assertEqual(response.status_code,200,url)
                 self.assertIn('id="themeButton"',response.text)
-                self.assertIn('href="/privacy"',response.text)
+                self.assertIn('href="/privacy?ui=ko"',response.text)
                 self.assertNotIn('/app.js',response.text)
         for url in ('/theme.js','/chrome.js','/theme-control.css'):
             with self.client.get(url) as response:self.assertEqual(response.status_code,200,url)

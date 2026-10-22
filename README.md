@@ -34,7 +34,7 @@ python app.py --import-root /path/to/ArknightsGamedata --revision <commit-sha>
 
 저장소 루트를 Root Directory로 사용하고 Output Directory 수동 지정은 비워두세요. `vercel.json`이 Flask 진입점 및 `python build.py`를 지정합니다. 빌드에서 원본을 가져와 읽기 전용 `generated/search.sqlite`를 생성합니다. 다운로드나 변환 실패 시 빌드를 실패시켜 빈 데이터를 배포하지 않습니다. 데이터 갱신은 재배포 시 반영됩니다. `ASI_SOURCE_REF`로 원본 commit SHA를 고정할 수 있습니다.
 
-원본·스냅샷은 Function 번들에서 제외합니다. Vercel 빌드 디렉터리는 영구 아카이브가 아니므로 별도 원본 백업이 필요합니다. 2026-10-22 기준 검색 DB는 약 208MiB이며, 400MiB를 넘으면 빌드를 차단합니다. 의존성을 포함한 최종 크기는 Vercel에서 확인하세요.
+원본·스냅샷은 Function 번들에서 제외합니다. Vercel 빌드 디렉터리는 영구 아카이브가 아니므로 별도 원본 백업이 필요합니다. 2026-10-22 기준 검색 DB는 약 208MiB이며, 450MiB를 넘으면 빌드를 차단합니다. 의존성을 포함한 최종 크기는 Vercel에서 확인하세요.
 
 ```sh
 python build.py --source-db data/index.sqlite
@@ -57,6 +57,16 @@ node --check web/app.js
 
 ## 공통 UI와 안내 페이지
 
-L10ndiff의 민트·틸 팔레트와 달/해 테마 버튼(SVG·전환 모션)을 동일 운영자의 요청으로 재사용했습니다. 둥근 검색 카드, 이름 자동완성(대사 수·등록 약칭 안내), 예시 검색을 제공합니다. /help, /privacy, /terms, /license, /changelog는 동일한 헤더·푸터·테마 전환을 공유합니다.
+L10ndiff의 민트·틸 팔레트와 달/해 테마 버튼(SVG·전환 모션)을 동일 운영자의 요청으로 재사용했습니다. 둥근 검색 카드, 이름 검색창에 붙는 자동완성, 검색 URL 공유와 문맥 확장을 제공합니다. /help, /privacy, /terms, /license, /changelog는 동일한 헤더·푸터·테마 전환을 공유합니다.
 
-테마는 localStorage의 asi-theme-v1에만 저장하며 검색어를 브라우저 저장소에 저장하지 않습니다. 이 서비스의 검색어는 서버로 전송되고 요청 URL에 포함될 수 있습니다. L10ndiff의 브라우저 전용 처리 안내·Analytics·광고·Tally 폼은 가져오지 않았습니다. 피드백은 이 프로젝트 GitHub Issues 링크를 사용합니다. 자체 코드 라이선스와 출처는 LICENSE 및 NOTICE를 확인하세요.
+테마는 localStorage의 asi-theme-v1에 저장하며 검색어를 브라우저 저장소에 저장하지 않습니다. 이 서비스의 검색어는 서버로 전송되고 요청 URL에 포함될 수 있습니다. L10ndiff의 브라우저 전용 처리 안내·Analytics·광고은 가져오지 않았습니다. 피드백은 외부 Tally 링크를 사용합니다. 자체 코드 라이선스와 출처는 LICENSE 및 NOTICE를 확인하세요.
+
+## 4개 언어와 검색 UX
+
+화면 언어(ui=ko/zh/ja/en)와 대사 언어(lang=ko_KR/zh_CN/ja_JP/en_US)는 독립적입니다. 인물 이름은 원본 character_table.json의 공식 ID로 연결하며 character_catalog.py가 이름 사전과 원본 SHA를 생성합니다. 임의 별명은 자동 생성하지 않습니다. 검색 URL은 입력한 이름·표현을 포함하므로 공유 전 확인하세요.
+
+자동완성은 접근성 combobox/listbox로 구현하며 방향키·Enter·Escape를 지원합니다. /api/context는 앞뒤 최대 100개 대사를 반환합니다. 푸터는 화면 하단 중앙에 고정하며 실제 높이만큼 본문 여백을 확보해 결과를 덮지 않습니다.
+
+L10ndiff의 업데이트 감지 모듈을 재사용해 /version.json을 60초마다 확인합니다. 숨겨진 탭·오프라인에서는 확인을 쉬며 30분 다시 알림은 sessionStorage에 저장합니다. 즉시 업데이트 시 입력 중인 검색 조건을 URL에 보존합니다. 화면 안내와 개인정보 페이지도 네 언어로 제공합니다.
+
+빌드 중간 DB는 재생성 가능한 임시 자료로 journal_mode=MEMORY를 사용합니다. 영구 원본 아카이브를 갱신하는 일반 sync.py에는 이 설정을 사용하지 않습니다. 최종 검색 DB는 quick_check 후 교체하며 원본은 번들에서 제외합니다.
