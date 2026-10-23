@@ -25,3 +25,11 @@ for lang, label in {"ko":"상대 발화가 가까운 결과", "en":"Nearby turn 
 
 for lang, label in {"ko":"검색 입력 초기화", "en":"Clear search inputs", "ja":"検索入力をクリア", "zh":"清空搜索内容"}.items():
     STRINGS[lang]["reset_search"] = label
+
+for lang, placeholders in {
+    "ko": ("검색할 대사 혹은 단어를 입력하세요.", "화자를 입력하세요.", "청자를 입력하세요."),
+    "en": ("Enter dialogue or a word to search.", "Enter the speaker.", "Enter the listener."),
+    "ja": ("検索する台詞や単語を入力してください。", "話し手を入力してください。", "聞き手を入力してください。"),
+    "zh": ("请输入要搜索的台词或词语。", "请输入说话者。", "请输入听话者。"),
+}.items():
+    STRINGS[lang].update(zip(("query_placeholder", "speaker_placeholder", "target_placeholder"), placeholders, strict=True))
