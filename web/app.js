@@ -1,5 +1,6 @@
 import { $, t, reducedMotion } from "./ui/dom.mjs";
 import { api } from "./ui/api.mjs";
+import { bindSearchReset } from "./ui/search-reset.mjs";
 import { readForm } from "./ui/form-state.mjs";
 import { createNavigation } from "./ui/navigation.mjs";
 import { createCorpusControl } from "./ui/corpus-control.mjs";
@@ -52,6 +53,7 @@ document.querySelector(".brand").addEventListener("click", (event) => {
   )
     goHome(event, false);
 });
+bindSearchReset({ autocomplete, stopSearch });
 function empty(title, description) {
   $("empty-state").hidden = false;
   $("empty-state").querySelector("h3").textContent = title;
