@@ -3,7 +3,7 @@
   "source_files": 5674,
   "text_rows": 1490226,
   "snapshot_bytes": 464543744,
-  "method": "strict-command-structure-v1",
+  "method": "strict-command-structure-v2",
   "languages": {
     "ko_KR": {
       "source_files": 5674,
@@ -27,11 +27,15 @@
       "source_files": 5674,
       "text_count_files": 3071,
       "unavailable_files": 415,
-      "matched_files": 2097,
-      "matched_rows": 362536,
+      "matched_files": 2096,
+      "matched_rows": 362535,
       "structure_files": 89,
-      "speaker_files": 2
+      "speaker_files": 2,
+      "partial_files": 1,
+      "excluded_choice_rows": 1
     }
   },
-  "scope": "full imported snapshot; structural correspondence is not semantic accuracy"
+  "scope": "full imported snapshot; structural correspondence is not semantic accuracy",
+  "updated": "2026-10-23",
+  "validation_report": "alignment-validation-20261023.json"
 }
