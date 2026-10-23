@@ -315,6 +315,19 @@ for lang, text in {
     COPY[lang]["changelog"].insert(0, ("1.2.0 · 2026-10-23", text))
 
 
+for lang, text in {
+    "ko": "대사 검색어는 민트색으로, 찾을 인물의 실제 이름·등록 표기는 옅은 금색 밑줄로 표시합니다. 다른 언어와 문맥에도 해당 언어의 이름을 표시하며, 이름 일치가 직접 호칭이나 대화 상대를 뜻하지는 않습니다.",
+    "en": "Searched phrases use mint highlights; literal names of the character mentioned use pale gold and an underline, including localized variants and context. A name match does not confirm an addressee or direct address.",
+    "ja": "検索語句はミント色、検索対象の人物名・登録表記は薄い金色と下線で表示します。他言語と文脈にも適用します。名前の一致は呼びかけや会話相手を確定するものではありません。",
+    "zh": "搜索词句以薄荷色标记，提及角色的实际姓名及登记表记以浅金色和下划线标记，同时适用于其他语言和上下文。姓名匹配不表示已确认称呼或对话对象。",
+}.items():
+    if lang == "ko":
+        PAGES["help"]["sections"][-1]["paragraphs"].append(text)
+    else:
+        title, previous = COPY[lang]["help"][-1]
+        COPY[lang]["help"][-1] = (title, previous + " " + text)
+
+
 def get_page(page, ui):
     if ui == "ko":
         return PAGES[page]

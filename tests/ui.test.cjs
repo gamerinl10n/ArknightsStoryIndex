@@ -366,3 +366,19 @@ test('context finishing while its result is detached resumes after history resto
  const pop=new Promise(resolve=>x.w.addEventListener('popstate',resolve,{once:true}));x.w.history.back();await pop;await tick();await tick();assert.equal(x.$('results').firstElementChild,card);assert(panel.querySelector('.context-line'));assert.equal(panel.open,true);assert.equal(x.calls.filter(u=>u.startsWith('/api/context?')).length,1);
  }finally{x.dom.window.close();}
 });
+
+test('name and phrase highlights preserve text and distinguish overlapping Unicode matches',async()=>{
+ const x=await setup();try{
+ const quote=(await x.loadModule('ui/highlight.mjs')).namespace.highlightedQuote;
+ const text='😀 켈시 선생님\n<em>켈시</em> abaababa';const node=quote(text,'켈',['켈시','선생님','aba','bab','켈시']);
+ assert.equal(node.textContent,text);assert.equal(node.querySelector('em'),null);assert.equal(node.querySelector('mark mark'),null);assert.equal(node.querySelector('.name-highlight.query-highlight').textContent,'켈');assert([...node.querySelectorAll('.name-highlight')].some(n=>n.textContent==='선생님'));assert.equal(quote(text,'',[]).textContent,text);
+ assert.equal(quote('아미야','', ['켈시']).querySelectorAll('mark').length,0);
+ }finally{x.dom.window.close();}
+});
+test('target names are highlighted per language in results and lazy context',async()=>{
+ const item=multilingualFixture();item.variants.ko_KR.text='합성 켈시 선생님';item.variants.zh_CN.text='合成 凯尔希医生';item.text=item.variants.ko_KR.text;
+ const x=await setup({query:'search?speaker=아미야&target=켈시&show=zh_CN',search:async url=>String(url).startsWith('/api/context?')?{items:[item],has_more:false}:{total:1,items:[item],highlights:{ko_KR:['켈시'],zh_CN:['凯尔希'],ja_JP:['ケルシー'],en_US:["Kal\'tsit"]}}});try{
+ await tick();await tick();const card=x.$('results').firstElementChild;assert.equal(card.querySelector('[lang="ko-KR"] .name-highlight').textContent,'켈시');assert.equal(card.querySelector('[lang="zh-CN"] .name-highlight').textContent,'凯尔希');assert.equal(card.querySelector('.quote').textContent,'합성 켈시 선생님');
+ const panel=card.querySelector('details');panel.open=true;panel.dispatchEvent(new x.w.Event('toggle'));await tick();await tick();assert.equal(panel.querySelector('[lang="zh-CN"] .name-highlight').textContent,'凯尔希');assert.equal(x.calls.filter(u=>u.startsWith('/api/context?')).length,1);
+ }finally{x.dom.window.close();}
+});

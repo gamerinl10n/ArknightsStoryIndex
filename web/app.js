@@ -116,7 +116,10 @@ async function run(append = false) {
       signal: controller.signal,
     });
     if (version !== requestVersion) return;
-    renderBatch(data.items, search.q, search);
+    renderBatch(data.items, search.q, {
+      ...search,
+      targetNames: data.highlights || {},
+    });
     comparisonControl.refresh();
     offset += data.items.length;
     renderedKey = searchIdentity(search);
