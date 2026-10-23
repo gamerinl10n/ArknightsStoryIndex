@@ -163,6 +163,45 @@ class TranslationAlignmentTest(unittest.TestCase):
             self.assertIn("ordinal_map", result["issues"][0]["reason"])
             self.assertIn("snapshot_text_or_metadata", result["issues"][0]["reason"])
 
+    def test_partial_choice_map_keeps_neighboring_dialogue_available(self):
+        cn = self.root / "cn/gamedata/story/partial.txt"
+        kr = self.root / "kr/gamedata/story/partial.txt"
+        cn.write_text(
+            '[name="Synthetic NPC"]Before\n[decision(options="One;Two",values="1;2")]\n[name="Synthetic NPC"]After',
+            encoding="utf8",
+        )
+        kr.write_text(
+            '[name="Synthetic NPC"]Before\n[decision(options="One;extra;Two",values="1;2")]\n[name="Synthetic NPC"]After',
+            encoding="utf8",
+        )
+        with closing(connect(self.source)) as db:
+            ingest(db, self.root, "synthetic-revision", "synthetic/source")
+        export_snapshot(self.source, self.snapshot)
+        client = create_app(str(self.snapshot), readonly=True).test_client()
+        result = client.get(
+            "/api/context",
+            query_string={
+                "story": "zh_CN:partial.txt",
+                "ordinal": 1,
+                "radius": 3,
+                "compare": "1",
+                "translation_lang": "ko_KR",
+            },
+        ).json
+        self.assertEqual(
+            [r["comparison"]["status"] for r in result["items"]],
+            ["matched", "unverified", "matched"],
+        )
+
+    def test_v1_maps_do_not_claim_v2_guarantees(self):
+        with closing(sqlite3.connect(self.snapshot)) as db:
+            db.execute(
+                "UPDATE translation_alignments SET method='strict-command-structure-v1'"
+            )
+            db.commit()
+        row = next(r for r in self.query().json["items"] if r["path"] == "matched.txt")
+        self.assertEqual(row["comparison"]["status"], "unverified")
+
 
 if __name__ == "__main__":
     unittest.main()
