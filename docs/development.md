@@ -143,3 +143,6 @@ L10ndiff의 sessionStorage 마커, 380ms 이탈 → 페이지 이동 → 300ms �
 
 
 통합 다국어 검색은 `/api/search?all_languages=1&lang=ko_KR&q=你好&details=0`으로 확인합니다. `lang`은 대표 표시 언어이며 네 언어에서 literal 일치를 찾습니다. `variants`는 검증된 대응만 포함합니다. 문맥에도 `all_languages=1`을 지정할 수 있습니다. 검색어를 보관하지 않는 요청별 임시 테이블을 사용하며 읽기 전용 스냅샷에서도 SQLite TEMP는 동작합니다. UI의 추가 표시 언어는 `show=zh_CN,ja_JP`로 복원하며 검색을 재실행하지 않습니다.
+
+
+검색 폼의 조건은 세 칸 중 하나 이상입니다. HTML의 자동 제출 검증은 novalidate로 끄고 submit에서 그룹 조건을 검사한 뒤 명시적으로 reportValidity를 호출합니다. 대사 칸에 남은 과거 customValidity가 submit 이벤트를 막지 않게 합니다. 자동완성의 마우스·키보드 선택은 모두 input 이벤트를 보내며, 기록 복원 시 이전 오류를 해제합니다. UI 회귀 검증에는 실제 requestSubmit 경로를 사용합니다.

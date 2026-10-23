@@ -316,3 +316,26 @@ test('multilingual context remains lazy and carries exact counterpart provenance
 test('clear preserves visible language choices and restores them from links',async()=>{
  const x=await setup({query:'?show=zh_CN,ja_JP'});try{x.$('query').value='你好';enter(x,'','');await tick();await tick();x.$('reset-search').click();assert.equal(x.$('query').value,'');assert.match(x.w.location.search,/show=/);assert.equal(x.w.document.querySelector('[data-translation-lang="ja_JP"]').getAttribute('aria-pressed'),'true');assert.equal(x.$('search-experience').dataset.view,'home');}finally{x.dom.window.close();}
 });
+
+test('empty submission does not block character-only searches selected from autocomplete',async()=>{
+ const x=await setup();try{
+ await tick();await tick();x.$('search').requestSubmit();assert.equal(x.$('query').validity.customError,true);
+ for(const id of ['speaker','target']){x.$(id).focus();x.$(id+'-options').querySelector('[role=option]').click();}
+ x.$('search').requestSubmit();await tick();await tick();
+ const requests=x.calls.filter(url=>url.startsWith('/api/search?'));assert.equal(requests.length,1);const params=new URL(requests[0],'https://asi.test').searchParams;assert.equal(params.get('q'),'');assert.equal(params.get('speaker'),'켈시');assert.equal(params.get('target'),'켈시');assert.equal(x.$('query').validity.customError,false);
+ }finally{x.dom.window.close();}
+});
+
+test('keyboard completion clears empty-search errors and single-character searches need no dialogue',async()=>{
+ const x=await setup();try{
+ await tick();await tick();x.$('search').requestSubmit();assert.equal(x.$('query').validity.customError,true);
+ x.$('speaker').focus();x.$('speaker').dispatchEvent(new x.w.KeyboardEvent('keydown',{key:'ArrowDown',cancelable:true}));x.$('speaker').dispatchEvent(new x.w.KeyboardEvent('keydown',{key:'Enter',cancelable:true}));assert.equal(x.$('query').validity.customError,false);
+ x.$('search').requestSubmit();await tick();await tick();assert(x.calls.some(url=>url.startsWith('/api/search?')&&new URL(url,'https://asi.test').searchParams.get('q')===''));assert.equal(x.$('search-experience').dataset.view,'results');
+ }finally{x.dom.window.close();}
+});
+test('group validation rechecks current values even with a stale browser error',async()=>{
+ const x=await setup();try{
+ x.$('search').requestSubmit();assert(!x.calls.some(url=>url.startsWith('/api/search?')));
+ x.$('speaker').value='M3';x.$('target').value='켈시';x.$('search').requestSubmit();await tick();await tick();assert.equal(x.$('query').validity.customError,false);assert.equal(x.calls.filter(url=>url.startsWith('/api/search?')).length,1);
+ }finally{x.dom.window.close();}
+});
