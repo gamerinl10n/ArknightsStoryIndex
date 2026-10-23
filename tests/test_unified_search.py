@@ -119,3 +119,14 @@ class UnifiedSearchTest(unittest.TestCase):
         self.assertEqual(result["total"], 2)
         self.assertEqual({row["lang"] for row in result["items"]}, {"zh_CN", "ja_JP"})
         self.assertTrue(all(row["main_language_missing"] for row in result["items"]))
+
+    def test_name_highlights_use_the_same_localized_aliases_as_search(self):
+        result = self.find(speaker="아미야", target="凯尔希").json
+        self.assertIn("켈시", result["highlights"]["ko_KR"])
+        self.assertIn("凯尔希", result["highlights"]["zh_CN"])
+        self.assertIn("ケルシー", result["highlights"]["ja_JP"])
+        self.assertNotIn("凯尔希", result["highlights"]["ko_KR"])
+        self.assertEqual(
+            self.find(target="synthetic NPC").json["highlights"]["en_US"],
+            ["synthetic NPC"],
+        )

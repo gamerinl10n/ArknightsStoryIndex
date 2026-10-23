@@ -7,7 +7,7 @@ const LABELS = {
   en_US: "English",
 };
 
-export function pairedQuote(item, needle, quote, infoButton) {
+export function pairedQuote(item, needle, quote, infoButton, targetNames = {}) {
   const comparison = item.comparison;
   const box = el("div", "", "paired-quote");
   const matched = comparison.status === "matched";
@@ -24,7 +24,10 @@ export function pairedQuote(item, needle, quote, infoButton) {
       row.lang === "zh_CN" ? t("original_text") : row.speaker || t("unnamed");
     heading.append(el("span", `${LABELS[row.lang]} · ${suffix}`));
     if (row !== item) heading.append(infoButton(row));
-    section.append(heading, quote(row.text, row === item ? needle : ""));
+    section.append(
+      heading,
+      quote(row.text, row === item ? needle : "", targetNames[row.lang]),
+    );
     box.append(section);
   }
   if (!matched)
@@ -44,7 +47,13 @@ export function pairedQuote(item, needle, quote, infoButton) {
   return box;
 }
 
-export function multilingualQuote(item, needle, quote, infoButton) {
+export function multilingualQuote(
+  item,
+  needle,
+  quote,
+  infoButton,
+  targetNames = {},
+) {
   const box = el("div", "", "multilingual-quote");
   const variants = item.variants || { [item.lang]: item };
   for (const lang of [
@@ -67,7 +76,7 @@ export function multilingualQuote(item, needle, quote, infoButton) {
     if (row && lang !== item.lang)
       heading.append(el("span", row.speaker || t("unnamed")), infoButton(row));
     section.append(heading);
-    if (row) section.append(quote(row.text, needle));
+    if (row) section.append(quote(row.text, needle, targetNames[row.lang]));
     else section.append(el("p", t("translation_unverified"), "pair-status"));
     if (lang === item.lang && item.main_language_missing)
       section.append(el("p", t("main_language_missing"), "pair-status"));

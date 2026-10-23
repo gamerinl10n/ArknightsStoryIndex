@@ -2,6 +2,7 @@ import { $, t, el } from "./dom.mjs";
 import { api } from "./api.mjs";
 import { portrait } from "./portraits.mjs";
 import { pairedQuote, multilingualQuote } from "./comparison-results.mjs";
+import { highlightedQuote } from "./highlight.mjs";
 import { openDialog } from "./dialogs.mjs";
 
 function infoButton(item, row = item) {
@@ -40,26 +41,7 @@ function infoButton(item, row = item) {
   return button;
 }
 
-function quote(text, needle) {
-  const node = el("p", "", "quote");
-  if (!needle) {
-    node.textContent = text;
-    return node;
-  }
-  let at = 0,
-    index;
-  while ((index = text.indexOf(needle, at)) !== -1) {
-    node.append(
-      document.createTextNode(text.slice(at, index)),
-      el("mark", needle),
-    );
-    at = index + needle.length;
-  }
-  node.append(document.createTextNode(text.slice(at)));
-  return node;
-}
-
-function contextRows(rows, item, needle, matches = [item]) {
+function contextRows(rows, item, needle, matches = [item], options = {}) {
   const fragment = document.createDocumentFragment();
   for (const row of rows) {
     const line = el(
@@ -79,10 +61,26 @@ function contextRows(rows, item, needle, matches = [item]) {
     line.append(
       heading,
       row.variants
-        ? multilingualQuote(row, needle, quote, infoButton)
+        ? multilingualQuote(
+            row,
+            needle,
+            highlightedQuote,
+            infoButton,
+            options.targetNames,
+          )
         : row.comparison
-          ? pairedQuote(row, needle, quote, infoButton)
-          : quote(row.text, needle),
+          ? pairedQuote(
+              row,
+              needle,
+              highlightedQuote,
+              infoButton,
+              options.targetNames,
+            )
+          : highlightedQuote(
+              row.text,
+              needle,
+              options.targetNames?.[row.lang || item.lang],
+            ),
     );
     fragment.append(line);
   }
@@ -116,10 +114,26 @@ function renderCard(group, needle, index, options) {
     card.append(
       heading,
       row.variants
-        ? multilingualQuote(row, needle, quote, infoButton)
+        ? multilingualQuote(
+            row,
+            needle,
+            highlightedQuote,
+            infoButton,
+            options.targetNames,
+          )
         : row.comparison
-          ? pairedQuote(row, needle, quote, infoButton)
-          : quote(row.text, needle),
+          ? pairedQuote(
+              row,
+              needle,
+              highlightedQuote,
+              infoButton,
+              options.targetNames,
+            )
+          : highlightedQuote(
+              row.text,
+              needle,
+              options.targetNames?.[row.lang || item.lang],
+            ),
     );
   }
 
@@ -181,7 +195,7 @@ function renderCard(group, needle, index, options) {
   }
   section("context", (content, data) => {
     const lines = el("div", "", "context-lines");
-    lines.append(contextRows(data.items, item, needle, group));
+    lines.append(contextRows(data.items, item, needle, group, options));
     const expand = el("button", t("context_more"));
     expand.type = "button";
     let radius = initialRadius;
@@ -200,7 +214,9 @@ function renderCard(group, needle, index, options) {
             }),
         );
         if (!card.isConnected) return;
-        lines.replaceChildren(contextRows(data.items, item, needle, group));
+        lines.replaceChildren(
+          contextRows(data.items, item, needle, group, options),
+        );
         radius = next;
         expand.hidden = !data.has_more || radius >= 100;
         expand.textContent = t("context_more");

@@ -213,3 +213,24 @@ html[data-theme=dark] .brand-logo{filter:brightness(0) invert(1)}
 .multilingual-quote .paired-line[hidden]{display:none}.multilingual-quote .paired-line:not([hidden])~.paired-line:not([hidden]){margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
 .context-line .multilingual-quote .primary-language .quote{font-size:15px}
 @media(max-width:640px){.search-form{grid-template-columns:minmax(0,1fr) 44px;grid-template-areas:"query query" "people people" "target target" "actions actions" "bottom bottom"}.multilingual-quote .primary-language .quote{font-size:17px}}
+
+/* Names are literal evidence, visually distinct from searched phrases. */
+mark.name-highlight{background:#f5dfa875;text-decoration:underline;text-decoration-color:#a27429;text-decoration-thickness:1px;text-underline-offset:3px}
+mark.name-highlight.query-highlight{background:#98ddca70}
+html[data-theme=dark] mark.name-highlight{background:#66532d;color:var(--ink);text-decoration-color:#e7c779}
+html[data-theme=dark] mark.name-highlight.query-highlight{background:#315b50}
+.paired-heading>span{min-width:0;overflow-wrap:anywhere}
+.paired-heading>span:nth-child(2){flex:1;text-align:right}
+@media(max-width:640px){
+ header,.header-actions{min-width:0}.header-actions{max-width:100%;flex-wrap:wrap;justify-content:flex-end}
+ .search-actions{min-width:0}.search-actions button{min-width:0;overflow-wrap:anywhere}
+ .translation-switch button{min-height:40px;padding-inline:12px}
+ .result-languages{border-radius:22px;gap:2px;padding:3px}.result-languages button{border-radius:18px}
+ summary{min-height:44px;display:flex;align-items:center;gap:6px}summary::before{content:"▸"}details[open]>summary::before{content:"▾"}summary{list-style:none}summary::-webkit-details-marker{display:none}
+ .search-form .check{min-height:40px;padding:6px 2px}
+ .footer-links a{min-height:32px;display:inline-flex;align-items:center}
+ .site-footer{padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+ .modal{max-height:calc(100dvh - 24px)}
+ .modal-heading h2{overflow-wrap:anywhere;min-width:0}
+}
+@media(pointer:coarse){.info-button{width:40px;height:40px;min-width:40px;min-height:40px}.modal-close{width:44px;height:44px;min-width:44px;min-height:44px}}

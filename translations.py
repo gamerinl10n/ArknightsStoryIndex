@@ -57,3 +57,11 @@ for _ui, _copy in {
     "zh": "未能确认页面语言的对应台词，现显示匹配语言。",
 }.items():
     STRINGS[_ui]["main_language_missing"] = _copy
+
+for _ui, _text in {
+    "ko": "검색한 인물의 이름·별칭 일치",
+    "en": "Matching character name or registered alias",
+    "ja": "検索した人物名・登録別名の一致",
+    "zh": "匹配搜索角色的姓名或已登记别名",
+}.items():
+    STRINGS[_ui]["name_match"] = _text

@@ -24,6 +24,7 @@ from pages import PAGES
 from translations import STRINGS, UI_LANGS, tr
 from localized_pages import get_page
 import hashlib
+from catalog import aliases
 from search_service import SearchService
 from translation_alignment import attach_comparisons, TARGET_LANGS
 from multilingual_search import search_all, variants
@@ -256,6 +257,8 @@ def create_app(database=None, readonly=None, portrait_root=None):
                 service.portraits.annotate(item["comparison"]["items"])
             service.portraits.annotate(item.get("context", []))
             service.portraits.annotate(item.get("parallel", []))
+        if target := q.get("target", "").strip():
+            result["highlights"] = {lang: aliases(target, lang) for lang in LANGUAGES}
         result["participants"] = {
             key: service.portraits.identity(q.get(key, "").strip())
             for key in ("speaker", "target")
