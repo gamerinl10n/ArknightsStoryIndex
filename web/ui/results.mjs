@@ -1,7 +1,7 @@
 import { $, t, el } from "./dom.mjs";
 import { api } from "./api.mjs";
 import { portrait } from "./portraits.mjs";
-import { pairedQuote } from "./comparison-results.mjs";
+import { pairedQuote, multilingualQuote } from "./comparison-results.mjs";
 import { openDialog } from "./dialogs.mjs";
 
 function infoButton(item, row = item) {
@@ -78,9 +78,11 @@ function contextRows(rows, item, needle, matches = [item]) {
     );
     line.append(
       heading,
-      row.comparison
-        ? pairedQuote(row, needle, quote, infoButton)
-        : quote(row.text, needle),
+      row.variants
+        ? multilingualQuote(row, needle, quote, infoButton)
+        : row.comparison
+          ? pairedQuote(row, needle, quote, infoButton)
+          : quote(row.text, needle),
     );
     fragment.append(line);
   }
@@ -89,9 +91,11 @@ function contextRows(rows, item, needle, matches = [item]) {
 
 function renderCard(group, needle, index, options) {
   const compareParams =
-    options.compare === "1"
-      ? { compare: "1", translation_lang: options.translation_lang }
-      : {};
+    options.all_languages === "1"
+      ? { all_languages: "1" }
+      : options.compare === "1"
+        ? { compare: "1", translation_lang: options.translation_lang }
+        : {};
   const item = group[Math.floor((group.length - 1) / 2)];
   const initialRadius = Math.max(
     3,
@@ -111,9 +115,11 @@ function renderCard(group, needle, index, options) {
     );
     card.append(
       heading,
-      row.comparison
-        ? pairedQuote(row, needle, quote, infoButton)
-        : quote(row.text, needle),
+      row.variants
+        ? multilingualQuote(row, needle, quote, infoButton)
+        : row.comparison
+          ? pairedQuote(row, needle, quote, infoButton)
+          : quote(row.text, needle),
     );
   }
 

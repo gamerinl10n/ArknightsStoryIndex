@@ -140,3 +140,6 @@ L10ndiff의 sessionStorage 마커, 380ms 이탈 → 페이지 이동 → 300ms �
 원문 대응 1차 구조 조사 결과는 alignment-feasibility.md를 참고하세요. 원문·번역 대조는 검증된 파일 범위에서 선택적으로 제공합니다. 전체 빌드 결과와 한계는 alignment-feasibility.md를 참고하세요.
 
 대응 인덱스가 추가되어 dataset.py의 입력 해시에 translation_alignment.py를 포함합니다. 구버전 스냅샷에서 대조를 요청하면 대응 미확인 상태로 반환하고 기존 단일 언어 검색은 유지합니다. 빌드에서 raw 스크립트는 최종 스냅샷에 복사하지 않습니다. 새 인덱스도 450MiB 예산 및 quick_check를 통과해야 배포합니다.
+
+
+통합 다국어 검색은 `/api/search?all_languages=1&lang=ko_KR&q=你好&details=0`으로 확인합니다. `lang`은 대표 표시 언어이며 네 언어에서 literal 일치를 찾습니다. `variants`는 검증된 대응만 포함합니다. 문맥에도 `all_languages=1`을 지정할 수 있습니다. 검색어를 보관하지 않는 요청별 임시 테이블을 사용하며 읽기 전용 스냅샷에서도 SQLite TEMP는 동작합니다. UI의 추가 표시 언어는 `show=zh_CN,ja_JP`로 복원하며 검색을 재실행하지 않습니다.

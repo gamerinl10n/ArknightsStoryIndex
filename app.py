@@ -26,6 +26,7 @@ from localized_pages import get_page
 import hashlib
 from search_service import SearchService
 from translation_alignment import attach_comparisons, TARGET_LANGS
+from multilingual_search import search_all, variants
 
 ROOT = Path(__file__).resolve().parent
 
@@ -233,7 +234,7 @@ def create_app(database=None, readonly=None, portrait_root=None):
         if comparison and translation_lang not in TARGET_LANGS:
             raise ValueError("Invalid translation language")
         with closing(open_db()) as db:
-            result = search(
+            result = (search_all if q.get("all_languages") == "1" else search)(
                 db,
                 q.get("speaker", "").strip(),
                 q.get("target", "").strip(),
@@ -250,6 +251,7 @@ def create_app(database=None, readonly=None, portrait_root=None):
                 )
         service.portraits.annotate(result["items"])
         for item in result["items"]:
+            service.portraits.annotate(list(item.get("variants", {}).values()))
             if "comparison" in item:
                 service.portraits.annotate(item["comparison"]["items"])
             service.portraits.annotate(item.get("context", []))
@@ -275,17 +277,21 @@ def create_app(database=None, readonly=None, portrait_root=None):
                 int(request.args.get("radius", 15)),
                 parallel=request.args.get("parallel") == "1",
             )
-            if comparison:
+            if comparison or request.args.get("all_languages") == "1":
                 metadata = db.execute(
                     "SELECT lang,path,revision,source FROM stories WHERE id=?", (story,)
                 ).fetchone()
                 for row in result["items"]:
                     row.update(dict(metadata), story=story)
-                attach_comparisons(
-                    db, result["items"], metadata["lang"], translation_lang
-                )
+                if request.args.get("all_languages") == "1":
+                    variants(db, result["items"])
+                else:
+                    attach_comparisons(
+                        db, result["items"], metadata["lang"], translation_lang
+                    )
         service.portraits.annotate(result["items"])
         for row in result["items"]:
+            service.portraits.annotate(list(row.get("variants", {}).values()))
             if "comparison" in row:
                 service.portraits.annotate(row["comparison"]["items"])
         service.portraits.annotate(result.get("parallel", []))

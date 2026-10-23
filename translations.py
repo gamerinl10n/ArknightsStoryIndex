@@ -48,3 +48,12 @@ for lang, values in COMPARISON_COPY.items():
 
 for lang, text in {"ko":"중국어 원문 파일이 없습니다.", "en":"No Chinese original file is available.", "ja":"中国語原文のファイルはありません。", "zh":"缺少中文原文文件。"}.items():
     STRINGS[lang]["original_unavailable"] = text
+
+
+for _ui, _copy in {
+    "ko": "페이지 언어의 대응 대사를 확인하지 못해 검색된 언어로 표시합니다.",
+    "en": "No verified line in the page language; showing the matched language.",
+    "ja": "ページ言語の対応を確認できないため、検索で見つかった言語を表示しています。",
+    "zh": "未能确认页面语言的对应台词，现显示匹配语言。",
+}.items():
+    STRINGS[_ui]["main_language_missing"] = _copy

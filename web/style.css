@@ -203,3 +203,13 @@ html[data-theme=dark] .brand-logo{filter:brightness(0) invert(1)}
 .paired-line .quote{margin-bottom:0}.pair-status{color:var(--muted);font-size:13px;line-height:1.7;margin:10px 0 0}
 .context-line .paired-quote{margin-bottom:0}.context-line .paired-line+.paired-line{margin-top:8px;padding-top:8px}
 #search-original{margin-top:16px}
+
+/* Search accepts every corpus; language controls only affect result display. */
+.search-form{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"query actions" "people people" "bottom bottom"}
+.result-languages{margin:0 0 20px;flex-wrap:wrap;justify-content:center;width:fit-content;max-width:100%}
+.result-languages button:disabled{opacity:1;cursor:default}
+.multilingual-quote{margin-bottom:16px}.multilingual-quote .primary-language .quote{font-size:18px;line-height:1.85}
+.multilingual-quote .secondary-language .quote{font-size:15px;color:var(--muted);line-height:1.8}
+.multilingual-quote .paired-line[hidden]{display:none}.multilingual-quote .paired-line:not([hidden])~.paired-line:not([hidden]){margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.context-line .multilingual-quote .primary-language .quote{font-size:15px}
+@media(max-width:640px){.search-form{grid-template-columns:minmax(0,1fr) 44px;grid-template-areas:"query query" "people people" "target target" "actions actions" "bottom bottom"}.multilingual-quote .primary-language .quote{font-size:17px}}

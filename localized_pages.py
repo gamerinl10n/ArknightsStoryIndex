@@ -22,9 +22,9 @@ COPY = {
             ),
             (
                 "Languages and context",
-                "The header language selector changes both interface and dialogue language. You can also "
-                "choose dialogue language separately in the search form. Enter keywords in the selected "
-                "dialogue language; search words are not automatically translated. Korean, Chinese, "
+                "The header language sets the main result language. Search words across Korean, Chinese, Japanese and English. "
+                "Enter a word in any supported "
+                "language; search words are not automatically translated. Korean, Chinese, "
                 "Japanese and English are supported. Arrow keys and Enter select a suggestion; Escape "
                 "closes the list. Expand context to read up to 100 dialogue lines on either side. Adjacent "
                 "lines may belong to different branches.",
@@ -53,7 +53,7 @@ COPY = {
             (
                 "Keyboard and language selection",
                 "Tab moves from words to speaker, mentioned character, then Search; Shift+Tab reverses the "
-                "order. Use arrows and Enter in the dialogue language menu, and Escape to close it. "
+                "order. Use arrows and Enter in autocomplete, and Escape to close it. "
                 "Character names entered in another language suggest names in the selected dialogue "
                 "language.",
             ),
@@ -139,7 +139,7 @@ COPY = {
             ),
             (
                 "语言与上下文",
-                "顶部语言切换会同时更改界面和台词语言，搜索框中也可以单独选择台词语言。关键词需使用所选语言的原文，不会自动翻译。支持韩语、中文、日语、英语。用方向键和 Enter "
+                "顶部语言设置决定结果的主要语言。关键词在四种语言中一起搜索，不会机器翻译。支持韩语、中文、日语、英语。用方向键和 Enter "
                 "选择建议，Esc 关闭列表。可展开前后各最多 100 条台词，相邻内容可能属于不同分支。",
             ),
             (
@@ -158,7 +158,7 @@ COPY = {
             ),
             (
                 "键盘与语言选择",
-                "Tab 按关键词、说话角色、提及角色、搜索的顺序移动，Shift+Tab 反向移动。台词语言菜单可用方向键和 Enter 选择、Esc "
+                "Tab 按关键词、说话角色、提及角色、搜索的顺序移动，Shift+Tab 反向移动。自动完成列表可用方向键和 Enter 选择、Esc "
                 "关闭。输入其他语言的角色名时，候选项会显示当前台词语言的对应名称。",
             ),
             (
@@ -213,7 +213,7 @@ COPY = {
             ),
             (
                 "言語と文脈",
-                "上部の言語切り替えで表示と台詞の言語が一緒に変わります。検索欄では台詞の言語だけを選べます。検索語は自動翻訳しないため、選んだ言語の原文を入力してください。韓国語・中国語・日本語・英語に対応します。方向キーと "
+                "上部の言語設定が結果の主言語になります。どの言語の語句でも四言語の原文から検索します。検索語の機械翻訳は行いません。韓国語・中国語・日本語・英語に対応します。方向キーと "
                 "Enter で候補を選び、Esc で閉じます。文脈は前後それぞれ最大100件まで展開できます。隣接する行が別の分岐の場合もあります。",
             ),
             (
@@ -230,7 +230,7 @@ COPY = {
             ),
             (
                 "キーボードと言語選択",
-                "Tabは語句、話す人物、言及する人物、検索の順に移動し、Shift+Tabは逆順です。台詞の言語メニューは方向キーとEnterで選択し、Escで閉じます。別の言語で人物名を入力しても、選んだ台詞言語の名前が候補に表示されます。",
+                "Tabは語句、話す人物、言及する人物、検索の順に移動し、Shift+Tabは逆順です。候補は方向キーとEnterで選択し、Escで閉じます。別の言語で人物名を入力しても、選んだ台詞言語の名前が候補に表示されます。",
             ),
             (
                 "結果の順序と共通の文脈",
@@ -275,22 +275,10 @@ COPY = {
 
 
 COMPARISON_HELP = {
-    "ko": (
-        "중국어 원문과 번역 대조",
-        "원문·번역 대조를 켜면 중국어 원문 검색과 현재 화면 언어의 번역 대조를 시작합니다. 한국어·일본어·영어 버튼으로 함께 볼 번역을 선택할 수 있습니다. 대사 언어를 번역 언어로 바꾸면 그 번역에서 검색하고 중국어 원문을 함께 표시합니다. 검색어를 자동 번역하지 않습니다. 명령·분기 구조와 대사 수가 일치하고 알려진 화자 ID가 충돌하지 않는 파일만 대응 대사를 연결합니다. 구조적 대응이며 의미상 정확성을 보증하지 않으므로 앞뒤 문맥과 각 언어의 ? 정보를 함께 확인하세요. 구조가 다르거나 대응을 확인하지 못한 경우와 번역 파일이 없는 경우를 구분합니다. 일반 검색은 해당 언어만 표시합니다.",
-    ),
-    "en": (
-        "Compare Chinese originals and translations",
-        "Enable Original & translation to search Chinese and show a translation in the interface language. Choose Korean, Japanese or English for comparison. Select a translation as the dialogue language to search it and show the Chinese original. Search words are not machine translated. Pairs are limited to files with identical command/branch structure and dialogue counts, without conflicting known speaker IDs. Structural alignment does not guarantee semantic correspondence: inspect context and each language’s details. Unverified correspondences and missing translation files are reported separately. Ordinary searches remain single-language.",
-    ),
-    "ja": (
-        "中国語原文と訳文を比較",
-        "原文・訳文を比較を有効にすると、中国語原文を検索し表示言語の訳文を併記します。韓国語・日本語・英語から訳文を選べます。台詞の言語を訳文側にすると、その言語で検索して中国語原文を表示します。検索語は自動翻訳しません。命令・分岐構造と台詞数が一致し、既知の話者IDに矛盾がないファイルのみ対応付けます。構造的な対応であり意味上の一致を保証しません。文脈と各言語の詳細を確認してください。対応未確認と翻訳ファイルなしは区別して表示します。通常検索は単一言語のままです。",
-    ),
-    "zh": (
-        "原文与译文对照",
-        "启用原文与译文对照后，搜索中文原文并显示界面语言的译文，可选择韩语、日语或英语。将台词语言改为译文语言，也可搜索译文并显示中文原文。不会机器翻译关键词。仅连接命令、分支结构及台词数量一致且已知说话者ID无冲突的文件。结构对应不保证语义对应，请结合上下文及各语言的详情判断。无法确认对应与缺少翻译文件会分别提示。普通搜索仍只显示所选语言。",
-    ),
+    "ko": ("다국어 검색과 함께 보기", "어느 언어의 단어나 문구든 입력하면 한국어·중국어·일본어·영어 대사에서 함께 찾습니다. 검증된 같은 대사는 하나로 묶고 페이지 언어의 대사를 가장 크게 표시합니다. 결과 위 언어 버튼을 켜고 끄면 다른 언어와 펼친 문맥에 즉시 적용됩니다. 페이지 언어는 항상 표시합니다. 대응을 확인하지 못하면 검색된 언어와 안내를 표시하며, 기계 번역이나 같은 물리 행 번호로 채우지 않습니다. 구조 검증은 의미상 정확성을 보증하지 않으므로 각 언어의 ?와 문맥을 확인하세요. 짧고 흔한 표현은 결과가 많아 검색 시간이 늘어날 수 있습니다."),
+    "en": ("Multilingual search and display", "Search a word or phrase in any of the four languages. Verified counterparts are deduplicated and the page language is displayed most prominently. Toggle result language buttons to instantly show additional languages, including open context, without rerunning the search. The page language stays visible. If no verified counterpart exists, the matched language is shown with a notice. No machine translation or physical line-number guesses are used. Structural correspondence is not a semantic guarantee; inspect context and each language's details. Very common words may take longer."),
+    "ja": ("多言語検索と併記", "四言語のどの語句でも検索できます。検証済みの同じ台詞はまとめ、ページ言語を最も大きく表示します。結果上部の言語ボタンで他言語と開いた文脈の表示を即座に切り替えます。ページ言語は常に表示します。対応未確認の場合は検索で見つかった言語と案内を表示します。機械翻訳や物理行番号による推測は行いません。構造上の対応は意味の一致を保証しません。文脈と各言語の詳細を確認してください。よく使われる短い語句は検索に時間がかかることがあります。"),
+    "zh": ("多语言搜索与并列显示", "可输入任意一种语言的词句，在四种语言中一起搜索。已验证的同一台词合并显示，以页面语言为主要台词。结果上方的语言按钮可即时切换其他语言及已展开上下文，无需重新搜索。页面语言始终显示。对应未经确认时显示匹配语言及提示，不会机器翻译或按物理行号猜测。结构对应不保证语义一致，请结合上下文及各语言详情判断。常见短词可能需要更多搜索时间。"),
 }
 for lang, (title, text) in COMPARISON_HELP.items():
     if lang == "ko":
