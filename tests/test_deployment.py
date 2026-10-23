@@ -58,10 +58,13 @@ class DeploymentTest(unittest.TestCase):
         with self.client.get('/privacy') as response:
             self.assertIn('검색 요청은 URL',response.text)
             self.assertIn('서버에 전송',response.text)
-        redirect=self.client.get('/help?ui=ja')
-        self.assertEqual(redirect.status_code,302)
-        self.assertEqual(redirect.headers['Location'],'/?ui=ja&help=1')
-        self.assertIn('id="help-dialog"',self.client.get(redirect.headers['Location']).text)
+        for language, heading in [('ko','예제: 다른 언어의 표현 찾기'), ('en','Example: search another language'), ('ja','例：他言語の表現を探す'), ('zh','示例：搜索其他语言的表达')]:
+            guide = self.client.get('/help?ui=' + language)
+            self.assertEqual(guide.status_code,200)
+            article = guide.text.split('<article',1)[1].split('</article>',1)[0]
+            self.assertIn(heading, article)
+            self.assertIn(heading, self.client.get('/?ui=' + language).text)
+        self.assertIn('예제: 다른 언어의 표현 찾기', self.client.get('/help?ui=bad').text)
         self.assertEqual(self.client.get('/unknown-document').status_code,404)
     def test_suggestions_include_alias_and_count_without_spoilers(self):
         rows=self.client.get('/api/suggestions').json

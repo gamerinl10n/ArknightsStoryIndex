@@ -2,7 +2,7 @@
 
 명일방주 캐릭터의 **대사·말투·호칭 용례**를 앞뒤 문맥과 함께 찾는 비공식 검색 도구입니다.
 
-[사이트 열기](https://www.arknightsindex.com/) · [사용 설명서](https://www.arknightsindex.com/?ui=ko&help=1) · [패치 노트](https://www.arknightsindex.com/changelog?ui=ko) · [피드백](https://tally.so/r/lb2Lxo)
+[사이트 열기](https://www.arknightsindex.com/) · [사용 설명서](https://www.arknightsindex.com/help?ui=ko) · [패치 노트](https://www.arknightsindex.com/changelog?ui=ko) · [피드백](https://tally.so/r/lb2Lxo)
 
 ## 할 수 있는 일
 

@@ -340,6 +340,38 @@ for lang, text in {
         COPY[lang]["help"][-1] = (title, previous + " " + text)
 
 
+# Shared by the help dialog and the directly accessible guide.
+HELP_EXAMPLES = {
+    "ko": [
+        ("예제: 다른 언어의 표현 찾기", "대사 속 표현에 你好를 입력하고 인물 칸을 비운 채 검색하세요. 네 언어에서 해당 문자열을 찾고, 검증된 대응이 있으면 페이지 언어의 대사를 크게 표시합니다. 한국어 화면에서는 한국어를 중심으로 읽고, 결과의 中文·日本語·English 버튼으로 다른 언어를 함께 보세요. 입력한 표현을 자동 번역해 검색하는 기능은 아닙니다."),
+        ("예제: 두 인물의 이름 용례 찾기", "말하는 인물에서 아미야, 대사에서 찾을 인물에서 켈시를 선택하고 대사 속 표현은 비워 두세요. 아미야의 대사 중 켈시의 이름·등록 표기가 포함된 용례를 찾습니다. 앞뒤 문맥과 분기를 열어 직접 부르는 말인지 제삼자 언급인지 확인하세요. 이름이 생략되거나 대명사만 쓰인 대사는 빠질 수 있습니다."),
+        ("번역 대응의 기준과 한계", "원본 버전과 파일 출처를 보존하고, 명령 순서·분기·텍스트 배치와 알려진 화자 ID가 맞는 파일의 대사만 연결합니다. 단순히 행 번호나 전체 대사 수가 같다는 이유로 연결하지 않습니다. 구조가 맞아도 의미상 정확한 번역임을 보증하지 않으므로 대사 정보와 문맥을 함께 확인하세요. 번역 파일 없음과 대응 미확인은 구분하며 기계 번역으로 빈칸을 채우지 않습니다. 이 도구는 비공식 팬 프로젝트이며 게임 대사와 캐릭터의 권리는 각 권리자에게 있습니다."),
+    ],
+    "en": [
+        ("Example: search another language", "Enter 你好 in the phrase field and leave both character fields empty. The search finds that literal text across four languages and prioritizes the page language when a verified correspondence exists. On the Korean page, Korean is prominent; toggle 中文, 日本語 or English above the results to compare. The query is not automatically translated."),
+        ("Example: find name usage between characters", "Select Amiya as the speaker and Kal’tsit as the character mentioned, leaving the phrase empty. Results contain registered names or aliases of Kal’tsit in Amiya’s dialogue. Open context and check branches to distinguish direct address from a third-person mention. Pronouns and omitted names may be missed."),
+        ("Correspondence criteria and limits", "Source versions and file provenance are preserved. Lines are linked only in files with matching command order, branches, text layout and known speaker IDs, not merely matching line numbers or total counts. Structural checks do not guarantee semantic translation accuracy: inspect source details and context. Missing translation files and unverified correspondences are distinguished, and machine translation never fills gaps. This is an unofficial fan project; game dialogue and characters belong to their respective rights holders."),
+    ],
+    "ja": [
+        ("例：他言語の表現を探す", "語句欄に你好と入力し、人物欄は両方空にして検索します。四言語から文字列そのものを探し、対応を検証できた場合はページ言語の台詞を大きく表示します。結果の中文・日本語・Englishボタンで他言語を併記できます。検索語を自動翻訳する機能ではありません。"),
+        ("例：二人の人物名の用例を探す", "話す人物にアーミヤ、言及される人物にケルシーを選び、語句欄は空にします。アーミヤの台詞からケルシーの名前・登録表記を含む用例を探します。文脈と分岐を確認し、呼びかけか第三者への言及かを判断してください。代名詞や省略された名前は検索から漏れる場合があります。"),
+        ("訳文対応の基準と限界", "原本の版とファイル出典を保持し、命令順序・分岐・テキスト配置・既知の話者IDが一致するファイルのみ接続します。行番号や台詞総数の一致だけでは接続しません。構造検証は意味上の翻訳精度を保証しないため、台詞情報と文脈も確認してください。翻訳ファイルの欠落と対応未確認を区別し、機械翻訳で補完しません。非公式ファンプロジェクトであり、ゲームの台詞とキャラクターの権利は各権利者に帰属します。"),
+    ],
+    "zh": [
+        ("示例：搜索其他语言的表达", "在词句栏输入你好，两个角色栏留空后搜索。系统在四种语言中查找该字符串，存在已验证的对应关系时，以页面语言的台词为主显示。可用结果上方的中文、日本語、English按钮同时显示其他语言。系统不会自动翻译搜索词。"),
+        ("示例：查找两名角色之间的姓名用例", "说话角色选择阿米娅，提及角色选择凯尔希，词句栏留空。结果是阿米娅台词中包含凯尔希姓名或登记表记的用例。展开上下文并查看分支，判断是直接称呼还是提及第三人。姓名省略或仅使用代词的台词可能无法找到。"),
+        ("译文对应的标准与局限", "保留原始版本及文件来源，仅连接命令顺序、分支、文本布局和已知说话者ID相符的文件中的台词，不因行号或台词总数相同就建立对应。结构验证不保证语义上的翻译准确性，请结合台词信息和上下文判断。翻译文件缺失与对应未确认分别显示，不以机器翻译补齐。本工具为非官方同人项目，游戏台词及角色权利归各权利人所有。"),
+    ],
+}
+for language, sections in HELP_EXAMPLES.items():
+    if language == "ko":
+        PAGES["help"]["sections"].extend(
+            {"title": title, "paragraphs": [text]} for title, text in sections
+        )
+    else:
+        COPY[language]["help"].extend(sections)
+
+
 def get_page(page, ui):
     if ui == "ko":
         return PAGES[page]
