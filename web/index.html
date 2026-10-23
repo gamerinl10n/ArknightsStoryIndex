@@ -5,7 +5,7 @@
 <div id="search-experience" class="search-experience" data-view="{{ initial_view }}">
 <div class="search-navigation" {% if initial_view=='home' %}hidden{% endif %}><button type="button" id="back-search" class="button button-quiet"><span aria-hidden="true">←</span> {{ t('back') }}</button></div>
 <section class="search-panel" aria-label="{{ t('search') }}">
-<form id="search" class="search-form">
+<form id="search" class="search-form" novalidate>
 <div class="keyword-field"><label class="sr-only" for="query">{{ t('expression') }}</label><input id="query" placeholder="{{ t('query_placeholder') }}" autocomplete="off"></div>
 <div class="field autocomplete speaker-field"><label class="sr-only" for="speaker">{{ t('speaker') }}</label><input id="speaker" placeholder="{{ t('speaker_placeholder') }}" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="speaker-options"><div id="speaker-options" class="suggestions" role="listbox" hidden></div></div>
 <div class="field autocomplete target-field"><label class="sr-only" for="target">{{ t('target') }}</label><input id="target" placeholder="{{ t('target_placeholder') }}" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="target-options"><div id="target-options" class="suggestions" role="listbox" hidden></div></div>

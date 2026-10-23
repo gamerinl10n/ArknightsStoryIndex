@@ -15,6 +15,13 @@ export function createAutocomplete() {
       input.removeAttribute("aria-activedescendant");
       active = -1;
     };
+    function choose(row) {
+      input.value = row.value;
+      input.setCustomValidity("");
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      setInputPortrait(id, row);
+      close();
+    }
     function draw() {
       const query = input.value.trim().toLocaleLowerCase();
       const exact =
@@ -40,10 +47,7 @@ export function createAutocomplete() {
           event.preventDefault(),
         );
         option.addEventListener("click", () => {
-          input.value = row.value;
-          input.setCustomValidity("");
-          setInputPortrait(id, row);
-          close();
+          choose(row);
           input.focus();
         });
         list.append(option);
@@ -78,9 +82,7 @@ export function createAutocomplete() {
         list.children[active].scrollIntoView?.({ block: "nearest" });
       } else if (event.key === "Enter" && !list.hidden && active >= 0) {
         event.preventDefault();
-        input.value = rows[active].value;
-        setInputPortrait(id, rows[active]);
-        close();
+        choose(rows[active]);
       }
     });
     return {

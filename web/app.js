@@ -154,6 +154,7 @@ function submit(updateUrl = true) {
   run();
 }
 function restore(initial = false) {
+  $("query").setCustomValidity("");
   const params = new URLSearchParams(location.search),
     draft = history.state?.draft || {};
   for (const key of ["speaker", "target"])
