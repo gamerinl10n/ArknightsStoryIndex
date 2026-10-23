@@ -1,4 +1,6 @@
 import { preserveForm } from "./ui/form-state.mjs";
+import { setupLanguageTransitions } from "./ui/language-transition.mjs";
+import { createLanguageSplashController } from "./ui/language-splash.mjs";
 import { initDialogs } from "./ui/dialogs.mjs";
 
 (() => {
@@ -29,6 +31,9 @@ document.querySelectorAll(".language-switch a").forEach((link) => {
   };
   for (const event of ["pointerdown", "focus", "click"])
     link.addEventListener(event, refresh);
+});
+setupLanguageTransitions({
+  splashController: createLanguageSplashController(),
 });
 initDialogs();
 const footer = document.querySelector(".site-footer");

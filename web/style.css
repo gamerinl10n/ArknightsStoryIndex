@@ -156,12 +156,12 @@ mark{background:#98ddca70;color:inherit;border-radius:4px;padding:1px 2px;box-de
 @media(prefers-reduced-motion:reduce){.portrait{transition:none}}
 
 /* DOM order follows the main keyboard task; grid placement preserves the layout. */
-.search-form{display:grid;grid-template-columns:minmax(0,1fr) 132px 154px;grid-template-areas:"query corpus submit" "people people people" "bottom bottom bottom";gap:18px 14px;align-items:start}
-.search-form .keyword-field{grid-area:query}.search-form .corpus-field{grid-area:corpus}.search-form #submit-search{grid-area:submit}
+.search-form{display:grid;grid-template-columns:minmax(0,1fr) 132px auto;grid-template-areas:"query corpus actions" "people people people" "bottom bottom bottom";gap:18px 14px;align-items:start}
+.search-form .keyword-field{grid-area:query}.search-form .corpus-field{grid-area:corpus}.search-form .search-actions{grid-area:actions}
 .search-form .speaker-field,.search-form .target-field{grid-area:people;width:calc((100% - 68px)/2)}
 .search-form .speaker-field{justify-self:start}.search-form .target-field{justify-self:end}.search-form #swap{grid-area:people;justify-self:center}
 .search-form .search-bottom{grid-area:bottom;margin-top:0}
-@media(max-width:640px){.search-form{grid-template-columns:minmax(0,1fr) 108px;grid-template-areas:"query corpus" "people people" "target target" "submit submit" "bottom bottom";gap:12px 8px}.search-form .speaker-field{grid-area:people;width:calc(100% - 44px)}.search-form .target-field{grid-area:target;width:100%}.search-form #swap{grid-area:people;justify-self:end}.search-form #submit-search{grid-column:1/-1}}
+@media(max-width:640px){.search-form{grid-template-columns:minmax(0,1fr) 108px;grid-template-areas:"query query" "people people" "target target" "corpus corpus" "actions actions" "bottom bottom";gap:12px 8px}.search-form .speaker-field{grid-area:people;width:calc(100% - 44px)}.search-form .target-field{grid-area:target;width:100%}.search-form #swap{grid-area:people;justify-self:end}.search-form #submit-search{grid-column:1/-1}}
 
 /* Corpus picker shares the same rounded field and anchored menu as names. */
 .corpus-field{position:relative;min-width:0}.corpus-field:focus-within{z-index:45}
@@ -176,26 +176,20 @@ mark{background:#98ddca70;color:inherit;border-radius:4px;padding:1px 2px;box-de
 
 .evidence-label { display: inline-flex; padding: .3rem .65rem; border-radius: 999px; font-size: .75rem; color: var(--accent-deep); background: var(--accent-soft); margin-bottom: .65rem; }
 
-/* The home mark shares the centered search layout; result navigation stays compact. */
+/* Header brand stays compact; the home screen centers the search form itself. */
 .brand-logo{width:40px;height:40px;object-fit:contain;flex-shrink:0;transition:transform 220ms var(--ease)}
 .brand:hover .brand-logo{transform:rotate(-4deg)}
-.home-brand{display:flex;flex-direction:column;align-items:center;margin:0 0 28px;color:var(--ink)}
-.home-logo{width:128px;height:128px;object-fit:contain}
-[data-view=results] .home-brand{display:none}
-html[data-theme=dark] .brand-logo,html[data-theme=dark] .home-logo{filter:brightness(0) invert(1)}
-@media(max-width:640px){.brand-logo{width:32px;height:32px}.home-logo{width:104px;height:104px}.home-brand{margin-bottom:22px}}
+html[data-theme=dark] .brand-logo{filter:brightness(0) invert(1)}
+@media(max-width:640px){.brand-logo{width:32px;height:32px}}
 
 /* Keep language labels centered independently of arrows and selection marks. */
 .corpus-button{position:relative;justify-content:center;padding-inline:28px}
 .corpus-chevron{position:absolute;right:16px}
 .corpus-option{position:relative;justify-content:center;padding-inline:28px;gap:0;text-align:center}
 .corpus-check{position:absolute;right:13px}
-button.home-brand{position:relative;align-self:center;margin-inline:auto;padding:0;border:0;border-radius:32px;background:transparent;box-shadow:none;pointer-events:none;transition:transform 180ms var(--ease)}
-button.home-brand:hover{transform:translateY(-3px) rotate(-3deg);background:transparent;box-shadow:none}
-button.home-brand:active{transform:scale(.94)}
-button.home-brand:focus-visible{outline:2px solid var(--accent-deep);outline-offset:8px}
-@media(prefers-reduced-motion:reduce){button.home-brand{transition:none}button.home-brand:hover,button.home-brand:active{transform:none}}
 
-/* Only the visible outer silhouette catches pointer input; keyboard access stays native. */
-.home-brand .home-logo{pointer-events:none}
-.home-brand::after{content:"";position:absolute;inset:0;pointer-events:auto;cursor:pointer;clip-path:polygon(28% 5%,34% 14%,39% 31%,43% 46%,49% 43%,56% 46%,64% 30%,73% 23%,80% 30%,89% 47%,73% 39%,64% 53%,70% 64%,77% 80%,71% 87%,80% 93%,61% 98%,37% 98%,18% 90%,27% 85%,22% 83%,29% 64%,37% 54%,29% 39%,25% 26%)}
+.search-actions{display:flex;gap:8px;align-items:stretch}
+.search-actions .primary{min-width:110px;flex:1}
+.reset-search{min-height:48px;padding:0 16px;background:var(--field);border-color:var(--line);color:var(--muted);font-size:13px;font-weight:500;white-space:nowrap}
+.reset-search:hover{background:var(--accent-soft);color:var(--accent-deep)}
+@media(max-width:640px){.search-actions{width:100%}.reset-search{flex:1}.search-form #submit-search{grid-column:auto}}

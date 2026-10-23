@@ -1,0 +1,1079 @@
+{
+  "source_revision": "db6f9ef8046ad17dbebe3ff1d0dd88844a5bc78c",
+  "sample_files": 22,
+  "source_text_rows": 3591,
+  "scope": "selected samples only; structural eligibility is not semantic accuracy",
+  "summary": {
+    "kr": {
+      "available_files": 22,
+      "eligible_files": 22,
+      "known_speaker_pairs": 1723,
+      "known_speaker_mismatches": 0
+    },
+    "jp": {
+      "available_files": 22,
+      "eligible_files": 22,
+      "known_speaker_pairs": 1723,
+      "known_speaker_mismatches": 0
+    },
+    "en": {
+      "available_files": 22,
+      "eligible_files": 22,
+      "known_speaker_pairs": 1723,
+      "known_speaker_mismatches": 0
+    }
+  },
+  "files": [
+    {
+      "path": "activities/act28side/level_act28side_01_beg.txt",
+      "source_text_rows": 109,
+      "source_commands": 439,
+      "text_attribute_keys": [
+        "name"
+      ],
+      "sha256": {
+        "cn": "4ffbb1a2236a057a90bcacb133c13b1d8db7d8437106ade5f969253afe4b99bc",
+        "kr": "c440734a5dd2bca352ceeebfd63a4074be24137428f59661bc6d7a3fde54c27a",
+        "jp": "7d661285a5490e28f8f45d6c6b8bfc3a5a724386268446b25234dfaefc31d800",
+        "en": "3d0566d7d3d5e2dcda4497ca97c768f2727bb6f5f9b3fc04dbf83a40343911b5"
+      },
+      "targets": {
+        "kr": {
+          "available": true,
+          "text_rows": 109,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 109,
+          "known_speaker_pairs": 59,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "jp": {
+          "available": true,
+          "text_rows": 109,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 109,
+          "known_speaker_pairs": 59,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "en": {
+          "available": true,
+          "text_rows": 109,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 109,
+          "known_speaker_pairs": 59,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        }
+      }
+    },
+    {
+      "path": "obt/main/level_main_00-01_beg.txt",
+      "source_text_rows": 62,
+      "source_commands": 147,
+      "text_attribute_keys": [
+        "name",
+        "options",
+        "values"
+      ],
+      "sha256": {
+        "cn": "9e1c6db8ffdce70bf74fb1ffd43598740367e3b7e1ca0d38ea3a68364e780676",
+        "kr": "2992f39bcaeb36761d417cddb5f96f01dd091ae5417bd8cb3d1e1c2429b4b975",
+        "jp": "2afe1ccd453f5f10026c8c7ed7ff1c06606920d60c593164fb96d5484928d1ce",
+        "en": "9af4b636698837fba6af3bc4be6d36e1ec0fa47ce66927930d51eae3e544f4e0"
+      },
+      "targets": {
+        "kr": {
+          "available": true,
+          "text_rows": 62,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 62,
+          "known_speaker_pairs": 28,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "jp": {
+          "available": true,
+          "text_rows": 62,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 62,
+          "known_speaker_pairs": 28,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "en": {
+          "available": true,
+          "text_rows": 62,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 62,
+          "known_speaker_pairs": 28,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        }
+      }
+    },
+    {
+      "path": "obt/main/level_main_00-02_end.txt",
+      "source_text_rows": 51,
+      "source_commands": 117,
+      "text_attribute_keys": [
+        "name"
+      ],
+      "sha256": {
+        "cn": "abcc3669412a8eb136aa38d8199f8f341b9717bff8f1c7899e441862037006d7",
+        "kr": "55a06a1e7154308380a48b8cdb972a5d6a51e171c99ded663b829d35c6d38864",
+        "jp": "7fd861b3dcc15510e5826255c8c26d10a57915781d00af65b7da4d41e0dd2a9c",
+        "en": "1e770f562170c37329102e1f3c318addf12fc7f41e22bc7c6764679fa4a508e4"
+      },
+      "targets": {
+        "kr": {
+          "available": true,
+          "text_rows": 51,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 51,
+          "known_speaker_pairs": 23,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "jp": {
+          "available": true,
+          "text_rows": 51,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 51,
+          "known_speaker_pairs": 23,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "en": {
+          "available": true,
+          "text_rows": 51,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 51,
+          "known_speaker_pairs": 23,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        }
+      }
+    },
+    {
+      "path": "obt/main/level_main_03-04_beg.txt",
+      "source_text_rows": 79,
+      "source_commands": 152,
+      "text_attribute_keys": [
+        "name"
+      ],
+      "sha256": {
+        "cn": "bc1a67fa64d031c550fc861ce86434639ac1fd2712c5e935b40c4f6f3210c304",
+        "kr": "72af2ae3e004e7d8fea8cef47a7898d88389ec2f75a306c5c582d95cd538ef07",
+        "jp": "66e2f0755e49598f506278aa384e0fe4fcfa95398155862515a0696c5c4bfa43",
+        "en": "3394f5b0b210af0708bda8f5c0f3dde1475c4786c08ef98c38939e2e4f629643"
+      },
+      "targets": {
+        "kr": {
+          "available": true,
+          "text_rows": 79,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 79,
+          "known_speaker_pairs": 73,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "jp": {
+          "available": true,
+          "text_rows": 79,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 79,
+          "known_speaker_pairs": 73,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "en": {
+          "available": true,
+          "text_rows": 79,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 79,
+          "known_speaker_pairs": 73,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        }
+      }
+    },
+    {
+      "path": "obt/main/level_main_06-03_beg.txt",
+      "source_text_rows": 93,
+      "source_commands": 221,
+      "text_attribute_keys": [
+        "name",
+        "options",
+        "values"
+      ],
+      "sha256": {
+        "cn": "037eb3b6a0ec51413f7ecdde38d8e7582d4c4784a230a2a20df371d1883990fe",
+        "kr": "b1250a64dbe3482088b2a6d6284aedc7d9547e2fd33232f9ebad07f2d6ae5e71",
+        "jp": "cdfa01deebf24d5b8b7f2c6c3bd4da7cead0cec4b3f22100cdfeff7339954409",
+        "en": "479b8573e9ce586aa906a96b7f9bd0cb50b15ac601772c6e0df7cfebba057b87"
+      },
+      "targets": {
+        "kr": {
+          "available": true,
+          "text_rows": 93,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 93,
+          "known_speaker_pairs": 21,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "jp": {
+          "available": true,
+          "text_rows": 93,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 93,
+          "known_speaker_pairs": 21,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "en": {
+          "available": true,
+          "text_rows": 93,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 93,
+          "known_speaker_pairs": 21,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        }
+      }
+    },
+    {
+      "path": "obt/main/level_main_08-10_beg.txt",
+      "source_text_rows": 82,
+      "source_commands": 183,
+      "text_attribute_keys": [
+        "name"
+      ],
+      "sha256": {
+        "cn": "5ce59f95e69b304ec3d862b0100d29b9662c1fa6ea6c338058849c696dc18e6e",
+        "kr": "0fc61643f332a8ee1777ae23968a296a63ca691556f06e01eb5066d307319392",
+        "jp": "b675d40c2d6151f1cf4cebf2ae4b7ceb313b62cb1116ae83b6c1847b13719c3b",
+        "en": "2169579ed377a45b80c099e886dff87dec209cf15f2fbf43f05ae15a040b4a0a"
+      },
+      "targets": {
+        "kr": {
+          "available": true,
+          "text_rows": 82,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 82,
+          "known_speaker_pairs": 0,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "jp": {
+          "available": true,
+          "text_rows": 82,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 82,
+          "known_speaker_pairs": 0,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "en": {
+          "available": true,
+          "text_rows": 82,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 82,
+          "known_speaker_pairs": 0,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        }
+      }
+    },
+    {
+      "path": "obt/main/level_main_11-07_end.txt",
+      "source_text_rows": 250,
+      "source_commands": 706,
+      "text_attribute_keys": [
+        "alignment",
+        "delay",
+        "end",
+        "name",
+        "size",
+        "text",
+        "width",
+        "x",
+        "y"
+      ],
+      "sha256": {
+        "cn": "ad1507e072b56743b39ab5805f5799dfaa1a74a1b2fccde162d14f7193e845b1",
+        "kr": "ebd546f6bd8c24787ec7eb067ecbf8d6c5e4663c8c11b1dbc348f612e6e46731",
+        "jp": "ffbe46f5e1c9fb79bf858619b352343a4866cc3de219137360ddf7ea34a9c5b3",
+        "en": "5b521ea83253412b68caecf11441a68d779a50412f1c357efbe872c29f38530e"
+      },
+      "targets": {
+        "kr": {
+          "available": true,
+          "text_rows": 250,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 250,
+          "known_speaker_pairs": 63,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "jp": {
+          "available": true,
+          "text_rows": 250,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 250,
+          "known_speaker_pairs": 63,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "en": {
+          "available": true,
+          "text_rows": 250,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 250,
+          "known_speaker_pairs": 63,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        }
+      }
+    },
+    {
+      "path": "obt/main/level_main_12-18_beg.txt",
+      "source_text_rows": 192,
+      "source_commands": 415,
+      "text_attribute_keys": [
+        "name",
+        "options",
+        "values"
+      ],
+      "sha256": {
+        "cn": "858dc87ba9ac0ea5cc49c1e7f54fd35b291e84f0a7c23ab866699e32b2bf2707",
+        "kr": "28c29ec43741e92feed1413e1262fa627124b03ae8dca8f0f43a023f058488b8",
+        "jp": "fb47579370efcb90c75a99c5f64f272d9b72e310d8df8c8c2ba3fe13ee850575",
+        "en": "b36107ef6de1afa2e38350b31573ae04b484ef8926e2037e68c46bf18bea1aba"
+      },
+      "targets": {
+        "kr": {
+          "available": true,
+          "text_rows": 192,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 192,
+          "known_speaker_pairs": 116,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "jp": {
+          "available": true,
+          "text_rows": 192,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 192,
+          "known_speaker_pairs": 116,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "en": {
+          "available": true,
+          "text_rows": 192,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 192,
+          "known_speaker_pairs": 116,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        }
+      }
+    },
+    {
+      "path": "obt/main/level_main_14-14_beg.txt",
+      "source_text_rows": 161,
+      "source_commands": 510,
+      "text_attribute_keys": [
+        "name",
+        "options",
+        "values"
+      ],
+      "sha256": {
+        "cn": "2f41a20e4ce32fbfe15e9e584943a2da23468bbd502dc6aafe93d9d3b65a2351",
+        "kr": "98fb7309711bc877dce8edde05b2d782018bd26bb5ac7ec660c076ad2c575b0c",
+        "jp": "ea6d79a896d935edf3ed2939e1b69d4f5a1fc58a3f75ebbfd147c29952230e71",
+        "en": "fcdc0d9783b40fbba47efa90db20c3bb2fd90846c2669d76a6ae4a623b3ba8d0"
+      },
+      "targets": {
+        "kr": {
+          "available": true,
+          "text_rows": 161,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 161,
+          "known_speaker_pairs": 112,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "jp": {
+          "available": true,
+          "text_rows": 161,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 161,
+          "known_speaker_pairs": 112,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "en": {
+          "available": true,
+          "text_rows": 161,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 161,
+          "known_speaker_pairs": 112,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        }
+      }
+    },
+    {
+      "path": "obt/main/level_main_16-15_beg.txt",
+      "source_text_rows": 96,
+      "source_commands": 279,
+      "text_attribute_keys": [
+        "name",
+        "options",
+        "values"
+      ],
+      "sha256": {
+        "cn": "09c1732bbfa53bd9b49391326a2faa3f9c1afc29a042276d4e0551419f977de9",
+        "kr": "51cd1f8a3aae17e31d6b1eaaa99afdcf02194ae5773cb8f3ad26b34bdf80e592",
+        "jp": "8567fe5a4c7e2c88d1de19caf4abab7255548f3f34403cf236e3a058e2b6ec4c",
+        "en": "d36afbf49161d30ac1a88b40c7bfd5848ab3a8bbd84d79c6907fe077298bbf67"
+      },
+      "targets": {
+        "kr": {
+          "available": true,
+          "text_rows": 96,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 96,
+          "known_speaker_pairs": 23,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "jp": {
+          "available": true,
+          "text_rows": 96,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 96,
+          "known_speaker_pairs": 23,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "en": {
+          "available": true,
+          "text_rows": 96,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 96,
+          "known_speaker_pairs": 23,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        }
+      }
+    },
+    {
+      "path": "obt/main/level_st_09-02.txt",
+      "source_text_rows": 114,
+      "source_commands": 248,
+      "text_attribute_keys": [
+        "name"
+      ],
+      "sha256": {
+        "cn": "c2723f4b3e77865c2dfb95e0828d0acaf33f3970bb04959bac948c0983c9a95b",
+        "kr": "5aabb4348221ca0407ed8ac194233c6bca97368e96fcf7a6e74de0cc8c614e60",
+        "jp": "594dd0eaebb1eedc7d15e3df3f3e61f4a2c8582ac34f2c044fa1979349ccab0c",
+        "en": "3facd5183ba45d16b72257ca6aedd93914f3b4fccee3bc7ab07d7cbff74cbe04"
+      },
+      "targets": {
+        "kr": {
+          "available": true,
+          "text_rows": 114,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 114,
+          "known_speaker_pairs": 0,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "jp": {
+          "available": true,
+          "text_rows": 114,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 114,
+          "known_speaker_pairs": 0,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "en": {
+          "available": true,
+          "text_rows": 114,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 114,
+          "known_speaker_pairs": 0,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        }
+      }
+    },
+    {
+      "path": "obt/main/main_12_zone_enter.txt",
+      "source_text_rows": 0,
+      "source_commands": 5,
+      "text_attribute_keys": [],
+      "sha256": {
+        "cn": "13303791c16de83b60ff53cf1225dcc1bba3e55bbe1029e3069d2d6d8f3339e1",
+        "kr": "76741e444e612315037a179a3b66e5a3a169318d1ab236a3958174858ba22589",
+        "jp": "76741e444e612315037a179a3b66e5a3a169318d1ab236a3958174858ba22589",
+        "en": "76741e444e612315037a179a3b66e5a3a169318d1ab236a3958174858ba22589"
+      },
+      "targets": {
+        "kr": {
+          "available": true,
+          "text_rows": 0,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 0,
+          "known_speaker_pairs": 0,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "jp": {
+          "available": true,
+          "text_rows": 0,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 0,
+          "known_speaker_pairs": 0,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "en": {
+          "available": true,
+          "text_rows": 0,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 0,
+          "known_speaker_pairs": 0,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        }
+      }
+    },
+    {
+      "path": "obt/memory/story_12fce_1_1.txt",
+      "source_text_rows": 138,
+      "source_commands": 285,
+      "text_attribute_keys": [
+        "name"
+      ],
+      "sha256": {
+        "cn": "3ce4ad1b9a0f3d2d0150896d20c9266ddf02d8f571c523045d7bcc56345ba68d",
+        "kr": "cc24d50b94cf41091797ae3649fa72b901f2dafd6c14a88b51602099b96d5cb0",
+        "jp": "fc1ffb74ef2c2bfd155706cfc21b9a646545d2ae693de10aba51d6262421b885",
+        "en": "a397ed2a54f7a8936f472a1c24ec3315161577e84bf06235fe1c9ce4384775d6"
+      },
+      "targets": {
+        "kr": {
+          "available": true,
+          "text_rows": 138,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 138,
+          "known_speaker_pairs": 17,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "jp": {
+          "available": true,
+          "text_rows": 138,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 138,
+          "known_speaker_pairs": 17,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "en": {
+          "available": true,
+          "text_rows": 138,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 138,
+          "known_speaker_pairs": 17,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        }
+      }
+    },
+    {
+      "path": "obt/memory/story_blackd_2_1.txt",
+      "source_text_rows": 307,
+      "source_commands": 736,
+      "text_attribute_keys": [
+        "end",
+        "name"
+      ],
+      "sha256": {
+        "cn": "76b532b1b031b686dfaf8f44e060ddc300307535536038015901632019ae290b",
+        "kr": "e9489e2fa7ccb3834bcac40c84b4784dfe4c97613f5ef6caddcbd56b1fa079d1",
+        "jp": "77b676517dada5a5486b28a9bbc5cf546c407b537087076e13c5de173265901f",
+        "en": "581fcc63c37a4f4abc7262e0cada6481c92fa9dd16128d7fb97fa43e7ed7ae27"
+      },
+      "targets": {
+        "kr": {
+          "available": true,
+          "text_rows": 307,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 307,
+          "known_speaker_pairs": 266,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "jp": {
+          "available": true,
+          "text_rows": 307,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 307,
+          "known_speaker_pairs": 266,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "en": {
+          "available": true,
+          "text_rows": 307,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 307,
+          "known_speaker_pairs": 266,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        }
+      }
+    },
+    {
+      "path": "obt/memory/story_chimes_1_1.txt",
+      "source_text_rows": 230,
+      "source_commands": 800,
+      "text_attribute_keys": [
+        "alignment",
+        "delay",
+        "name",
+        "size",
+        "text",
+        "width",
+        "x",
+        "y"
+      ],
+      "sha256": {
+        "cn": "1e1061b8a371b15bda09c8643c3ad5617c4eb2ba069a1969447ee00582c72b44",
+        "kr": "83b346558ff184dbaaed9785ae1903e7428f76cd0873407fd59f69a03f726466",
+        "jp": "5aeab30196d48c3a58902638ebd05059e3ddf0a18f682bf27faefe799a54b9e4",
+        "en": "31686608867994294f8e3612b2604e4c60f9f43ad0978985949a05edb85f363d"
+      },
+      "targets": {
+        "kr": {
+          "available": true,
+          "text_rows": 230,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 230,
+          "known_speaker_pairs": 82,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "jp": {
+          "available": true,
+          "text_rows": 230,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 230,
+          "known_speaker_pairs": 82,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "en": {
+          "available": true,
+          "text_rows": 230,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 230,
+          "known_speaker_pairs": 82,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        }
+      }
+    },
+    {
+      "path": "obt/memory/story_flamtl_1_1.txt",
+      "source_text_rows": 278,
+      "source_commands": 723,
+      "text_attribute_keys": [
+        "name"
+      ],
+      "sha256": {
+        "cn": "3fe51bfcbcc480da51427437be5314120afe44d06b9f58fc69eeeb371f000f58",
+        "kr": "54481033e8a87b05c6ef0ef460ff1305aca98acb33fb0fd35e7a509545cc5034",
+        "jp": "5fa5c55991214ecbab323617e0fb8afdbcc1da0cf99005366e5f79cfc1b00c7a",
+        "en": "c5c86a9dce19ea39ce5c8ea46ab7663962ea92d044410be4ee14800f891d9429"
+      },
+      "targets": {
+        "kr": {
+          "available": true,
+          "text_rows": 278,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 278,
+          "known_speaker_pairs": 0,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "jp": {
+          "available": true,
+          "text_rows": 278,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 278,
+          "known_speaker_pairs": 0,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "en": {
+          "available": true,
+          "text_rows": 278,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 278,
+          "known_speaker_pairs": 0,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        }
+      }
+    },
+    {
+      "path": "obt/memory/story_hbisc2_1_1.txt",
+      "source_text_rows": 238,
+      "source_commands": 629,
+      "text_attribute_keys": [
+        "name"
+      ],
+      "sha256": {
+        "cn": "a7e3320b03fe2262bdef097db0deacf70b50de42d1d2a5de020476c80c915ade",
+        "kr": "01268a6dc544883f1af171601eb340f6107d3a1524a2400b9d86565dfeba2b13",
+        "jp": "2bf5f724dc730433bd16783cc8334253bf9b651236b57aa7d670ddf857a3cc8b",
+        "en": "f10eb0d63d36fd24e65b418a5cdd4a393374329e36228ac6125ed1a6f4b61945"
+      },
+      "targets": {
+        "kr": {
+          "available": true,
+          "text_rows": 238,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 238,
+          "known_speaker_pairs": 126,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "jp": {
+          "available": true,
+          "text_rows": 238,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 238,
+          "known_speaker_pairs": 126,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "en": {
+          "available": true,
+          "text_rows": 238,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 238,
+          "known_speaker_pairs": 126,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        }
+      }
+    },
+    {
+      "path": "obt/memory/story_kalts_1_1.txt",
+      "source_text_rows": 230,
+      "source_commands": 566,
+      "text_attribute_keys": [
+        "name",
+        "options",
+        "values"
+      ],
+      "sha256": {
+        "cn": "b8221bee2fdbf9d84c42939a4ff56a6eef4e80ecb25a5e9cb99b273e11a996a0",
+        "kr": "554a5edd94f724e0e205ef383464d2b38bde5a88b7362a99ed238d95d966d3ba",
+        "jp": "3b57cf54891283651a3f067a13a1029acd66be66068cce0c5c5de5cd1a9810ac",
+        "en": "dc0813a263fa100fc48e5e218b202ee8eb0bbe370b1cba3847ca4918c8cc8ea9"
+      },
+      "targets": {
+        "kr": {
+          "available": true,
+          "text_rows": 230,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 230,
+          "known_speaker_pairs": 204,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "jp": {
+          "available": true,
+          "text_rows": 230,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 230,
+          "known_speaker_pairs": 204,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "en": {
+          "available": true,
+          "text_rows": 230,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 230,
+          "known_speaker_pairs": 204,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        }
+      }
+    },
+    {
+      "path": "obt/memory/story_myrtle_1_1.txt",
+      "source_text_rows": 216,
+      "source_commands": 518,
+      "text_attribute_keys": [
+        "name"
+      ],
+      "sha256": {
+        "cn": "01dfe6ccb265245bf2d367e31cec47778e31ff8491def5bd065c706b70558fab",
+        "kr": "87126050f5d92666e3be510da38a5f8e92a0c799314224581a1083bcda5e223a",
+        "jp": "ed2dd1de750aa16dc16df85618d4961a7ec84f121ebfa5f29c2e05afe5323e30",
+        "en": "2fe2aaa7dd92290cb4ec408102d9485672f8e563f27570839a5a2a3a400919c2"
+      },
+      "targets": {
+        "kr": {
+          "available": true,
+          "text_rows": 216,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 216,
+          "known_speaker_pairs": 81,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "jp": {
+          "available": true,
+          "text_rows": 216,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 216,
+          "known_speaker_pairs": 81,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "en": {
+          "available": true,
+          "text_rows": 216,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 216,
+          "known_speaker_pairs": 81,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        }
+      }
+    },
+    {
+      "path": "obt/memory/story_savage_2_2.txt",
+      "source_text_rows": 158,
+      "source_commands": 279,
+      "text_attribute_keys": [
+        "name",
+        "options",
+        "values"
+      ],
+      "sha256": {
+        "cn": "7ab74b7866b3dbb16ffa3b5e9e44a85c36f4455018b88aad7cabf56fd94af68a",
+        "kr": "b6b1420c70481e46ccbee581a520e9550971978ea3b2ebd97c5beecdbf47eb28",
+        "jp": "59fcf827e06535c82ce0966e44de16bf0d3b9cfdadd2e6c6e65aae33957f7bc1",
+        "en": "997e88a6ec785c8f8c3dee366f6373bc60e423456efd9100ece6ddf8255d3420"
+      },
+      "targets": {
+        "kr": {
+          "available": true,
+          "text_rows": 158,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 158,
+          "known_speaker_pairs": 141,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "jp": {
+          "available": true,
+          "text_rows": 158,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 158,
+          "known_speaker_pairs": 141,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "en": {
+          "available": true,
+          "text_rows": 158,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 158,
+          "known_speaker_pairs": 141,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        }
+      }
+    },
+    {
+      "path": "obt/memory/story_texas_1_1.txt",
+      "source_text_rows": 318,
+      "source_commands": 706,
+      "text_attribute_keys": [
+        "name"
+      ],
+      "sha256": {
+        "cn": "2e9611971e0fbfc981f099c9b25e9252eba3de16dd342c802c2a57c4ef138efc",
+        "kr": "267b0814d7ab7bc18ccafe78092748c5999c38df82537edc2568ddda4e2cd4d7",
+        "jp": "fc98aa341a27fa4837196f993584d61f235a94ebeaebf07c3f91942f09e0e598",
+        "en": "1261dba8677b4984610dbf75e077e8ef090c5091557ed19f96db6ac74a97350b"
+      },
+      "targets": {
+        "kr": {
+          "available": true,
+          "text_rows": 318,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 318,
+          "known_speaker_pairs": 226,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "jp": {
+          "available": true,
+          "text_rows": 318,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 318,
+          "known_speaker_pairs": 226,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "en": {
+          "available": true,
+          "text_rows": 318,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 318,
+          "known_speaker_pairs": 226,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        }
+      }
+    },
+    {
+      "path": "obt/memory/story_yu_1_1.txt",
+      "source_text_rows": 189,
+      "source_commands": 635,
+      "text_attribute_keys": [
+        "alignment",
+        "block",
+        "delay",
+        "end",
+        "id",
+        "multi",
+        "name",
+        "size",
+        "text",
+        "width",
+        "x",
+        "y"
+      ],
+      "sha256": {
+        "cn": "38104ac1058c73b632e8f58b2ff0b25e365c3b530f4206bfd6851d1d616bc6bc",
+        "kr": "39facafcb9e5cf5a4aa7fb019a7b0c47edc6be41db3bf4b0ea9587bfb14063a2",
+        "jp": "ee1bf258adea34967e1e88b822627f6cbcb42f7c3c8c86da8daa1ec8aee9ada0",
+        "en": "4bd42558cb1ec1bfeef0ac2ea6edd316f03f5d2885378ae009dd567fae0c92a6"
+      },
+      "targets": {
+        "kr": {
+          "available": true,
+          "text_rows": 189,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 189,
+          "known_speaker_pairs": 62,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "jp": {
+          "available": true,
+          "text_rows": 189,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 189,
+          "known_speaker_pairs": 62,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        },
+        "en": {
+          "available": true,
+          "text_rows": 189,
+          "exact_command_structure": true,
+          "same_text_row_count": true,
+          "same_physical_ordinal_pairs": 189,
+          "known_speaker_pairs": 62,
+          "known_speaker_mismatches": 0,
+          "strict_structure_eligible": true
+        }
+      }
+    }
+  ]
+}

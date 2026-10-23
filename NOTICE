@@ -27,3 +27,6 @@ Default character avatars: ArknightsAssets/ArknightsAssets2, pinned in
 portraits.source.json. Generated WebP images remain game content, and the code
 license does not grant rights in them. Images are resized at build time and
 served locally; no avatar or font requests go to third parties at runtime.
+
+Language transition lifecycle and splash layout adapted from the same owner's
+L10ndiff at the owner's request; the rabbit mark and its CSS animation are local.
