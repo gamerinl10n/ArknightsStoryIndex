@@ -33,3 +33,6 @@ for lang, placeholders in {
     "zh": ("请输入要搜索的台词或词语。", "请输入说话者。", "请输入听话者。"),
 }.items():
     STRINGS[lang].update(zip(("query_placeholder", "speaker_placeholder", "target_placeholder"), placeholders, strict=True))
+
+for lang, label in {"ko":"입력 지우기", "en":"Clear inputs", "ja":"入力をクリア", "zh":"清空输入"}.items():
+    STRINGS[lang]["clear_inputs"] = label

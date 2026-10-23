@@ -130,3 +130,11 @@ L10ndiff의 NEXON Lv2 Gothic Regular/Bold 원본은 web/fonts/에 변경 없이 
 brand/masters의 투명 PNG 원본과 web/brand의 크기별 내보내기를 보관합니다. `python scripts/export_brand.py`로 내보내기를 재생성합니다. 1번 기록실 로고는 파비콘, 2번 후드 로고는 헤더와 홈 검색창 위에 사용합니다.
 
 공개 패치노트의 기준은 2026-10-22의 1.0.0입니다. 이후에는 검색 기능의 실질적 변화, 호환성 변경, 중요한 오류 수정만 기록하고 일상적인 스타일 조정·리팩터링·개발 과정은 Git 이력에 남깁니다.
+
+## 언어 전환 스플래시와 입력 초기화
+
+L10ndiff의 sessionStorage 마커, 380ms 이탈 → 페이지 이동 → 300ms 진입 구조를 ui/language-transition.mjs와 ui/language-splash.mjs로 옮겼습니다. language-splash-boot.js는 외부 클래식 스크립트로 첫 화면 전 상태를 복원합니다. CSP 완화·인라인 스크립트는 추가하지 않습니다. 마커는 목적 화면 언어와 유효 시간을 검증하고 저장소 접근 실패·모션 줄이기·BFCache 복귀·이동 실패를 처리합니다.
+
+토끼는 기존 투명 PNG를 CSS clip-path로 몸·양쪽 귀에 나눠 서로 다른 지연과 회전·스쿼시를 적용합니다. GIF나 애니메이션 라이브러리를 추가하지 않습니다. 기본 홈에는 중앙 로고를 표시하지 않습니다. 입력 지우기는 검색 버튼 옆에 있고 언어·선행 스토리 설정을 보존한 빈 홈으로 복귀합니다.
+
+원문 대응 1차 구조 조사 결과는 alignment-feasibility.md를 참고하세요. 실제 대조 검색은 아직 서비스에 노출하지 않습니다.

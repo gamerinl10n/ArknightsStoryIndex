@@ -53,7 +53,21 @@ document.querySelector(".brand").addEventListener("click", (event) => {
   )
     goHome(event, false);
 });
-bindSearchReset({ autocomplete, stopSearch });
+bindSearchReset({
+  autocomplete,
+  stopSearch,
+  onReset: () => {
+    offset = 0;
+    last = null;
+    renderedKey = null;
+    $("results").replaceChildren();
+    $("result-count").textContent = "";
+    $("notice").textContent = "";
+    $("empty-state").hidden = true;
+    $("more").hidden = true;
+    setView("home");
+  },
+});
 function empty(title, description) {
   $("empty-state").hidden = false;
   $("empty-state").querySelector("h3").textContent = title;

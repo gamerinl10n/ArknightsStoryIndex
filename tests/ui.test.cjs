@@ -226,7 +226,7 @@ test('tab title stays the brand through search and return',async()=>{
 });
 
 test('search uses native task-order tabbing without positive tabindex or focus traps',async()=>{
- const x=await setup();try{const controls=[...x.$('search').querySelectorAll('input,select,button')].filter(node=>node.tabIndex>=0&&!node.disabled);assert.deepEqual(controls.map(node=>node.id),['query','speaker','target','submit-search','corpus-button','swap','spoilers']);assert.equal(x.$('search').querySelector('[tabindex]:not([tabindex="-1"])'),null);}finally{x.dom.window.close();}
+ const x=await setup();try{const controls=[...x.$('search').querySelectorAll('input,select,button')].filter(node=>node.tabIndex>=0&&!node.disabled);assert.deepEqual(controls.map(node=>node.id),['query','speaker','target','submit-search','reset-search','corpus-button','swap','spoilers']);assert.equal(x.$('search').querySelector('[tabindex]:not([tabindex="-1"])'),null);}finally{x.dom.window.close();}
 });
 
 test('styled corpus picker supports selection, Escape and Tab without trapping focus',async()=>{
@@ -266,6 +266,33 @@ test('brand navigation returns home without focusing a search field or reopening
  }finally{x.dom.window.close();}
 });
 
-test('center logo clears text, portraits and validity while preserving language settings',async()=>{
+test('clear inputs button clears text, portraits and validity while preserving language settings',async()=>{
  const x=await setup();try{await tick();x.$('query').value='test';x.$('speaker').value='켈시';x.$('target').value='M3';x.$('lang').value='en_US';x.$('spoilers').checked=true;x.$('query').setCustomValidity('error');x.$('speaker').focus();x.$('reset-search').click();for(const id of ['query','speaker','target'])assert.equal(x.$(id).value,'');assert.equal(x.$('query').validationMessage,'');assert.equal(x.$('speaker-options').hidden,true);assert.equal(x.$('lang').value,'en_US');assert.equal(x.$('spoilers').checked,true);assert.equal(x.w.history.state.draft.q,'');assert.equal(x.w.history.state.draft.speaker,'');assert.equal(x.calls.filter(url=>url.startsWith('/api/search?')).length,0);}finally{x.dom.window.close();}
+});
+
+async function transitionHarness({reduced=false,denied=false,pending=null,counter=null}={}){
+ const x=await setup();const dom=new JSDOM('<html lang="ko"><body><nav class="language-switch"><a href="/?ui=ko" data-ui="ko" aria-current="page">KR</a><a href="/?ui=en" data-ui="en">EN</a></nav><div id="languageSplash"></div></body></html>',{url:'https://asi.test/'});
+ const timers=new Map(),saved=new Map(),destinations=[];let clock=0,next=0;
+ if(pending)saved.set('asi-language-transition',JSON.stringify(pending));if(counter)saved.set('asi-language-splash-variant',String(counter));
+ const events=new dom.window.EventTarget();
+ const w={location:dom.window.location,matchMedia:()=>({matches:reduced}),get sessionStorage(){if(denied)throw Error('disabled');return {getItem:k=>saved.get(k)||null,setItem:(k,v)=>saved.set(k,v),removeItem:k=>saved.delete(k)};},setTimeout:(fn,delay)=>{timers.set(++next,{fn,at:clock+delay});return next;},clearTimeout:id=>timers.delete(id),addEventListener:(...args)=>events.addEventListener(...args),removeEventListener:(...args)=>events.removeEventListener(...args)};
+ const controller=(await x.loadModule('ui/language-splash.mjs')).namespace.createLanguageSplashController({documentRef:dom.window.document});
+ const stop=(await x.loadModule('ui/language-transition.mjs')).namespace.setupLanguageTransitions({documentRef:dom.window.document,windowRef:w,splashController:controller,navigate:url=>destinations.push(url)});
+ return {dom,saved,destinations,root:dom.window.document.documentElement,splash:dom.window.document.getElementById('languageSplash'),click:(ui='en',opts={})=>{const e=new dom.window.MouseEvent('click',{button:0,cancelable:true,...opts});dom.window.document.querySelector(`[data-ui="${ui}"]`).dispatchEvent(e);return e;},advance:ms=>{const end=clock+ms;for(;;){const entry=[...timers].sort((a,b)=>a[1].at-b[1].at).find(([,t])=>t.at<=end);if(!entry)break;clock=entry[1].at;timers.delete(entry[0]);entry[1].fn();}clock=end;},restore:()=>events.dispatchEvent(new dom.window.PageTransitionEvent('pageshow',{persisted:true})),close:()=>{stop();dom.window.close();x.dom.window.close();}};
+}
+test('language splash leaves, preserves ordinary link semantics and navigates once',async()=>{
+ const h=await transitionHarness();try{assert.equal(h.click().defaultPrevented,true);assert.equal(h.splash.dataset.phase,'leave');assert.equal(h.root.classList.contains('is-language-leaving'),true);assert.equal(JSON.parse(h.saved.get('asi-language-transition')).ui,'en');assert.equal(h.click().defaultPrevented,true);assert.equal(h.click('en',{ctrlKey:true}).defaultPrevented,false);h.advance(379);assert.equal(h.destinations.length,0);h.advance(1);assert.equal(h.destinations.length,1);assert.match(h.destinations[0],/ui=en/);h.restore();assert.equal(h.splash.dataset.phase,undefined);assert.equal(h.root.classList.contains('is-language-leaving'),false);}finally{h.close();}
+});
+test('language splash consumes valid arrival marker and rejects expired or wrong-language markers',async()=>{
+ for(const pending of [{variant:2,ui:'ko',expires:Date.now()+10000},{variant:2,ui:'en',expires:Date.now()+10000},{variant:2,ui:'ko',expires:1}]){const h=await transitionHarness({pending});try{const valid=pending.ui==='ko'&&pending.expires>1;assert.equal(h.splash.dataset.phase,valid?'enter':undefined);assert.equal(h.saved.has('asi-language-transition'),false);h.advance(300);assert.equal(h.splash.dataset.phase,undefined);assert.equal(h.root.classList.contains('is-language-entering'),false);}finally{h.close();}}
+});
+test('language splash skips current language and reduced motion, tolerates storage denial',async()=>{
+ const a=await transitionHarness({reduced:true});try{assert.equal(a.click('ko').defaultPrevented,true);assert.equal(a.click().defaultPrevented,false);assert.equal(a.splash.dataset.phase,undefined);a.advance(6000);assert.equal(a.destinations.length,0);}finally{a.close();}
+ const b=await transitionHarness({denied:true});try{b.click();b.advance(380);assert.equal(b.destinations.length,1);b.advance(5000);assert.equal(b.root.classList.contains('is-language-leaving'),false);assert.equal(b.splash.dataset.phase,undefined);}finally{b.close();}
+});
+test('language splash rotates three variants and recovers when navigation stalls',async()=>{
+ for(const current of [1,2,3]){const h=await transitionHarness({counter:current});try{h.click();assert.equal(h.splash.dataset.variant,String(current%3+1));h.advance(5000);assert.equal(h.splash.dataset.phase,undefined);assert.equal(h.saved.has('asi-language-transition'),false);h.click();h.advance(380);assert.equal(h.destinations.length,2);}finally{h.close();}}
+});
+test('clearing a result page returns to an empty home with durable language settings',async()=>{
+ const x=await setup({query:'search?ui=ko&q=test&speaker=M3&lang=en_US&spoilers=1'});try{await tick();await tick();assert.equal(x.$('results').children.length,1);x.$('reset-search').click();assert.equal(x.w.location.pathname,'/');assert.equal(x.w.location.search.includes('q='),false);assert.equal(x.w.location.search.includes('speaker='),false);assert.equal(x.$('search-experience').dataset.view,'home');assert.equal(x.$('results').children.length,0);assert.equal(x.$('lang').value,'en_US');assert.equal(x.$('spoilers').checked,true);assert.equal(x.w.document.querySelector('.home-brand'),null);}finally{x.dom.window.close();}
 });
