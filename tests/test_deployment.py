@@ -124,3 +124,22 @@ class DeploymentTest(unittest.TestCase):
         self.assertEqual(materialize(compressed,self.root),unpacked)
         client=create_app(str(compressed),True).test_client()
         self.assertEqual(client.get('/api/search?speaker=M3').json['total'],1)
+
+    def test_adsense_publisher_file_and_production_nonce(self):
+        import re
+        with self.client.get('/ads.txt') as response:
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.mimetype, 'text/plain')
+            self.assertEqual(response.text, 'google.com, pub-6317702529934048, DIRECT, f08c47fec0942fa0\n')
+        self.assertNotIn('adsbygoogle.js', self.client.get('/').text)
+        nonces = []
+        for page in ('/', '/search', '/privacy'):
+            response = self.client.get(page, base_url='https://www.arknightsindex.com')
+            self.assertEqual(response.text.count('adsbygoogle.js?client=ca-pub-6317702529934048'), 1)
+            nonce = re.search(r"'nonce-([^']+)'", response.headers['Content-Security-Policy']).group(1)
+            nonces.append(nonce)
+            scripts = re.findall(r'<script\b[^>]*>', response.text)
+            self.assertTrue(all('nonce="' + nonce + '"' in tag for tag in scripts))
+            self.assertIn("'strict-dynamic'", response.headers['Content-Security-Policy'])
+        self.assertEqual(len(set(nonces)), 3)
+        self.assertNotIn('광고 스크립트는 포함하지 않습니다', self.client.get('/privacy').text)

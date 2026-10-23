@@ -166,9 +166,18 @@ L10ndiff의 sessionStorage 마커, 380ms 이탈 → 페이지 이동 → 300ms �
 
 ## 방문 통계
 
-web/analytics.js는 운영 도메인 arknightsindex.com/www.arknightsindex.com에서만 G-2TEVDLNB9K 태그를 비동기로 로드합니다. 로컬과 Vercel 미리보기는 제외합니다. CSP는 Google 태그 스크립트와 Analytics 수집 도메인만 추가로 허용하며 unsafe-inline은 사용하지 않습니다. 기본 config의 page_location/page_referrer에는 쿼리와 해시를 제외하고, Google signals와 광고 개인화를 끕니다. 검색어나 인물 값을 별도 이벤트로 보내지 않습니다. History API 자동 페이지 측정·향상된 측정 및 추가 URL 매개변수 가림은 GA 웹 스트림 설정의 영향을 받습니다. 운영 속성의 중복 측정 및 q/speaker/target 데이터 가림은 GA 관리 화면에서 함께 확인할 수 있습니다. 코드에 독자적인 수동 page_view를 추가하여 자동 측정과 중복시키지 않습니다. 개인정보 안내를 실제 측정 및 쿠키 사용에 맞게 갱신합니다.
+web/analytics.js는 운영 도메인 arknightsindex.com/www.arknightsindex.com에서만 G-2TEVDLNB9K 태그를 비동기로 로드합니다. 로컬과 Vercel 미리보기는 제외합니다. CSP는 아래 AdSense 통합 정책을 함께 따릅니다. 기본 config의 page_location/page_referrer에는 쿼리와 해시를 제외하고, Google signals와 광고 개인화를 끕니다. 검색어나 인물 값을 별도 이벤트로 보내지 않습니다. History API 자동 페이지 측정·향상된 측정 및 추가 URL 매개변수 가림은 GA 웹 스트림 설정의 영향을 받습니다. 운영 속성의 중복 측정 및 q/speaker/target 데이터 가림은 GA 관리 화면에서 함께 확인할 수 있습니다. 코드에 독자적인 수동 page_view를 추가하여 자동 측정과 중복시키지 않습니다. 개인정보 안내를 실제 측정 및 쿠키 사용에 맞게 갱신합니다.
 
 
 ## 대응 데이터 v2 검증
 
 `python scripts/verify_alignment_snapshot.py <원문아카이브.sqlite> <검색스냅샷.sqlite> --output <검증결과.json>`은 원문·대사·분기·출처·버전·연결 목록을 대조하고 불일치 시 종료 코드 1로 실패합니다. 파일을 읽기 전용으로 열며 보고서에 대사 내용을 쓰지 않습니다. 합성 fixture에서 잘못된 대응 및 손상된 대사 감지를 검증합니다. translation_alignment.py 변경은 기존 데이터 입력 해시를 무효화하므로 새 v2 스냅샷이 필요합니다. v1 인덱스를 v2 결과로 간주하지 않습니다.
+
+
+### AdSense와 ads.txt
+
+운영 두 도메인의 공통 head에 ca-pub-6317702529934048 비동기 스크립트와 계정 메타 태그를 제공합니다. 로컬/미리보기에는 광고 스크립트를 넣지 않습니다. /ads.txt는 web/ads.txt를 text/plain으로 반환하며 Vercel 함수 번들에도 web/**로 포함됩니다. 실제 광고 단위는 추가하지 않으며 자동 광고·사이트 승인·지역별 동의 메시지는 AdSense 계정에서 관리합니다. 승인 여부는 코드로 보장하지 않습니다.
+
+Google 공식 CSP 통합 지침(https://support.google.com/adsense/answer/16283098)에 따라 매 요청마다 암호학적 nonce를 생성하고 모든 HTML script에 적용합니다. strict-dynamic으로 신뢰된 스크립트의 하위 로딩을 허용하고, 광고 런타임 호환성을 위해 unsafe-eval 및 HTTPS frame/connect/image, 인라인 스타일을 허용합니다. object-src/base-uri는 none으로 제한합니다. 광고 공급 도메인이 바뀔 수 있어 고정 도메인 목록으로 광고 요청을 제한하지 않습니다. 개인정보 안내에서 Analytics 개인화 비활성화와 AdSense 광고 처리를 구분합니다.
+
+업데이트 알림은 화면 중앙에 표시하며 본문은 한 줄을 유지합니다. 좁은 화면에서는 버튼을 아래 행으로 옮기고 본문 크기를 줄입니다. 알림을 위한 빈 공간은 본문에 추가하지 않습니다.

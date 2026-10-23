@@ -26,4 +26,4 @@
 </section>
 </div>
 {% endblock %}
-{% block scripts %}<script src="{{ asset('app.js') }}" type="module"></script>{% endblock %}
+{% block scripts %}<script nonce="{{ csp_nonce }}" src="{{ asset('app.js') }}" type="module"></script>{% endblock %}

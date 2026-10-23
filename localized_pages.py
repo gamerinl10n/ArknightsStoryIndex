@@ -72,9 +72,13 @@ COPY = {
                 "Requests and storage",
                 "Search names, phrases, language and spoiler choices are sent to the server as URL "
                 "parameters and may appear in hosting logs or shared links. The app creates no accounts "
-                "or search-history database. Google Analytics measures visits and usage and may process page addresses, browser/device information and analytics cookies. Default page and referrer addresses omit search parameters; search terms and character inputs are not sent as custom events. Google signals and advertising personalization are disabled. Theme "
+                "or search-history database. Google Analytics measures visits and usage and may process page addresses, browser/device information and analytics cookies. Default page and referrer addresses omit search parameters; search terms and character inputs are not sent as custom events. Google signals and advertising personalization in Analytics are disabled. Theme "
                 "preference is stored in localStorage; update reminders use sessionStorage. No "
                 "application cookies are set.",
+            ),
+            (
+                'Advertising',
+                'Google AdSense is used. Google and advertising partners may process cookies, IP addresses and browser/device information to serve and measure ads and prevent invalid traffic. Personalization and consent depend on AdSense settings and the visitor’s region. Personalized ads can be managed in Google Ad Settings.',
             ),
             (
                 "External services",
@@ -169,8 +173,12 @@ COPY = {
         "privacy": [
             (
                 "请求与存储",
-                "角色名、词句、语言和先行剧情选项以 URL 参数发送至服务器，可能出现在托管日志或分享链接中。本应用不建立账号或搜索历史数据库，使用 Google Analytics 统计访问和使用情况，Google 可能处理页面地址、浏览器及设备信息和分析 Cookie。默认页面及来源地址不含搜索参数，不将搜索词和角色输入作为自定义事件发送，不启用 Google 信号和广告个性化。主题存于 "
+                "角色名、词句、语言和先行剧情选项以 URL 参数发送至服务器，可能出现在托管日志或分享链接中。本应用不建立账号或搜索历史数据库，使用 Google Analytics 统计访问和使用情况，Google 可能处理页面地址、浏览器及设备信息和分析 Cookie。默认页面及来源地址不含搜索参数，不将搜索词和角色输入作为自定义事件发送，不启用 Analytics 的 Google 信号和广告个性化。主题存于 "
                 "localStorage，更新提醒存于 sessionStorage，不设置应用 Cookie。",
+            ),
+            (
+                '广告',
+                '本站使用 Google AdSense。Google 及广告合作伙伴可能为投放和衡量广告、防止无效流量而处理 Cookie、IP 地址及浏览器和设备信息。广告个性化与同意设置取决于 AdSense 设置及用户所在地区。可通过 Google 广告设置管理个性化广告。',
             ),
             (
                 "外部服务",
@@ -240,7 +248,11 @@ COPY = {
         "privacy": [
             (
                 "リクエストと保存",
-                "人物名・語句・言語・先行ストーリー設定はURLパラメータとしてサーバーに送信され、ホスティングのログや共有リンクに含まれる場合があります。アカウントや検索履歴DBは作成しません。Google Analyticsで訪問・利用状況を測定し、ページURL・ブラウザーや端末情報・分析CookieなどがGoogleで処理される場合があります。初期ページと参照URLから検索パラメーターを除き、検索語句や人物入力値を独自イベントでは送信しません。Googleシグナルと広告のパーソナライズは無効です。テーマはlocalStorage、更新の再通知はsessionStorageに保存します。アプリ独自のCookieは設定しません。",
+                "人物名・語句・言語・先行ストーリー設定はURLパラメータとしてサーバーに送信され、ホスティングのログや共有リンクに含まれる場合があります。アカウントや検索履歴DBは作成しません。Google Analyticsで訪問・利用状況を測定し、ページURL・ブラウザーや端末情報・分析CookieなどがGoogleで処理される場合があります。初期ページと参照URLから検索パラメーターを除き、検索語句や人物入力値を独自イベントでは送信しません。AnalyticsのGoogleシグナルと広告のパーソナライズは無効です。テーマはlocalStorage、更新の再通知はsessionStorageに保存します。アプリ独自のCookieは設定しません。",
+            ),
+            (
+                '広告',
+                'Google AdSenseを使用します。Googleと広告パートナーは広告の配信・測定や無効なトラフィックの防止のため、Cookie、IPアドレス、ブラウザー・端末情報などを処理する場合があります。パーソナライズと同意はAdSenseの設定や利用地域により異なります。Google広告設定でパーソナライズ広告を管理できます。',
             ),
             (
                 "外部サービス",
