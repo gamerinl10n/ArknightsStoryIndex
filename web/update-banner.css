@@ -1,12 +1,15 @@
 .site-update {
     position: fixed;
-    right: max(18px, env(safe-area-inset-right));
-    bottom: max(18px, env(safe-area-inset-bottom));
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
     z-index: 1700;
     display: flex;
     align-items: center;
     gap: 16px;
-    width: min(520px, calc(100vw - 36px));
+    width: max-content;
+    max-width: calc(100vw - 36px);
+    box-sizing: border-box;
     padding: 13px 14px;
     border: 1px solid var(--accent-border, #a8ddd0);
     border-radius: 16px;
@@ -34,6 +37,7 @@
 
 .site-update-message p {
     margin: 0;
+    white-space: nowrap;
     font-size: 0.84rem;
     line-height: 1.45;
 }
@@ -68,13 +72,18 @@
 
 @media (max-width: 560px) {
     .site-update {
-        left: max(10px, env(safe-area-inset-left));
-        right: max(10px, env(safe-area-inset-right));
-        bottom: max(10px, env(safe-area-inset-bottom));
-        width: auto;
+        max-width: calc(100vw - 20px);
         align-items: stretch;
         flex-direction: column;
         gap: 10px;
+    }
+
+    .site-update-message p {
+        font-size: clamp(0.6rem, 2.7vw, 0.84rem);
+    }
+
+    .site-update-actions {
+        justify-content: center;
     }
 
     .site-update-actions button {

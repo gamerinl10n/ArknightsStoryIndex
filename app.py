@@ -5,10 +5,12 @@ from contextlib import closing
 from urllib.parse import urlencode
 import json
 import os
+import secrets
 from pathlib import Path
 import sqlite3
 from flask import (
     Flask,
+    g,
     jsonify,
     request,
     send_file,
@@ -57,12 +59,23 @@ def create_app(database=None, readonly=None, portrait_root=None):
         ).hexdigest()[:16]
     )
 
+    @app.before_request
+    def request_nonce():
+        g.csp_nonce = secrets.token_urlsafe(24)
+
+    @app.route("/ads.txt")
+    def ads_txt():
+        return send_file(ROOT / "web/ads.txt", mimetype="text/plain")
+
     @app.context_processor
     def template_context():
         ui = request.args.get("ui", "ko")
         if ui not in UI_LANGS:
             ui = "ko"
         return dict(
+            csp_nonce=g.csp_nonce,
+            adsense_enabled=request.host.split(":", 1)[0]
+            in ("arknightsindex.com", "www.arknightsindex.com"),
             ui=ui,
             t=lambda key: tr(ui, key),
             ui_languages=UI_LANGS,
@@ -113,10 +126,11 @@ def create_app(database=None, readonly=None, portrait_root=None):
             response.headers["Cache-Control"] = "no-store"
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; script-src 'self' https://www.googletagmanager.com; "
-            "connect-src 'self' https://google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://www.googletagmanager.com; "
-            "img-src 'self' https://*.google-analytics.com https://www.googletagmanager.com; "
-            "style-src 'self'; frame-ancestors 'none'"
+            "default-src 'self'; "
+            f"script-src 'nonce-{g.csp_nonce}' 'strict-dynamic' 'self' https: 'unsafe-eval'; "
+            "connect-src 'self' https:; img-src 'self' https: data:; "
+            "frame-src https:; style-src 'self' 'unsafe-inline'; "
+            "object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
         )
         return response
 

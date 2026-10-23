@@ -25,30 +25,21 @@ if (currentVersion && currentVersion !== 'development') {
   update.className = 'site-update-now';
   actions.append(later, update);
   banner.append(message, actions);
-  const spacer = document.createElement('div');
-  spacer.setAttribute('aria-hidden', 'true');
-  document.body.append(spacer, banner);
-  const measure = () => {
-    spacer.style.height = banner.hidden ? '0px' :
-      'calc(' + (banner.getBoundingClientRect().height + 48) + 'px + env(safe-area-inset-bottom, 0px))';
-  };
+  document.body.append(banner);
   const refreshCopy = () => {
     const t = labels();
     text.textContent = t.ready;
     later.textContent = t.later;
     later.title = t.hint;
     update.textContent = t.update;
-    measure();
   };
   refreshCopy();
   const languageObserver = new MutationObserver(refreshCopy);
   languageObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
-  if ('ResizeObserver' in window) new ResizeObserver(measure).observe(banner);
-  window.addEventListener('resize', measure);
 
   const monitor = createUpdateMonitor({
     currentVersion,
-    onChange: ({ available }) => { banner.hidden = !available; measure(); },
+    onChange: ({ available }) => { banner.hidden = !available; },
   });
   later.addEventListener('click', () => monitor.remindLater());
   update.addEventListener('click', () => {
