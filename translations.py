@@ -22,3 +22,6 @@ def tr(lang, key, **values):
 
 for lang, label in {"ko":"상대 발화가 가까운 결과", "en":"Nearby turn by the other character", "ja":"相手の発言が近くにある結果", "zh":"附近有对方发言的结果"}.items():
     STRINGS[lang]["nearby_turns"] = label
+
+for lang, label in {"ko":"검색 입력 초기화", "en":"Clear search inputs", "ja":"検索入力をクリア", "zh":"清空搜索内容"}.items():
+    STRINGS[lang]["reset_search"] = label

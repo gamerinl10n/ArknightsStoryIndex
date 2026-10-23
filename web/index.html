@@ -4,7 +4,7 @@
 <h1 class="sr-only">{{ t('search') }}</h1>
 <div id="search-experience" class="search-experience" data-view="{{ initial_view }}">
 <div class="search-navigation" {% if initial_view=='home' %}hidden{% endif %}><button type="button" id="back-search" class="button button-quiet"><span aria-hidden="true">←</span> {{ t('back') }}</button></div>
-<div class="home-brand" aria-label="Arknights Index"><img class="home-logo" src="{{ asset('brand/operator-256.png') }}" srcset="{{ asset('brand/operator-256.png') }} 1x, {{ asset('brand/operator-512.png') }} 2x" width="128" height="128" alt=""><span>Arknights Index</span></div>
+<button type="button" id="reset-search" class="home-brand" aria-label="{{ t('reset_search') }}" title="{{ t('reset_search') }}"><img class="home-logo" src="{{ asset('brand/operator-256.png') }}" srcset="{{ asset('brand/operator-256.png') }} 1x, {{ asset('brand/operator-512.png') }} 2x" width="128" height="128" alt=""></button>
 <section class="search-panel" aria-label="{{ t('search') }}">
 <form id="search" class="search-form">
 <div class="keyword-field"><label class="sr-only" for="query">{{ t('expression') }}</label><input id="query" placeholder="{{ t('expression') }}" autocomplete="off"></div>

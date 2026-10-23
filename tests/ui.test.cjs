@@ -250,3 +250,22 @@ test('nearby matches share lazy context without merging a different branch',asyn
   assert.match(x.$('result-count').textContent,/3/);
  }finally{x.dom.window.close();}
 });
+
+test('brand navigation returns home without focusing a search field or reopening suggestions',async()=>{
+ const x=await setup();try{
+  await tick();await tick();enter(x);await tick();await tick();
+  x.$('speaker').focus();
+  const brand=x.w.document.querySelector('.brand');brand.click();
+  assert.equal(x.w.location.pathname,'/');
+  assert.equal(x.$('search-experience').dataset.view,'home');
+  assert.equal(x.w.document.activeElement,brand);
+  assert.equal(x.$('speaker-options').hidden,true);
+  assert.equal(x.$('target-options').hidden,true);
+  assert.equal(x.$('speaker').value,'M3');
+  assert.equal(x.$('target').value,'켈시');
+ }finally{x.dom.window.close();}
+});
+
+test('center logo clears text, portraits and validity while preserving language settings',async()=>{
+ const x=await setup();try{await tick();x.$('query').value='test';x.$('speaker').value='켈시';x.$('target').value='M3';x.$('lang').value='en_US';x.$('spoilers').checked=true;x.$('query').setCustomValidity('error');x.$('speaker').focus();x.$('reset-search').click();for(const id of ['query','speaker','target'])assert.equal(x.$(id).value,'');assert.equal(x.$('query').validationMessage,'');assert.equal(x.$('speaker-options').hidden,true);assert.equal(x.$('lang').value,'en_US');assert.equal(x.$('spoilers').checked,true);assert.equal(x.w.history.state.draft.q,'');assert.equal(x.w.history.state.draft.speaker,'');assert.equal(x.calls.filter(url=>url.startsWith('/api/search?')).length,0);}finally{x.dom.window.close();}
+});

@@ -1,5 +1,6 @@
 import { $, t, reducedMotion } from "./ui/dom.mjs";
 import { api } from "./ui/api.mjs";
+import { bindSearchReset } from "./ui/search-reset.mjs";
 import { readForm } from "./ui/form-state.mjs";
 import { createNavigation } from "./ui/navigation.mjs";
 import { createCorpusControl } from "./ui/corpus-control.mjs";
@@ -23,7 +24,7 @@ function stopSearch() {
   $("results").setAttribute("aria-busy", "false");
   $("search-loading").hidden = true;
 }
-function goHome(event) {
+function goHome(event, focusSearch = true) {
   event?.preventDefault();
   const draft = readForm();
   history.pushState(
@@ -34,7 +35,8 @@ function goHome(event) {
   stopSearch();
   autocomplete.close();
   setView("home");
-  $("speaker").focus({ preventScroll: true });
+  if (focusSearch) $("speaker").focus({ preventScroll: true });
+  else document.querySelector(".brand").focus({ preventScroll: true });
   window.scrollTo?.({
     top: 0,
     behavior: reducedMotion() ? "instant" : "smooth",
@@ -49,8 +51,9 @@ document.querySelector(".brand").addEventListener("click", (event) => {
     !event.shiftKey &&
     !event.altKey
   )
-    goHome(event);
+    goHome(event, false);
 });
+bindSearchReset({ autocomplete, stopSearch });
 function empty(title, description) {
   $("empty-state").hidden = false;
   $("empty-state").querySelector("h3").textContent = title;
