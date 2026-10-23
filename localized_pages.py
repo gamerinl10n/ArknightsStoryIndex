@@ -303,6 +303,18 @@ for lang, text in {
     COPY[lang]["changelog"].insert(0, ("1.1.0 · 2026-10-23", text))
 
 
+PAGES["changelog"]["sections"].insert(0, {
+    "title": "1.2.0 · 2026-10-23",
+    "paragraphs": ["네 언어의 대사를 함께 검색하고 페이지 언어를 중심으로 표시합니다. 결과에서 다른 언어를 즉시 켜고 끌 수 있습니다. 최근 검색으로 돌아오면 추가로 불러온 결과와 펼친 문맥, 읽던 위치를 복원합니다."],
+})
+for lang, text in {
+    "en": "Search all four languages together, with the page language displayed most prominently. Toggle additional languages immediately. Returning to recent searches restores loaded results, open context and reading position.",
+    "ja": "四言語をまとめて検索し、ページ言語を中心に表示します。他言語の併記は即座に切り替えられます。最近の検索に戻ると、追加した結果・開いた文脈・読んでいた位置を復元します。",
+    "zh": "四种语言一起搜索，以页面语言为主要显示，并可即时切换其他语言。返回最近的搜索时，恢复已加载的结果、展开的上下文和阅读位置。",
+}.items():
+    COPY[lang]["changelog"].insert(0, ("1.2.0 · 2026-10-23", text))
+
+
 def get_page(page, ui):
     if ui == "ko":
         return PAGES[page]

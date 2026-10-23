@@ -15,6 +15,7 @@ async function setup(options = {}) {
   const w = dom.window, calls = [];
   if (options.theme) w.localStorage.setItem('asi-theme-v1',options.theme);
   if (options.noStorage) Object.defineProperty(w,'localStorage',{get(){throw Error('disabled');}});
+  w.scrollTo = () => {};
   w.fetch = async (url, args) => {
     calls.push(String(url));
     let data;
@@ -337,5 +338,31 @@ test('group validation rechecks current values even with a stale browser error',
  const x=await setup();try{
  x.$('search').requestSubmit();assert(!x.calls.some(url=>url.startsWith('/api/search?')));
  x.$('speaker').value='M3';x.$('target').value='켈시';x.$('search').requestSubmit();await tick();await tick();assert.equal(x.$('query').validity.customError,false);assert.equal(x.calls.filter(url=>url.startsWith('/api/search?')).length,1);
+ }finally{x.dom.window.close();}
+});
+
+test('back restores loaded pages, open context, scroll and display languages without rebuilding',async()=>{
+ const x=await setup({search:async url=>{
+ const p=new URL(url,'https://asi.test');if(p.pathname==='/api/context')return {items:[{...exampleItem,ordinal:0}],has_more:false};
+ const start=Number(p.searchParams.get('offset')||0),isFirst=p.searchParams.get('q')==='first';const total=isFirst?125:1;
+ return {total,items:Array.from({length:Math.min(50,total-start)},(_,i)=>({...exampleItem,context:undefined,ordinal:(start+i)*20,text:(isFirst?'first':'second')+' synthetic'}))};
+ }});try{
+ Object.defineProperty(x.w,'scrollY',{value:0,writable:true,configurable:true});x.w.scrollTo=options=>{x.w.scrollY=options.top;};
+ x.$('query').value='first';x.$('search').requestSubmit();await tick();await tick();x.$('more').click();await tick();await tick();assert.equal(x.$('results').children.length,100);
+ const original=x.$('results').firstElementChild,panel=original.querySelector('details');panel.open=true;panel.dispatchEvent(new x.w.Event('toggle'));await tick();await tick();assert(panel.querySelector('.context-line'));
+ x.w.document.querySelector('[data-translation-lang="zh_CN"]').click();x.w.scrollY=640;
+ x.$('query').value='second';x.$('search').requestSubmit();await tick();await tick();assert.equal(original.isConnected,false);assert.equal(x.$('results').children.length,1);
+ const count=x.calls.filter(u=>u.startsWith('/api/search?')).length;
+ const pop=new Promise(resolve=>x.w.addEventListener('popstate',resolve,{once:true}));x.w.history.back();await pop;await tick();await tick();
+ assert.equal(x.$('results').firstElementChild,original);assert.equal(panel.open,true);assert.equal(x.$('results').children.length,100);assert.equal(x.w.scrollY,640);assert.equal(x.calls.filter(u=>u.startsWith('/api/search?')).length,count);assert.equal(x.w.document.querySelector('[data-translation-lang="zh_CN"]').getAttribute('aria-pressed'),'true');
+ x.$('more').click();await tick();await tick();assert.equal(x.$('results').children.length,125);assert(x.calls.some(u=>u.startsWith('/api/search?')&&new URL(u,'https://asi.test').searchParams.get('offset')==='100'));
+ }finally{x.dom.window.close();}
+});
+
+test('context finishing while its result is detached resumes after history restoration',async()=>{
+ let resolveContext;const x=await setup({search:async url=>String(url).startsWith('/api/context?')?new Promise(resolve=>{resolveContext=resolve;}):{total:1,items:[{...exampleItem,context:undefined}]}});try{
+ x.$('query').value='first';x.$('search').requestSubmit();await tick();await tick();const card=x.$('results').firstElementChild,panel=card.querySelector('details');panel.open=true;panel.dispatchEvent(new x.w.Event('toggle'));await tick();
+ x.$('query').value='second';x.$('search').requestSubmit();await tick();await tick();resolveContext({items:[exampleItem],has_more:false});await tick();await tick();
+ const pop=new Promise(resolve=>x.w.addEventListener('popstate',resolve,{once:true}));x.w.history.back();await pop;await tick();await tick();assert.equal(x.$('results').firstElementChild,card);assert(panel.querySelector('.context-line'));assert.equal(panel.open,true);assert.equal(x.calls.filter(u=>u.startsWith('/api/context?')).length,1);
  }finally{x.dom.window.close();}
 });

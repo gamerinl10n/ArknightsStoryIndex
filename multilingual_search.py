@@ -1,5 +1,6 @@
 """Cross-corpus literal search with verified identity, bounded result payloads."""
 
+from itertools import groupby
 import struct
 import zlib
 from catalog import aliases
@@ -125,54 +126,69 @@ def search_all(
     cursor = db.execute(
         "SELECT * FROM (" + " UNION ALL ".join(clauses) + ") ORDER BY path", args
     )
-    previous, maps, metadata = None, {}, {}
-    for row in cursor:
-        if previous != row["path"]:
-            previous = row["path"]
+    for path, matches in groupby(cursor, key=lambda row: row["path"]):
+        # Buffer one file, not the whole match set. Read only the maps needed to
+        # connect foreign hits to the display language, and insert each identity once.
+        hits = list(matches)
+        foreign = {row["lang"] for row in hits} - {lang}
+        metadata, maps = {}, {}
+        if foreign and has_alignment:
             metadata = {
-                r["lang"]: dict(r)
-                for r in db.execute(
-                    "SELECT id,lang,revision FROM stories WHERE path=?", (previous,)
+                row["lang"]: dict(row)
+                for row in db.execute(
+                    "SELECT id,lang,revision FROM stories WHERE path=?", (path,)
                 )
             }
-            maps = {}
-            if has_alignment:
-                for pair in db.execute(
-                    "SELECT * FROM translation_alignments WHERE path=?", (previous,)
+            needed = (foreign | {lang}) - {"zh_CN"}
+            marks = ",".join("?" for _ in needed)
+            for pair in db.execute(
+                f"SELECT lang,method,cn_revision,target_revision,ordinal_map FROM translation_alignments WHERE path=? AND lang IN ({marks})",
+                [path, *sorted(needed)],
+            ):
+                cn, translated = metadata.get("zh_CN"), metadata.get(pair["lang"])
+                if (
+                    not cn
+                    or not translated
+                    or pair["method"] != METHOD
+                    or cn["revision"] != pair["cn_revision"]
+                    or translated["revision"] != pair["target_revision"]
                 ):
-                    cn, translated = metadata.get("zh_CN"), metadata.get(pair["lang"])
-                    if (
-                        not cn
-                        or not translated
-                        or pair["method"] != METHOD
-                        or cn["revision"] != pair["cn_revision"]
-                        or translated["revision"] != pair["target_revision"]
-                    ):
-                        continue
-                    pairs = dict(
-                        struct.iter_unpack("<II", zlib.decompress(pair["ordinal_map"]))
-                    )
-                    maps[pair["lang"]] = (pairs, {b: a for a, b in pairs.items()})
-        source_lang, ordinal, source_story = row["lang"], row["ordinal"], row["story"]
-        cn_ordinal = (
-            ordinal
-            if source_lang == "zh_CN"
-            else maps.get(source_lang, ({}, {}))[1].get(ordinal)
-        )
-        main_story, main_ordinal = source_story, ordinal
-        if source_lang != lang and cn_ordinal is not None:
-            destination = (
-                cn_ordinal
-                if lang == "zh_CN"
-                else maps.get(lang, ({}, {}))[0].get(cn_ordinal)
+                    continue
+                pairs = dict(
+                    struct.iter_unpack("<II", zlib.decompress(pair["ordinal_map"]))
+                )
+                maps[pair["lang"]] = (pairs, {b: a for a, b in pairs.items()})
+        identities = {}
+        for row in hits:
+            source_lang, ordinal, source_story = (
+                row["lang"],
+                row["ordinal"],
+                row["story"],
             )
-            if destination is not None:
-                main_story, main_ordinal = metadata[lang]["id"], destination
-            else:
-                main_story, main_ordinal = metadata["zh_CN"]["id"], cn_ordinal
-        db.execute(
-            "INSERT INTO multilingual_hits VALUES(?,?,?) ON CONFLICT(story,ordinal) DO UPDATE SET rank=max(rank,excluded.rank)",
-            (main_story, main_ordinal, row["rank"]),
+            cn_ordinal = (
+                ordinal
+                if source_lang == "zh_CN"
+                else maps.get(source_lang, ({}, {}))[1].get(ordinal)
+            )
+            main_story, main_ordinal = source_story, ordinal
+            if source_lang != lang and cn_ordinal is not None and metadata:
+                destination = (
+                    cn_ordinal
+                    if lang == "zh_CN"
+                    else maps.get(lang, ({}, {}))[0].get(cn_ordinal)
+                )
+                if destination is not None:
+                    main_story, main_ordinal = metadata[lang]["id"], destination
+                else:
+                    main_story, main_ordinal = metadata["zh_CN"]["id"], cn_ordinal
+            key = (main_story, main_ordinal)
+            identities[key] = max(identities.get(key, 0), row["rank"])
+        db.executemany(
+            "INSERT INTO multilingual_hits VALUES(?,?,?)",
+            [
+                (story_id, ordinal, rank)
+                for (story_id, ordinal), rank in identities.items()
+            ],
         )
     total = db.execute("SELECT count(*) FROM multilingual_hits").fetchone()[0]
     rows = db.execute(
