@@ -12,13 +12,13 @@
 <div class="search-actions"><button id="submit-search" class="primary">{{ t('search') }}</button><button type="button" id="reset-search" class="reset-search">{{ t('clear_inputs') }}</button></div>
 <div class="corpus-field"><span class="sr-only" id="corpus-label">{{ t('corpus') }}</span><select id="lang" hidden tabindex="-1" aria-hidden="true">{% for code,label in corpus_languages.items() %}<option value="{{ code }}">{{ label }}</option>{% endfor %}</select><button type="button" id="corpus-button" class="corpus-button" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-controls="corpus-options" aria-labelledby="corpus-label corpus-value"><span id="corpus-value">한국어</span><span class="corpus-chevron" aria-hidden="true"></span></button><div id="corpus-options" class="corpus-options" role="listbox" aria-labelledby="corpus-label" hidden></div></div>
 <button type="button" id="swap" aria-label="{{ t('swap') }}" title="{{ t('swap') }}">⇄</button>
-<div class="search-bottom"><label class="check"><input type="checkbox" id="spoilers"> {{ t('spoilers') }}</label></div>
+<div class="search-bottom"><label class="check"><input type="checkbox" id="compare"> {{ t('compare_mode') }}</label><input type="hidden" tabindex="-1" id="translation-lang" value="{{ {'ko':'ko_KR','zh':'ko_KR','ja':'ja_JP','en':'en_US'}[ui] }}"><div id="translation-languages" class="segmented translation-switch" role="group" aria-label="{{ t('translation_language') }}" hidden>{% for code,label in [('ko_KR','한국어'),('ja_JP','日本語'),('en_US','English')] %}<button type="button" data-translation-lang="{{ code }}" lang="{{ code|replace('_','-') }}" aria-pressed="false">{{ label }}</button>{% endfor %}</div><label class="check"><input type="checkbox" id="spoilers"> {{ t('spoilers') }}</label></div>
 </form>
 </section>
 <section class="results-panel" id="results-panel" aria-labelledby="results-title" {% if initial_view=='home' %}hidden{% endif %}>
 <div class="results-heading"><h2 id="results-title" tabindex="-1">{{ t('results') }}</h2><div class="result-tools"><span id="result-count"></span></div></div>
 <p id="notice" role="status" aria-live="polite"></p>
-<div id="empty-state" class="empty-state" hidden><h3></h3><p></p></div>
+<div id="empty-state" class="empty-state" hidden><h3></h3><p></p><button type="button" id="search-original" hidden>{{ t('search_original') }}</button></div>
 <div id="results" aria-busy="false"></div>
 <div id="search-loading" class="search-loading" aria-hidden="true" hidden>{% for i in range(3) %}<div class="skeleton-card"><span></span><span></span><span></span></div>{% endfor %}</div>
 <button id="more" hidden>{{ t('more') }}</button>

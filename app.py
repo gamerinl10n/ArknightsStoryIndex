@@ -25,6 +25,7 @@ from translations import STRINGS, UI_LANGS, tr
 from localized_pages import get_page
 import hashlib
 from search_service import SearchService
+from translation_alignment import attach_comparisons, TARGET_LANGS
 
 ROOT = Path(__file__).resolve().parent
 
@@ -227,6 +228,10 @@ def create_app(database=None, readonly=None, portrait_root=None):
             len(q.get(key, "")) > 300 for key in ("speaker", "target", "q", "story")
         ):
             raise ValueError("검색어가 너무 깁니다.")
+        comparison = q.get("compare") == "1"
+        translation_lang = q.get("translation_lang", "ko_KR")
+        if comparison and translation_lang not in TARGET_LANGS:
+            raise ValueError("Invalid translation language")
         with closing(open_db()) as db:
             result = search(
                 db,
@@ -239,8 +244,14 @@ def create_app(database=None, readonly=None, portrait_root=None):
                 q.get("story", ""),
                 include_details=q.get("details") != "0",
             )
+            if comparison:
+                attach_comparisons(
+                    db, result["items"], q.get("lang", "ko_KR"), translation_lang
+                )
         service.portraits.annotate(result["items"])
         for item in result["items"]:
+            if "comparison" in item:
+                service.portraits.annotate(item["comparison"]["items"])
             service.portraits.annotate(item.get("context", []))
             service.portraits.annotate(item.get("parallel", []))
         result["participants"] = {
@@ -251,15 +262,32 @@ def create_app(database=None, readonly=None, portrait_root=None):
 
     @app.route("/api/context")
     def context():
+        comparison = request.args.get("compare") == "1"
+        translation_lang = request.args.get("translation_lang", "ko_KR")
+        if comparison and translation_lang not in TARGET_LANGS:
+            raise ValueError("Invalid translation language")
+        story = request.args.get("story", "")
         with closing(open_db()) as db:
             result = context_window(
                 db,
-                request.args.get("story", ""),
+                story,
                 int(request.args.get("ordinal", 0)),
                 int(request.args.get("radius", 15)),
                 parallel=request.args.get("parallel") == "1",
             )
+            if comparison:
+                metadata = db.execute(
+                    "SELECT lang,path,revision,source FROM stories WHERE id=?", (story,)
+                ).fetchone()
+                for row in result["items"]:
+                    row.update(dict(metadata), story=story)
+                attach_comparisons(
+                    db, result["items"], metadata["lang"], translation_lang
+                )
         service.portraits.annotate(result["items"])
+        for row in result["items"]:
+            if "comparison" in row:
+                service.portraits.annotate(row["comparison"]["items"])
         service.portraits.annotate(result.get("parallel", []))
         return jsonify(result)
 

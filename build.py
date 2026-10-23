@@ -12,6 +12,7 @@ import sqlite3
 import subprocess
 import sys
 from build_portraits import build_portraits
+from translation_alignment import build_alignments
 
 
 def build_suggestion_counts(db):
@@ -70,6 +71,7 @@ def export_snapshot(source, output):
             CREATE INDEX story_idx ON lines(story,ordinal);
             """
             )
+            build_alignments(src, dst)
             build_suggestion_counts(dst)
             dst.commit()
             count = dst.execute("SELECT count(*) FROM lines").fetchone()[0]

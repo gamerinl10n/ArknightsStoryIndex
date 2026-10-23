@@ -36,3 +36,15 @@ for lang, placeholders in {
 
 for lang, label in {"ko":"입력 지우기", "en":"Clear inputs", "ja":"入力をクリア", "zh":"清空输入"}.items():
     STRINGS[lang]["clear_inputs"] = label
+
+COMPARISON_COPY = {
+    'ko': {'compare_mode':'원문·번역 대조','translation_language':'함께 볼 번역 언어','original_text':'원문','translation_unavailable':'이 언어의 번역 파일이 없습니다.','translation_unverified':'대응 대사를 확인하지 못했습니다.','alignment_method':'번역 대응 기준','alignment_structure':'명령·분기 구조와 대사 순서 일치','search_original':'중국어 원문에서 검색'},
+    'en': {'compare_mode':'Original & translation','translation_language':'Translation language','original_text':'Original','translation_unavailable':'No translation file is available in this language.','translation_unverified':'Corresponding dialogue could not be verified.','alignment_method':'Alignment method','alignment_structure':'Matching command/branch structure and dialogue order','search_original':'Search the Chinese original'},
+    'ja': {'compare_mode':'原文・訳文を比較','translation_language':'一緒に表示する翻訳言語','original_text':'原文','translation_unavailable':'この言語の翻訳ファイルはありません。','translation_unverified':'対応する台詞を確認できませんでした。','alignment_method':'訳文の対応基準','alignment_structure':'命令・分岐構造と台詞順序の一致','search_original':'中国語の原文で検索'},
+    'zh': {'compare_mode':'原文与译文对照','translation_language':'对照译文语言','original_text':'原文','translation_unavailable':'暂无该语言的翻译文件。','translation_unverified':'无法确认对应台词。','alignment_method':'译文对应依据','alignment_structure':'命令、分支结构及台词顺序一致','search_original':'搜索中文原文'},
+}
+for lang, values in COMPARISON_COPY.items():
+    STRINGS[lang].update(values)
+
+for lang, text in {"ko":"중국어 원문 파일이 없습니다.", "en":"No Chinese original file is available.", "ja":"中国語原文のファイルはありません。", "zh":"缺少中文原文文件。"}.items():
+    STRINGS[lang]["original_unavailable"] = text

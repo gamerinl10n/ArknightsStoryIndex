@@ -15,6 +15,7 @@ on:
       - 'requirements.txt'
       - 'search_queries.py'
       - 'search_service.py'
+      - 'translation_alignment.py'
       - '.github/workflows/dataset.yml'
 permissions:
   contents: write

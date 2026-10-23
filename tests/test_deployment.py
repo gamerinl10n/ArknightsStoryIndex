@@ -30,7 +30,7 @@ class DeploymentTest(unittest.TestCase):
     def test_snapshot_has_only_search_tables(self):
         with closing(sqlite3.connect(self.snapshot)) as db:
             tables={r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
-            self.assertEqual(tables,{'stories','lines','import_status','suggestion_counts','sqlite_stat1'})
+            self.assertEqual(tables,{'stories','lines','import_status','suggestion_counts','sqlite_stat1','translation_alignments'})
             self.assertNotIn('raw',[r[1] for r in db.execute('PRAGMA table_info(stories)')])
     def test_removed_admin_route_and_ui(self):
         self.assertEqual(self.client.post('/api/review',json={}).status_code,404)
