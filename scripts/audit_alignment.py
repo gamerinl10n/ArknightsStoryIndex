@@ -14,33 +14,16 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from core import TEXT_TAGS, command_parts, parse
 from catalog import character_id
-
-LOCALIZED = {"name", "options", "content", "text"}
+from translation_alignment import command_structure, verified_pairs
 
 
 def structure(raw):
-    commands = []
     attributes = Counter()
     for line in raw.splitlines():
         command = command_parts(line)
-        if not command:
-            continue
-        tag, _, pairs, _ = command
-        if tag in TEXT_TAGS:
-            attributes.update(pairs.keys())
-        commands.append(
-            (
-                tag,
-                tuple(
-                    sorted(
-                        (k, v)
-                        for k, v in pairs.items()
-                        if not (tag in TEXT_TAGS and k in LOCALIZED)
-                    )
-                ),
-            )
-        )
-    return commands, attributes
+        if command and command[0] in TEXT_TAGS:
+            attributes.update(command[2].keys())
+    return command_structure(raw), attributes
 
 
 def audit(root, paths, revision):
@@ -82,6 +65,7 @@ def audit(root, paths, revision):
                         known += 1
                         mismatches += left != right
             row["sha256"][lang] = hashlib.sha256(target.read_bytes()).hexdigest()
+            pairs, reason = verified_pairs(raw, translated)
             row["targets"][lang] = {
                 "available": True,
                 "text_rows": len(target_lines),
@@ -92,9 +76,9 @@ def audit(root, paths, revision):
                 ),
                 "known_speaker_pairs": known,
                 "known_speaker_mismatches": mismatches,
-                "strict_structure_eligible": same_tape
-                and comparable
-                and not mismatches,
+                "strict_structure_eligible": pairs is not None,
+                "alignment_status": reason,
+                "aligned_rows": len(pairs or []),
             }
         rows.append(row)
     return {

@@ -113,7 +113,10 @@ def create_app(database=None, readonly=None, portrait_root=None):
             response.headers["Cache-Control"] = "no-store"
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; script-src 'self'; style-src 'self'; frame-ancestors 'none'"
+            "default-src 'self'; script-src 'self' https://www.googletagmanager.com; "
+            "connect-src 'self' https://google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://www.googletagmanager.com; "
+            "img-src 'self' https://*.google-analytics.com https://www.googletagmanager.com; "
+            "style-src 'self'; frame-ancestors 'none'"
         )
         return response
 

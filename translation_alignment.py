@@ -7,7 +7,7 @@ import struct
 import zlib
 from catalog import character_id
 
-METHOD = "strict-command-structure-v1"
+METHOD = "strict-command-structure-v2"
 TARGET_LANGS = ("ko_KR", "ja_JP", "en_US")
 
 
@@ -38,6 +38,25 @@ def command_structure(raw):
     ]
 
 
+def text_slots(raw, rows):
+    """Map parsed text to command positions; physical line offsets may differ."""
+    from core import command_parts
+
+    ordinals = {row[0] for row in rows}
+    slots, choices = [], {}
+    index = 0
+    for ordinal, line in enumerate(raw.splitlines()):
+        command = command_parts(line)
+        if not command:
+            continue
+        if ordinal in ordinals:
+            slots.append(index)
+            if command[0] == "decision":
+                choices[index] = len(command[2].get("options", "").split(";"))
+        index += 1
+    return slots, choices
+
+
 def verified_pairs(source_raw, target_raw):
     from core import parse
 
@@ -46,13 +65,24 @@ def verified_pairs(source_raw, target_raw):
     source, target = list(parse(source_raw)), list(parse(target_raw))
     if not source or len(source) != len(target):
         return None, "text_count"
-    for a, b in zip(source, target, strict=True):
+    source_slots, source_choices = text_slots(source_raw, source)
+    target_slots, target_choices = text_slots(target_raw, target)
+    if source_slots != target_slots:
+        return None, "text_slots"
+    pairs = []
+    for slot, a, b in zip(source_slots, source, target, strict=True):
         left, right = character_id(a[1]), character_id(b[1])
         if left and right and left != right:
             return None, "speaker"
         if bool(a[1]) != bool(b[1]):
             return None, "speaker"
-    return [(a[0], b[0]) for a, b in zip(source, target, strict=True)], "matched"
+        # A translated semicolon may be punctuation or an extra option. Do not
+        # guess the choice grouping; omit that row without shifting later rows.
+        if source_choices.get(slot) == target_choices.get(slot):
+            pairs.append((a[0], b[0]))
+    if not pairs:
+        return None, "decision_options"
+    return pairs, "matched" if len(pairs) == len(source) else "partial"
 
 
 def build_alignments(src, dst):
@@ -101,6 +131,12 @@ def build_alignments(src, dst):
                 ),
             )
             stats[lang]["matched_rows"] += len(pairs)
+            if status == "partial":
+                from core import parse
+
+                stats[lang]["excluded_choice_rows"] += len(list(parse(raw))) - len(
+                    pairs
+                )
     report = {lang: dict(counts) for lang, counts in stats.items()}
     row = dst.execute("SELECT payload FROM import_status WHERE id=1").fetchone()
     payload = json.loads(row[0]) if row else {}
