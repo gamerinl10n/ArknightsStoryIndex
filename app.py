@@ -2,7 +2,6 @@
 
 import argparse
 from contextlib import closing
-from urllib.parse import urlencode
 import json
 import os
 import secrets
@@ -16,7 +15,6 @@ from flask import (
     send_file,
     render_template,
     abort,
-    redirect,
     url_for,
     send_from_directory,
 )
@@ -221,13 +219,15 @@ def create_app(database=None, readonly=None, portrait_root=None):
 
     @app.route("/<page>")
     def document(page):
-        if page == "help":
-            return redirect(
-                "/?" + urlencode({"ui": request.args.get("ui", "ko"), "help": "1"})
-            )
         if page not in PAGES:
             abort(404)
         ui = request.args.get("ui", "ko")
+        if ui not in UI_LANGS:
+            ui = "ko"
+        if page == "help":
+            return render_template(
+                "help.html", title=tr(ui, "help"), page=get_page("help", ui)
+            )
         data = get_page(page, "ko")
         english = get_page(page, "en")
         return render_template(
