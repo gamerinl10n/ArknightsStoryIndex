@@ -23,7 +23,7 @@ function stopSearch() {
   $("results").setAttribute("aria-busy", "false");
   $("search-loading").hidden = true;
 }
-function goHome(event) {
+function goHome(event, focusSearch = true) {
   event?.preventDefault();
   const draft = readForm();
   history.pushState(
@@ -34,7 +34,8 @@ function goHome(event) {
   stopSearch();
   autocomplete.close();
   setView("home");
-  $("speaker").focus({ preventScroll: true });
+  if (focusSearch) $("speaker").focus({ preventScroll: true });
+  else document.querySelector(".brand").focus({ preventScroll: true });
   window.scrollTo?.({
     top: 0,
     behavior: reducedMotion() ? "instant" : "smooth",
@@ -49,7 +50,7 @@ document.querySelector(".brand").addEventListener("click", (event) => {
     !event.shiftKey &&
     !event.altKey
   )
-    goHome(event);
+    goHome(event, false);
 });
 function empty(title, description) {
   $("empty-state").hidden = false;

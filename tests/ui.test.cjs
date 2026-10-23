@@ -250,3 +250,18 @@ test('nearby matches share lazy context without merging a different branch',asyn
   assert.match(x.$('result-count').textContent,/3/);
  }finally{x.dom.window.close();}
 });
+
+test('brand navigation returns home without focusing a search field or reopening suggestions',async()=>{
+ const x=await setup();try{
+  await tick();await tick();enter(x);await tick();await tick();
+  x.$('speaker').focus();
+  const brand=x.w.document.querySelector('.brand');brand.click();
+  assert.equal(x.w.location.pathname,'/');
+  assert.equal(x.$('search-experience').dataset.view,'home');
+  assert.equal(x.w.document.activeElement,brand);
+  assert.equal(x.$('speaker-options').hidden,true);
+  assert.equal(x.$('target-options').hidden,true);
+  assert.equal(x.$('speaker').value,'M3');
+  assert.equal(x.$('target').value,'켈시');
+ }finally{x.dom.window.close();}
+});
