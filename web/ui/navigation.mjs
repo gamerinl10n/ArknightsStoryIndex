@@ -2,7 +2,7 @@ import { $, reducedMotion } from "./dom.mjs";
 export function createNavigation(experience) {
   let viewTransition,
     viewVersion = 0;
-  function setView(view, animate = true) {
+  function setView(view, animate = true, afterApply = () => {}) {
     const token = ++viewVersion,
       changed = experience.dataset.view !== view;
     const apply = () => {
@@ -13,6 +13,7 @@ export function createNavigation(experience) {
       $("back-search").parentElement.hidden = view === "home";
       if (changed && view === "results")
         $("results-title").focus({ preventScroll: true });
+      afterApply();
     };
     if (!changed || !animate || reducedMotion()) {
       viewTransition?.skipTransition();

@@ -28,3 +28,14 @@ export function preserveForm(url = new URL(location.href)) {
   }
   return url;
 }
+
+// Display languages change neither search identity nor the API cache key.
+export function searchIdentity(search) {
+  return JSON.stringify(
+    Object.fromEntries(
+      ["speaker", "target", "q", "lang", "spoilers", "all_languages"].map(
+        (key) => [key, search[key] || ""],
+      ),
+    ),
+  );
+}

@@ -1,11 +1,12 @@
 import { $, t, reducedMotion } from "./ui/dom.mjs";
 import { api } from "./ui/api.mjs";
 import { bindSearchReset } from "./ui/search-reset.mjs";
-import { readForm } from "./ui/form-state.mjs";
+import { readForm, searchIdentity } from "./ui/form-state.mjs";
 import { createNavigation } from "./ui/navigation.mjs";
 import { createComparisonControl } from "./ui/comparison-control.mjs";
 import { createAutocomplete } from "./ui/autocomplete.mjs";
 import { renderBatch } from "./ui/results.mjs";
+import { createResultState } from "./ui/result-state.mjs";
 import { setResultTitle } from "./ui/portraits.mjs";
 
 let offset = 0,
@@ -16,9 +17,21 @@ let offset = 0,
 const setView = createNavigation($("search-experience"));
 const comparisonControl = createComparisonControl();
 const autocomplete = createAutocomplete();
+const resultState = createResultState();
+if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+function rememberResults() {
+  resultState.save(renderedKey, { offset, search: last });
+}
+function resumeResults(scroll) {
+  comparisonControl.refresh();
+  window.scrollTo?.({ top: scroll, behavior: "instant" });
+  for (const panel of $("results").querySelectorAll("details[open]"))
+    panel.dispatchEvent(new Event("toggle"));
+}
 function stopSearch() {
   ++requestVersion;
   controller?.abort();
+  $("more").disabled = false;
   $("submit-search").disabled = false;
   $("submit-search").textContent = t("search");
   $("results").setAttribute("aria-busy", "false");
@@ -27,6 +40,7 @@ function stopSearch() {
 function goHome(event, focusSearch = true) {
   event?.preventDefault();
   const draft = readForm();
+  rememberResults();
   history.pushState(
     { draft },
     "",
@@ -57,6 +71,7 @@ bindSearchReset({
   autocomplete,
   stopSearch,
   onReset: () => {
+    resultState.clear();
     offset = 0;
     last = null;
     renderedKey = null;
@@ -91,9 +106,10 @@ async function run(append = false) {
   $("notice").textContent = t("loading");
   $("search-loading").hidden = false;
   $("search-loading").dataset.append = String(append);
-  renderedKey = null;
+  if (!append) renderedKey = null;
   try {
     const params = new URLSearchParams(search);
+    params.delete("show");
     params.set("offset", offset);
     params.set("details", "0");
     const data = await api("/api/search?" + params, {
@@ -103,7 +119,7 @@ async function run(append = false) {
     renderBatch(data.items, search.q, search);
     comparisonControl.refresh();
     offset += data.items.length;
-    renderedKey = JSON.stringify(search);
+    renderedKey = searchIdentity(search);
     $("more").hidden = offset >= data.total;
     const title = search.speaker
       ? search.target
@@ -141,6 +157,7 @@ function submit(updateUrl = true) {
   $("query").setCustomValidity("");
   autocomplete.hydrate();
   const draft = readForm();
+  rememberResults();
   if (updateUrl) {
     history.replaceState({ ...history.state, draft }, "", location.href);
     const params = new URLSearchParams(draft);
@@ -150,10 +167,13 @@ function submit(updateUrl = true) {
   offset = 0;
   last = draft;
   autocomplete.close();
-  setView("results");
+  setView("results", true, () =>
+    window.scrollTo?.({ top: 0, behavior: "instant" }),
+  );
   run();
 }
 function restore(initial = false) {
+  if (!initial) rememberResults();
   $("query").setCustomValidity("");
   const params = new URLSearchParams(location.search),
     draft = history.state?.draft || {};
@@ -173,15 +193,29 @@ function restore(initial = false) {
       ["speaker", "target", "q"].some((key) => params.get(key)));
   if (showResults) {
     const search = readForm();
-    setView("results", !initial);
-    if (renderedKey !== JSON.stringify(search)) {
-      offset = 0;
+    const key = searchIdentity(search);
+    const saved = resultState.restore(key);
+    if (saved) {
+      stopSearch();
+      offset = saved.offset;
       last = search;
-      run();
+      renderedKey = key;
+      setView("results", !initial, () => resumeResults(saved.scroll));
+    } else {
+      setView("results", !initial, () =>
+        window.scrollTo?.({ top: 0, behavior: "instant" }),
+      );
+      if (renderedKey !== key) {
+        offset = 0;
+        last = search;
+        run();
+      }
     }
   } else {
     stopSearch();
-    setView("home", !initial);
+    setView("home", !initial, () =>
+      window.scrollTo?.({ top: 0, behavior: "instant" }),
+    );
   }
 }
 for (const id of ["speaker", "target", "query"])

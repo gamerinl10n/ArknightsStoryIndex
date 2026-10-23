@@ -46,7 +46,12 @@ class UnifiedSearchTest(unittest.TestCase):
     def find(self, **params):
         return self.client.get(
             "/api/search",
-            query_string=dict(all_languages="1", lang="ko_KR", details="0", **params),
+            query_string={
+                "all_languages": "1",
+                "lang": "ko_KR",
+                "details": "0",
+                **params,
+            },
         )
 
     def test_foreign_query_displays_main_language_and_all_verified_variants(self):
@@ -97,3 +102,20 @@ class UnifiedSearchTest(unittest.TestCase):
             {"zh_CN", "ko_KR", "ja_JP", "en_US"},
         )
         self.assertEqual(self.find(q="合成", speaker="아미야").json["total"], 0)
+
+    def test_every_display_language_keeps_unique_pagination(self):
+        for lang in ("ko_KR", "zh_CN", "ja_JP", "en_US"):
+            with self.subTest(lang=lang):
+                result = self.find(q="synthetic", lang=lang, offset="50").json
+                self.assertEqual(result["total"], 61)
+                self.assertEqual(len(result["items"]), 11)
+                self.assertTrue(all(row["lang"] == lang for row in result["items"]))
+
+    def test_old_snapshot_keeps_foreign_hits_separate(self):
+        with closing(connect(self.snapshot)) as db:
+            db.execute("DROP TABLE translation_alignments")
+            db.commit()
+        result = self.find(q="合成").json
+        self.assertEqual(result["total"], 2)
+        self.assertEqual({row["lang"] for row in result["items"]}, {"zh_CN", "ja_JP"})
+        self.assertTrue(all(row["main_language_missing"] for row in result["items"]))
