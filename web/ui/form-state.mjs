@@ -8,8 +8,14 @@ export function readForm() {
     q: $("query").value.trim(),
     lang: $("lang").value,
     spoilers: $("spoilers").checked ? "1" : "0",
-    compare: $("compare").checked ? "1" : "0",
-    translation_lang: $("translation-lang").value,
+    all_languages: "1",
+    show: [
+      ...document.querySelectorAll(
+        "[data-translation-lang][aria-pressed=true]:not(:disabled)",
+      ),
+    ]
+      .map((node) => node.dataset.translationLang)
+      .join(","),
   };
 }
 

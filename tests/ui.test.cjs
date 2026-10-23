@@ -27,7 +27,7 @@ async function setup(options = {}) {
   };
   w.HTMLDialogElement.prototype.showModal=function(){this.setAttribute('open','');this.querySelector('button')?.focus();};
   w.HTMLDialogElement.prototype.close=function(){this.removeAttribute('open');this.dispatchEvent(new w.Event('close'));};
-  w.eval(uiCopy); w.eval(source('theme.js'));
+  w.eval(uiCopy); if(options.ui)w.ASI.ui=options.ui; w.eval(source('theme.js'));
   const modules=new Map();
   async function moduleFor(name) {
     if(modules.has(name))return modules.get(name);
@@ -53,10 +53,10 @@ test('attached completion supports keyboard selection, search and context', asyn
   assert.equal(x.$('share-search'),null);assert.equal(x.w.localStorage.length,0);
  }finally{x.dom.window.close();}
 });
-test('shared URLs restore corpus and search values independently',async()=>{
+test('shared URLs use page language and preserve search values',async()=>{
  const x=await setup({query:'?speaker=M3&target=Kal%27tsit&lang=en_US&ui=ko&q=test&spoilers=1'});try {
-  await tick();await tick();assert.equal(x.$('lang').value,'en_US');assert.equal(x.$('target').value,"Kal'tsit");assert.equal(x.$('query').value,'test');assert.equal(x.$('spoilers').checked,true);
-  assert(x.calls.some(url=>url.startsWith('/api/search?')&&url.includes('lang=en_US')));
+  await tick();await tick();assert.equal(x.$('lang').value,'ko_KR');assert.equal(x.$('target').value,"Kal'tsit");assert.equal(x.$('query').value,'test');assert.equal(x.$('spoilers').checked,true);
+  assert(x.calls.some(url=>url.startsWith('/api/search?')&&url.includes('lang=ko_KR')&&url.includes('all_languages=1')));
  }finally{x.dom.window.close();}
 });
 test('theme uses the same moon/sun control, persists and restores',async()=>{
@@ -117,7 +117,7 @@ test('home and results are separate views; return and browser history preserve t
 });
 test('result links reload directly; home draft links do not start a search',async()=>{
  const a=await setup({query:'search?speaker=M3&target=켈시&lang=ja_JP'}),b=await setup({query:'?speaker=M3&target=켈시&view=home'});
- try{await tick();await tick();assert.equal(a.$('search-experience').dataset.view,'results');assert.equal(a.$('lang').value,'ja_JP');assert.equal(b.$('search-experience').dataset.view,'home');assert.equal(b.$('speaker').value,'M3');assert(!b.calls.some(url=>url.startsWith('/api/search?')));}finally{a.dom.window.close();b.dom.window.close();}
+ try{await tick();await tick();assert.equal(a.$('search-experience').dataset.view,'results');assert.equal(a.$('lang').value,'ko_KR');assert.equal(b.$('search-experience').dataset.view,'home');assert.equal(b.$('speaker').value,'M3');assert(!b.calls.some(url=>url.startsWith('/api/search?')));}finally{a.dom.window.close();b.dom.window.close();}
 });
 test('returning during a pending request prevents a late result from reopening the page',async()=>{
  let resolve;const x=await setup({search:()=>new Promise(r=>resolve=r)});x.w.scrollTo=()=>{};
@@ -212,7 +212,7 @@ test('results omit copy actions and story picker',async()=>{
 
 test('Korean names find localized English and Japanese suggestions without foreign display rows',async()=>{
  for(const [lang,name] of [['en_US','Amiya'],['ja_JP','アーミヤ']]){
-  const x=await setup({query:'?lang='+lang,suggestions:[{value:name,label:name,count:12,lookup:['아미야','Amiya','アーミヤ','阿米娅']}]});
+  const x=await setup({ui:({en_US:'en',ja_JP:'ja'}[lang]),query:'?ui='+({en_US:'en',ja_JP:'ja'}[lang]),suggestions:[{value:name,label:name,count:12,lookup:['아미야','Amiya','アーミヤ','阿米娅']}]});
   try{await tick();await tick();x.$('speaker').focus();x.$('speaker').value='아미';x.$('speaker').dispatchEvent(new x.w.Event('input'));
    assert.equal(x.$('speaker-options').children.length,1);assert.equal(x.$('speaker-options').textContent,name);
    x.$('speaker-options').querySelector('[role=option]').click();assert.equal(x.$('speaker').value,name);
@@ -226,13 +226,11 @@ test('tab title stays the brand through search and return',async()=>{
 });
 
 test('search uses native task-order tabbing without positive tabindex or focus traps',async()=>{
- const x=await setup();try{const controls=[...x.$('search').querySelectorAll('input,select,button')].filter(node=>node.tabIndex>=0&&!node.disabled&&!node.closest('[hidden]'));assert.deepEqual(controls.map(node=>node.id),['query','speaker','target','submit-search','reset-search','corpus-button','swap','compare','spoilers']);assert.equal(x.$('search').querySelector('[tabindex]:not([tabindex="-1"])'),null);}finally{x.dom.window.close();}
+ const x=await setup();try{const controls=[...x.$('search').querySelectorAll('input,select,button')].filter(node=>node.tabIndex>=0&&!node.disabled&&!node.closest('[hidden]'));assert.deepEqual(controls.map(node=>node.id),['query','speaker','target','submit-search','reset-search','swap','spoilers']);assert.equal(x.$('search').querySelector('[tabindex]:not([tabindex="-1"])'),null);}finally{x.dom.window.close();}
 });
 
-test('styled corpus picker supports selection, Escape and Tab without trapping focus',async()=>{
- const x=await setup();try{await tick();const button=x.$('corpus-button');button.click();assert.equal(x.$('corpus-options').hidden,false);button.dispatchEvent(new x.w.KeyboardEvent('keydown',{key:'ArrowDown',cancelable:true}));button.dispatchEvent(new x.w.KeyboardEvent('keydown',{key:'Enter',cancelable:true}));assert.equal(x.$('lang').value,'zh_CN');assert.equal(x.$('corpus-value').textContent,'中文');assert.equal(x.$('corpus-options').hidden,true);await tick();assert(x.calls.some(url=>url.startsWith('/api/suggestions?')&&url.includes('lang=zh_CN')));
- button.click();button.dispatchEvent(new x.w.KeyboardEvent('keydown',{key:'Escape',cancelable:true}));assert.equal(x.$('corpus-options').hidden,true);assert.equal(x.$('lang').value,'zh_CN');button.click();const tab=new x.w.KeyboardEvent('keydown',{key:'Tab',cancelable:true});button.dispatchEvent(tab);assert.equal(tab.defaultPrevented,false);assert.equal(x.$('corpus-options').hidden,true);
- }finally{x.dom.window.close();}
+test('search has no corpus or comparison mode controls',async()=>{
+ const x=await setup();try{assert.equal(x.$('corpus-button'),null);assert.equal(x.$('compare'),null);assert.equal(x.$('lang').hidden,true);}finally{x.dom.window.close();}
 });
 test('nearby matches share lazy context without merging a different branch',async()=>{
  const first={...exampleItem,context:undefined,nearby_turns:2};
@@ -267,7 +265,7 @@ test('brand navigation returns home without focusing a search field or reopening
 });
 
 test('clear inputs button clears text, portraits and validity while preserving language settings',async()=>{
- const x=await setup();try{await tick();x.$('query').value='test';x.$('speaker').value='켈시';x.$('target').value='M3';x.$('lang').value='en_US';x.$('spoilers').checked=true;x.$('query').setCustomValidity('error');x.$('speaker').focus();x.$('reset-search').click();for(const id of ['query','speaker','target'])assert.equal(x.$(id).value,'');assert.equal(x.$('query').validationMessage,'');assert.equal(x.$('speaker-options').hidden,true);assert.equal(x.$('lang').value,'en_US');assert.equal(x.$('spoilers').checked,true);assert.equal(x.w.history.state.draft.q,'');assert.equal(x.w.history.state.draft.speaker,'');assert.equal(x.calls.filter(url=>url.startsWith('/api/search?')).length,0);}finally{x.dom.window.close();}
+ const x=await setup();try{await tick();x.$('query').value='test';x.$('speaker').value='켈시';x.$('target').value='M3';x.$('spoilers').checked=true;x.$('query').setCustomValidity('error');x.$('speaker').focus();x.$('reset-search').click();for(const id of ['query','speaker','target'])assert.equal(x.$(id).value,'');assert.equal(x.$('query').validationMessage,'');assert.equal(x.$('speaker-options').hidden,true);assert.equal(x.$('lang').value,'ko_KR');assert.equal(x.$('spoilers').checked,true);assert.equal(x.w.history.state.draft.q,'');assert.equal(x.w.history.state.draft.speaker,'');assert.equal(x.calls.filter(url=>url.startsWith('/api/search?')).length,0);}finally{x.dom.window.close();}
 });
 
 async function transitionHarness({reduced=false,denied=false,pending=null,counter=null}={}){
@@ -294,20 +292,27 @@ test('language splash rotates three variants and recovers when navigation stalls
  for(const current of [1,2,3]){const h=await transitionHarness({counter:current});try{h.click();assert.equal(h.splash.dataset.variant,String(current%3+1));h.advance(5000);assert.equal(h.splash.dataset.phase,undefined);assert.equal(h.saved.has('asi-language-transition'),false);h.click();h.advance(380);assert.equal(h.destinations.length,2);}finally{h.close();}}
 });
 test('clearing a result page returns to an empty home with durable language settings',async()=>{
- const x=await setup({query:'search?ui=ko&q=test&speaker=M3&lang=en_US&spoilers=1'});try{await tick();await tick();assert.equal(x.$('results').children.length,1);x.$('reset-search').click();assert.equal(x.w.location.pathname,'/');assert.equal(x.w.location.search.includes('q='),false);assert.equal(x.w.location.search.includes('speaker='),false);assert.equal(x.$('search-experience').dataset.view,'home');assert.equal(x.$('results').children.length,0);assert.equal(x.$('lang').value,'en_US');assert.equal(x.$('spoilers').checked,true);assert.equal(x.w.document.querySelector('.home-brand'),null);}finally{x.dom.window.close();}
+ const x=await setup({query:'search?ui=ko&q=test&speaker=M3&lang=en_US&spoilers=1'});try{await tick();await tick();assert.equal(x.$('results').children.length,1);x.$('reset-search').click();assert.equal(x.w.location.pathname,'/');assert.equal(x.w.location.search.includes('q='),false);assert.equal(x.w.location.search.includes('speaker='),false);assert.equal(x.$('search-experience').dataset.view,'home');assert.equal(x.$('results').children.length,0);assert.equal(x.$('lang').value,'ko_KR');assert.equal(x.$('spoilers').checked,true);assert.equal(x.w.document.querySelector('.home-brand'),null);}finally{x.dom.window.close();}
 });
 
-const pairedFixture=()=>({...exampleItem,story:'zh_CN:test.txt',lang:'zh_CN',speaker:'凯尔希',text:'你好，合成测试',context:undefined,comparison:{lang:'ko_KR',status:'matched',method:'strict-command-structure-v1',items:[{...exampleItem,ordinal:7,text:'합성 번역',speaker:'켈시',alignment_method:'strict-command-structure-v1'}]}});
-test('comparison preset uses Chinese with current UI translation and survives language links',async()=>{
- const x=await setup();try{await tick();x.$('compare').checked=true;x.$('compare').dispatchEvent(new x.w.Event('change'));assert.equal(x.$('lang').value,'zh_CN');assert.equal(x.$('translation-languages').hidden,false);assert.equal(x.$('translation-lang').value,'ko_KR');x.w.document.querySelector('[data-translation-lang="ja_JP"]').click();assert.equal(x.$('translation-lang').value,'ja_JP');const en=x.w.document.querySelector('[data-ui="en"]');en.dispatchEvent(new x.w.Event('pointerdown'));const url=new URL(en.href);assert.equal(url.searchParams.get('compare'),'1');assert.equal(url.searchParams.get('lang'),'zh_CN');assert.equal(url.searchParams.get('translation_lang'),'en_US');x.$('compare').checked=false;x.$('compare').dispatchEvent(new x.w.Event('change'));assert.equal(x.$('lang').value,'ko_KR');assert.equal(x.$('translation-languages').hidden,true);}finally{x.dom.window.close();}
+
+const multilingualFixture=()=>({...exampleItem,context:undefined,variants:{ko_KR:{...exampleItem,text:'합성 번역',ordinal:7,speaker:'켈시'},zh_CN:{...exampleItem,story:'zh_CN:test.txt',lang:'zh_CN',text:'你好，合成测试',ordinal:1,speaker:'凯尔希',alignment_method:'strict-command-structure-v1'},ja_JP:{...exampleItem,story:'ja_JP:test.txt',lang:'ja_JP',text:'こんにちは、合成テスト',ordinal:2,speaker:'ケルシー'}}});
+test('result language toggles preserve main language and change display without a search',async()=>{
+ const item=multilingualFixture();const x=await setup({query:'search?q=你好',search:async()=>({total:1,items:[item]})});try{
+ await tick();await tick();const card=x.$('results').querySelector('article');const ko=x.w.document.querySelector('[data-translation-lang="ko_KR"]'),cn=x.w.document.querySelector('[data-translation-lang="zh_CN"]'),ja=x.w.document.querySelector('[data-translation-lang="ja_JP"]');
+ assert.equal(ko.disabled,true);assert.equal(card.querySelector('[data-variant-lang="ko_KR"]').hidden,false);assert.equal(card.querySelector('[data-variant-lang="zh_CN"]').hidden,true);
+ const count=x.calls.length;cn.click();ja.click();assert.equal(x.calls.length,count);assert.equal(card.querySelector('[data-variant-lang="zh_CN"]').hidden,false);assert.equal(card.querySelector('[data-variant-lang="ja_JP"]').hidden,false);assert.equal(card.querySelector('mark').textContent,'你好');
+ cn.click();assert.equal(card.querySelector('[data-variant-lang="zh_CN"]').hidden,true);assert.equal(card.querySelector('[data-variant-lang="ko_KR"]').hidden,false);
+ const en=x.w.document.querySelector('[data-ui="en"]');en.dispatchEvent(new x.w.Event('pointerdown'));const url=new URL(en.href);assert.equal(url.searchParams.get('lang'),'en_US');assert.equal(url.searchParams.get('q'),'你好');assert.equal(url.searchParams.get('all_languages'),'1');
+ }finally{x.dom.window.close();}
 });
-test('paired results show original before translation, preserve counterpart source and lazy context',async()=>{
- const item=pairedFixture();const x=await setup({query:'search?compare=1&lang=zh_CN&translation_lang=ko_KR&q=你好',search:async url=>String(url).startsWith('/api/context?')?{items:[item],has_more:false}:{total:1,items:[item]}});try{await tick();await tick();const card=x.$('results').querySelector('article');assert.deepEqual([...card.querySelectorAll('.paired-line')].map(el=>el.lang),['zh-CN','ko-KR']);assert.equal(card.querySelectorAll('mark').length,1);assert.equal(card.querySelector('mark').textContent,'你好');assert.equal(x.calls.filter(u=>u.startsWith('/api/context?')).length,0);card.querySelector('.paired-line:last-child .info-button').click();assert.match(x.$('info-content').textContent,/원본 행8/);assert.match(x.$('info-content').textContent,/명령·분기/);x.$('info-dialog').close();const panel=card.querySelector('details');panel.open=true;panel.dispatchEvent(new x.w.Event('toggle'));await tick();await tick();const request=x.calls.find(u=>u.startsWith('/api/context?'));assert.match(request,/compare=1/);assert.match(request,/translation_lang=ko_KR/);assert.equal(panel.querySelectorAll('.paired-line').length,2);}finally{x.dom.window.close();}
+test('multilingual context remains lazy and carries exact counterpart provenance',async()=>{
+ const item=multilingualFixture();const x=await setup({query:'search?q=你好&show=zh_CN',search:async url=>String(url).startsWith('/api/context?')?{items:[item],has_more:false}:{total:1,items:[item]}});try{
+ await tick();await tick();const card=x.$('results').querySelector('article');assert.equal(x.calls.filter(u=>u.startsWith('/api/context?')).length,0);card.querySelector('[data-variant-lang="zh_CN"] .info-button').click();assert.match(x.$('info-content').textContent,/원본 행2/);assert.match(x.$('info-content').textContent,/명령·분기/);x.$('info-dialog').close();
+ const panel=card.querySelector('details');panel.open=true;panel.dispatchEvent(new x.w.Event('toggle'));await tick();await tick();assert.match(x.calls.find(u=>u.startsWith('/api/context?')),/all_languages=1/);assert.equal(panel.querySelector('[data-variant-lang="zh_CN"]').hidden,false);
+ x.w.document.querySelector('[data-translation-lang="en_US"]').click();assert.match(panel.querySelector('[data-variant-lang="en_US"]').textContent,/대응 대사를 확인하지 못/);assert.equal(panel.open,true);
+ }finally{x.dom.window.close();}
 });
-test('missing correspondences stay explicit and reverse search keeps Chinese above translation',async()=>{
- const item=pairedFixture();const missing={...item,comparison:{status:'unverified',lang:'ko_KR',items:[]}};const reverse={...exampleItem,comparison:{status:'matched',lang:'zh_CN',items:[{...item,comparison:undefined}]}};
- const x=await setup({query:'search?compare=1&lang=ko_KR&q=시험',search:async()=>({total:2,items:[missing,reverse]})});try{await tick();await tick();const cards=x.$('results').querySelectorAll('article');assert.match(cards[0].querySelector('.pair-status').textContent,/대응 대사를 확인하지 못/);assert.equal(cards[0].querySelectorAll('.paired-line').length,1);assert.deepEqual([...cards[1].querySelectorAll('.paired-line')].map(n=>n.lang),['zh-CN','ko-KR']);}finally{x.dom.window.close();}
-});
-test('no-result original action opts in explicitly; clear retains comparison settings',async()=>{
- const x=await setup({search:async url=>String(url).includes('lang=zh_CN')?{total:1,items:[pairedFixture()]}:{total:0,items:[]}});try{x.$('query').value='你好';x.$('search').dispatchEvent(new x.w.Event('submit',{cancelable:true}));await tick();await tick();assert.equal(x.$('compare').checked,false);assert.equal(x.$('search-original').hidden,false);x.$('search-original').click();await tick();await tick();assert.equal(x.$('compare').checked,true);assert.equal(x.$('lang').value,'zh_CN');assert.equal(x.$('results').querySelectorAll('.paired-line').length,2);x.$('reset-search').click();const url=new URL(x.w.location.href);assert.equal(url.searchParams.get('compare'),'1');assert.equal(url.searchParams.get('translation_lang'),'ko_KR');assert.equal(x.$('compare').checked,true);assert.equal(x.$('query').value,'');}finally{x.dom.window.close();}
+test('clear preserves visible language choices and restores them from links',async()=>{
+ const x=await setup({query:'?show=zh_CN,ja_JP'});try{x.$('query').value='你好';enter(x,'','');await tick();await tick();x.$('reset-search').click();assert.equal(x.$('query').value,'');assert.match(x.w.location.search,/show=/);assert.equal(x.w.document.querySelector('[data-translation-lang="ja_JP"]').getAttribute('aria-pressed'),'true');assert.equal(x.$('search-experience').dataset.view,'home');}finally{x.dom.window.close();}
 });

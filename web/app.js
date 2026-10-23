@@ -4,7 +4,6 @@ import { bindSearchReset } from "./ui/search-reset.mjs";
 import { readForm } from "./ui/form-state.mjs";
 import { createNavigation } from "./ui/navigation.mjs";
 import { createComparisonControl } from "./ui/comparison-control.mjs";
-import { createCorpusControl } from "./ui/corpus-control.mjs";
 import { createAutocomplete } from "./ui/autocomplete.mjs";
 import { renderBatch } from "./ui/results.mjs";
 import { setResultTitle } from "./ui/portraits.mjs";
@@ -15,8 +14,7 @@ let offset = 0,
   controller,
   renderedKey = null;
 const setView = createNavigation($("search-experience"));
-const corpusControl = createCorpusControl();
-const comparisonControl = createComparisonControl(corpusControl);
+const comparisonControl = createComparisonControl();
 const autocomplete = createAutocomplete();
 function stopSearch() {
   ++requestVersion;
@@ -103,6 +101,7 @@ async function run(append = false) {
     });
     if (version !== requestVersion) return;
     renderBatch(data.items, search.q, search);
+    comparisonControl.refresh();
     offset += data.items.length;
     renderedKey = JSON.stringify(search);
     $("more").hidden = offset >= data.total;
@@ -118,12 +117,6 @@ async function run(append = false) {
       n: data.total.toLocaleString(),
     });
     $("notice").textContent = "";
-    $("search-original").hidden = !(
-      !data.total &&
-      search.q &&
-      search.lang !== "zh_CN" &&
-      search.compare !== "1"
-    );
     if (!data.total) empty(t("no_results"), t("broaden"));
   } catch (error) {
     if (version !== requestVersion || error.name === "AbortError") return;
@@ -166,20 +159,11 @@ function restore(initial = false) {
   for (const key of ["speaker", "target"])
     $(key).value = (params.get(key) ?? draft[key] ?? "").slice(0, 300);
   $("query").value = (params.get("q") ?? draft.q ?? "").slice(0, 300);
-  const lang = params.get("lang") || draft.lang;
-  $("lang").value = [...$("lang").options].some((o) => o.value === lang)
-    ? lang
-    : { ko: "ko_KR", zh: "zh_CN", ja: "ja_JP", en: "en_US" }[window.ASI.ui];
-  corpusControl.refresh();
+  $("lang").value = { ko: "ko_KR", zh: "zh_CN", ja: "ja_JP", en: "en_US" }[
+    window.ASI.ui
+  ];
   $("spoilers").checked = (params.get("spoilers") ?? draft.spoilers) === "1";
-  $("compare").checked = (params.get("compare") ?? draft.compare) === "1";
-  const translation = params.get("translation_lang") || draft.translation_lang;
-  $("translation-lang").value = ["ko_KR", "ja_JP", "en_US"].includes(
-    translation,
-  )
-    ? translation
-    : { ko: "ko_KR", zh: "ko_KR", ja: "ja_JP", en: "en_US" }[window.ASI.ui];
-  comparisonControl.refresh();
+  comparisonControl.restore(params.get("show") ?? draft.show ?? "");
   autocomplete.load();
   const showResults =
     ["speaker", "target", "query"].some((id) => $(id).value.trim()) &&
@@ -206,10 +190,5 @@ $("search").onsubmit = (event) => {
   submit();
 };
 $("more").onclick = () => run(true);
-$("search-original").onclick = () => {
-  $("compare").checked = true;
-  $("compare").dispatchEvent(new Event("change"));
-  submit();
-};
 window.addEventListener("popstate", () => restore(false));
 restore(true);

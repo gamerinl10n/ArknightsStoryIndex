@@ -43,3 +43,35 @@ export function pairedQuote(item, needle, quote, infoButton) {
     );
   return box;
 }
+
+export function multilingualQuote(item, needle, quote, infoButton) {
+  const box = el("div", "", "multilingual-quote");
+  const variants = item.variants || { [item.lang]: item };
+  for (const lang of [
+    item.lang,
+    ...Object.keys(LABELS).filter((lang) => lang !== item.lang),
+  ]) {
+    const row = variants[lang];
+    const section = el(
+      "div",
+      "",
+      "paired-line" +
+        (lang === item.lang ? " primary-language" : " secondary-language"),
+    );
+    section.dataset.variantLang = lang;
+    section.dataset.primary = String(lang === item.lang);
+    section.hidden = lang !== item.lang;
+    section.lang = lang.replace("_", "-");
+    const heading = el("div", "", "paired-heading");
+    heading.append(el("span", LABELS[lang]));
+    if (row && lang !== item.lang)
+      heading.append(el("span", row.speaker || t("unnamed")), infoButton(row));
+    section.append(heading);
+    if (row) section.append(quote(row.text, needle));
+    else section.append(el("p", t("translation_unverified"), "pair-status"));
+    if (lang === item.lang && item.main_language_missing)
+      section.append(el("p", t("main_language_missing"), "pair-status"));
+    box.append(section);
+  }
+  return box;
+}
