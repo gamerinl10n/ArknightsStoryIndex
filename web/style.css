@@ -190,11 +190,12 @@ html[data-theme=dark] .brand-logo,html[data-theme=dark] .home-logo{filter:bright
 .corpus-chevron{position:absolute;right:16px}
 .corpus-option{position:relative;justify-content:center;padding-inline:28px;gap:0;text-align:center}
 .corpus-check{position:absolute;right:13px}
-button.home-brand{align-self:center;margin-inline:auto;padding:0;border:0;border-radius:32px;background:transparent;box-shadow:none;pointer-events:none;transition:transform 180ms var(--ease)}
+button.home-brand{position:relative;align-self:center;margin-inline:auto;padding:0;border:0;border-radius:32px;background:transparent;box-shadow:none;pointer-events:none;transition:transform 180ms var(--ease)}
 button.home-brand:hover{transform:translateY(-3px) rotate(-3deg);background:transparent;box-shadow:none}
 button.home-brand:active{transform:scale(.94)}
 button.home-brand:focus-visible{outline:2px solid var(--accent-deep);outline-offset:8px}
 @media(prefers-reduced-motion:reduce){button.home-brand{transition:none}button.home-brand:hover,button.home-brand:active{transform:none}}
 
 /* Only the visible outer silhouette catches pointer input; keyboard access stays native. */
-.home-brand .home-logo{pointer-events:auto;cursor:pointer;clip-path:polygon(28% 5%,34% 14%,39% 31%,43% 46%,49% 43%,56% 46%,64% 30%,73% 23%,80% 30%,89% 47%,73% 39%,64% 53%,70% 64%,77% 80%,71% 87%,80% 93%,61% 98%,37% 98%,18% 90%,27% 85%,22% 83%,29% 64%,37% 54%,29% 39%,25% 26%)}
+.home-brand .home-logo{pointer-events:none}
+.home-brand::after{content:"";position:absolute;inset:0;pointer-events:auto;cursor:pointer;clip-path:polygon(28% 5%,34% 14%,39% 31%,43% 46%,49% 43%,56% 46%,64% 30%,73% 23%,80% 30%,89% 47%,73% 39%,64% 53%,70% 64%,77% 80%,71% 87%,80% 93%,61% 98%,37% 98%,18% 90%,27% 85%,22% 83%,29% 64%,37% 54%,29% 39%,25% 26%)}
