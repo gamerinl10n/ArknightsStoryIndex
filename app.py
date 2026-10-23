@@ -225,7 +225,9 @@ def create_app(database=None, readonly=None, portrait_root=None):
         if ui not in UI_LANGS:
             ui = "ko"
         if page == "help":
-            return render_template("help.html", title=tr(ui, "help"), page=get_page("help", ui))
+            return render_template(
+                "help.html", title=tr(ui, "help"), page=get_page("help", ui)
+            )
         data = get_page(page, "ko")
         english = get_page(page, "en")
         return render_template(
