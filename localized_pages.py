@@ -274,6 +274,47 @@ COPY = {
 }
 
 
+COMPARISON_HELP = {
+    "ko": (
+        "중국어 원문과 번역 대조",
+        "원문·번역 대조를 켜면 중국어 원문 검색과 현재 화면 언어의 번역 대조를 시작합니다. 한국어·일본어·영어 버튼으로 함께 볼 번역을 선택할 수 있습니다. 대사 언어를 번역 언어로 바꾸면 그 번역에서 검색하고 중국어 원문을 함께 표시합니다. 검색어를 자동 번역하지 않습니다. 명령·분기 구조와 대사 수가 일치하고 알려진 화자 ID가 충돌하지 않는 파일만 대응 대사를 연결합니다. 구조적 대응이며 의미상 정확성을 보증하지 않으므로 앞뒤 문맥과 각 언어의 ? 정보를 함께 확인하세요. 구조가 다르거나 대응을 확인하지 못한 경우와 번역 파일이 없는 경우를 구분합니다. 일반 검색은 해당 언어만 표시합니다.",
+    ),
+    "en": (
+        "Compare Chinese originals and translations",
+        "Enable Original & translation to search Chinese and show a translation in the interface language. Choose Korean, Japanese or English for comparison. Select a translation as the dialogue language to search it and show the Chinese original. Search words are not machine translated. Pairs are limited to files with identical command/branch structure and dialogue counts, without conflicting known speaker IDs. Structural alignment does not guarantee semantic correspondence: inspect context and each language’s details. Unverified correspondences and missing translation files are reported separately. Ordinary searches remain single-language.",
+    ),
+    "ja": (
+        "中国語原文と訳文を比較",
+        "原文・訳文を比較を有効にすると、中国語原文を検索し表示言語の訳文を併記します。韓国語・日本語・英語から訳文を選べます。台詞の言語を訳文側にすると、その言語で検索して中国語原文を表示します。検索語は自動翻訳しません。命令・分岐構造と台詞数が一致し、既知の話者IDに矛盾がないファイルのみ対応付けます。構造的な対応であり意味上の一致を保証しません。文脈と各言語の詳細を確認してください。対応未確認と翻訳ファイルなしは区別して表示します。通常検索は単一言語のままです。",
+    ),
+    "zh": (
+        "原文与译文对照",
+        "启用原文与译文对照后，搜索中文原文并显示界面语言的译文，可选择韩语、日语或英语。将台词语言改为译文语言，也可搜索译文并显示中文原文。不会机器翻译关键词。仅连接命令、分支结构及台词数量一致且已知说话者ID无冲突的文件。结构对应不保证语义对应，请结合上下文及各语言的详情判断。无法确认对应与缺少翻译文件会分别提示。普通搜索仍只显示所选语言。",
+    ),
+}
+for lang, (title, text) in COMPARISON_HELP.items():
+    if lang == "ko":
+        PAGES["help"]["sections"].append({"title": title, "paragraphs": [text]})
+    else:
+        COPY[lang]["help"].append((title, text))
+
+PAGES["changelog"]["sections"].insert(
+    0,
+    {
+        "title": "1.1.0 · 2026-10-23",
+        "paragraphs": [
+            "중국어 원문과 한국어·일본어·영어 번역 대조 검색을 추가했습니다. 동일한 명령·분기 구조를 검증한 파일에서만 대응 대사를 표시하며, 앞뒤 문맥도 함께 대조할 수 있습니다."
+        ],
+    },
+)
+for lang, text in {
+    "en": "Added comparison search for Chinese originals and Korean, Japanese or English translations, including context. Correspondences are limited to files with verified matching command and branch structure.",
+    "ja": "中国語原文と韓国語・日本語・英語訳文の比較検索を追加しました。命令・分岐構造が一致するファイルのみ対応台詞を表示し、前後の文脈も比較できます。",
+    "zh": "新增中文原文与韩语、日语、英语译文对照搜索，并支持上下文对照。仅显示经验证命令和分支结构一致的文件中的对应台词。",
+}.items():
+    COPY[lang]["changelog"].insert(0, ("1.1.0 · 2026-10-23", text))
+
+
 def get_page(page, ui):
     if ui == "ko":
         return PAGES[page]

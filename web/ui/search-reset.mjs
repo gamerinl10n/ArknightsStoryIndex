@@ -17,8 +17,8 @@ export function bindSearchReset({
     const draft = readForm();
     const url = new URL("/", location.href);
     url.searchParams.set("ui", window.ASI.ui);
-    url.searchParams.set("lang", draft.lang);
-    url.searchParams.set("spoilers", draft.spoilers);
+    for (const key of ["lang", "spoilers", "compare", "translation_lang"])
+      url.searchParams.set(key, draft[key]);
     history.replaceState({ draft }, "", url);
     onReset();
   });

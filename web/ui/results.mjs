@@ -1,6 +1,7 @@
 import { $, t, el } from "./dom.mjs";
 import { api } from "./api.mjs";
 import { portrait } from "./portraits.mjs";
+import { pairedQuote } from "./comparison-results.mjs";
 import { openDialog } from "./dialogs.mjs";
 
 function infoButton(item, row = item) {
@@ -22,6 +23,12 @@ function infoButton(item, row = item) {
       ["source", item.source],
       ["corpus", item.lang],
     ];
+    if (
+      row.comparison?.method ||
+      row.alignment_method ||
+      item.comparison?.method
+    )
+      fields.push(["alignment_method", t("alignment_structure")]);
     for (const [key, value] of fields)
       list.append(el("dt", t(key)), el("dd", value));
     $("info-content").replaceChildren(
@@ -69,13 +76,22 @@ function contextRows(rows, item, needle, matches = [item]) {
       el("strong", row.speaker || t("unnamed")),
       infoButton(item, row),
     );
-    line.append(heading, quote(row.text, needle));
+    line.append(
+      heading,
+      row.comparison
+        ? pairedQuote(row, needle, quote, infoButton)
+        : quote(row.text, needle),
+    );
     fragment.append(line);
   }
   return fragment;
 }
 
-function renderCard(group, needle, index) {
+function renderCard(group, needle, index, options) {
+  const compareParams =
+    options.compare === "1"
+      ? { compare: "1", translation_lang: options.translation_lang }
+      : {};
   const item = group[Math.floor((group.length - 1) / 2)];
   const initialRadius = Math.max(
     3,
@@ -93,7 +109,12 @@ function renderCard(group, needle, index) {
       el("h2", row.speaker || t("unnamed")),
       infoButton(row),
     );
-    card.append(heading, quote(row.text, needle));
+    card.append(
+      heading,
+      row.comparison
+        ? pairedQuote(row, needle, quote, infoButton)
+        : quote(row.text, needle),
+    );
   }
 
   // Network, line DOM and event handlers are created only when a section is opened.
@@ -111,6 +132,7 @@ function renderCard(group, needle, index) {
                 story: item.story,
                 ordinal: item.ordinal,
                 radius: initialRadius,
+                ...compareParams,
               }),
           );
       detailRequest = detailRequest.catch((error) => {
@@ -168,6 +190,7 @@ function renderCard(group, needle, index) {
               story: item.story,
               ordinal: item.ordinal,
               radius: next,
+              ...compareParams,
             }),
         );
         if (!card.isConnected) return;
@@ -187,7 +210,7 @@ function renderCard(group, needle, index) {
   return card;
 }
 
-export function renderBatch(items, needle = "") {
+export function renderBatch(items, needle = "", options = {}) {
   const fragment = document.createDocumentFragment(),
     offset = $("results").children.length;
   const groups = [];
@@ -207,7 +230,7 @@ export function renderBatch(items, needle = "") {
     else groups.push([item]);
   }
   groups.forEach((group, index) =>
-    fragment.append(renderCard(group, needle, offset + index)),
+    fragment.append(renderCard(group, needle, offset + index, options)),
   );
   $("results").append(fragment);
 }
