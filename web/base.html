@@ -10,6 +10,7 @@
 <meta name="theme-color" content="#f0f0f0" id="themeColorMeta"><meta name="color-scheme" content="light dark" id="colorSchemeMeta">
 <script src="{{ asset('theme.js') }}"></script><script src="{{ asset('language-splash-boot.js') }}"></script><link rel="stylesheet" href="{{ asset('fonts.css') }}"><link rel="stylesheet" href="{{ asset('style.css') }}"><link rel="stylesheet" href="{{ asset('theme-control.css') }}"><link rel="stylesheet" href="{{ asset('language-splash.css') }}"><link rel="stylesheet" href="{{ asset('update-banner.css') }}">
 {% for module in ['dom','form-state','dialogs'] %}<link rel="modulepreload" href="{{ asset('ui/'+module+'.mjs') }}">{% endfor %}{% block preload %}{% endblock %}
+<script src="{{ asset('analytics.js') }}" defer></script>
 <script src="/i18n.js?ui={{ ui }}" defer></script><script src="{{ asset('chrome.js') }}" type="module"></script><script type="module" src="{{ asset('update-banner.mjs') }}"></script>
 </head><body>
 <div class="language-splash" id="languageSplash" data-variant="1" aria-hidden="true"><div class="language-splash-card"><span class="language-splash-mark">{% for part in ['body','ear-left','ear-right'] %}<img class="rabbit-piece rabbit-{{ part }}" src="{{ asset('brand/operator-256.png') }}" width="128" height="128" alt="">{% endfor %}</span></div></div>

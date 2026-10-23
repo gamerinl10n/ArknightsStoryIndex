@@ -20,6 +20,11 @@ class AlignmentAuditTests(unittest.TestCase):
         _, attrs = structure('[name="Synthetic person"]Synthetic text')
         self.assertEqual(dict(attrs), {'name': 1})
 
+    def test_sticker_identity_names_are_not_treated_as_localized_speakers(self):
+        a = '[sticker(name="scene_a",text="Synthetic")]'
+        b = '[sticker(name="scene_b",text="Translation")]'
+        self.assertNotEqual(structure(a)[0], structure(b)[0])
+
 
 if __name__ == '__main__':
     unittest.main()

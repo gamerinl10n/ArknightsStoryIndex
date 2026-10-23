@@ -382,3 +382,10 @@ test('target names are highlighted per language in results and lazy context',asy
  const panel=card.querySelector('details');panel.open=true;panel.dispatchEvent(new x.w.Event('toggle'));await tick();await tick();assert.equal(panel.querySelector('[lang="zh-CN"] .name-highlight').textContent,'凯尔希');assert.equal(x.calls.filter(u=>u.startsWith('/api/context?')).length,1);
  }finally{x.dom.window.close();}
 });
+
+test('production analytics installs once with clean initial addresses and previews stay untracked',()=>{
+ const dom=new JSDOM('<html><head></head><body></body></html>',{runScripts:'outside-only',url:'https://www.arknightsindex.com/search?q=private&speaker=sample#secret',referrer:'https://example.com/from?private=sample'});try{
+ const w=dom.window;w.eval(source('analytics.js'));w.eval(source('analytics.js'));assert.equal(w.document.querySelectorAll('#asi-google-tag').length,1);assert.equal(w.document.querySelector('#asi-google-tag').async,true);assert.match(w.document.querySelector('#asi-google-tag').src,/id=G-2TEVDLNB9K/);const config=w.dataLayer[1];assert.equal(config[0],'config');assert.equal(config[1],'G-2TEVDLNB9K');assert.equal(config[2].page_location,'https://www.arknightsindex.com/search');assert.equal(config[2].page_referrer,'https://example.com/from');assert.equal(config[2].allow_google_signals,false);assert.equal(config[2].allow_ad_personalization_signals,false);assert.equal(w.dataLayer.length,2);
+ }finally{dom.window.close();}
+ const preview=new JSDOM('<html><head></head></html>',{runScripts:'outside-only',url:'https://preview.vercel.app/'});try{preview.window.eval(source('analytics.js'));assert.equal(preview.window.document.querySelector('script'),null);assert.equal(preview.window.dataLayer,undefined);}finally{preview.window.close();}
+});

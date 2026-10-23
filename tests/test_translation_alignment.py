@@ -127,6 +127,42 @@ class TranslationAlignmentTest(unittest.TestCase):
             )[0]
         )
 
+    def test_equal_counts_cannot_hide_shifted_empty_commands(self):
+        source = '[name="Synthetic NPC"]One\n[name="Synthetic NPC"]\n[name="Synthetic NPC"]Three'
+        target = '[name="Synthetic NPC"]\n[name="Synthetic NPC"]Two\n[name="Synthetic NPC"]Three'
+        self.assertEqual(verified_pairs(source, target), (None, "text_slots"))
+
+    def test_ambiguous_decision_is_omitted_without_shifting_later_lines(self):
+        source = '[name="Synthetic NPC"]Before\n[decision(options="One;Two",values="1;2")]\n[name="Synthetic NPC"]After'
+        target = '[name="Synthetic NPC"]Before\n[decision(options="One;ambiguous;Two",values="1;2")]\n[name="Synthetic NPC"]After'
+        self.assertEqual(verified_pairs(source, target), ([(0, 0), (2, 2)], "partial"))
+        self.assertEqual(
+            verified_pairs(source.splitlines()[1], target.splitlines()[1]),
+            (None, "decision_options"),
+        )
+
+    def test_snapshot_audit_detects_map_and_text_corruption(self):
+        from scripts.verify_alignment_snapshot import verify
+        import struct
+        import zlib
+
+        with (
+            closing(sqlite3.connect(self.source)) as archive,
+            closing(sqlite3.connect(self.snapshot)) as snapshot,
+        ):
+            self.assertEqual(verify(archive, snapshot)["issues"], [])
+            snapshot.execute(
+                "UPDATE translation_alignments SET ordinal_map=?",
+                (zlib.compress(struct.pack("<II", 0, 999)),),
+            )
+            snapshot.execute(
+                "UPDATE lines SET text='synthetic corruption' WHERE story='ko_KR:matched.txt' AND ordinal=2"
+            )
+            snapshot.commit()
+            result = verify(archive, snapshot)
+            self.assertIn("ordinal_map", result["issues"][0]["reason"])
+            self.assertIn("snapshot_text_or_metadata", result["issues"][0]["reason"])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -68,7 +68,7 @@ VERCEL=1 python app.py
 
 `web/base.html`이 헤더·푸터를 공유하며 `pages.py`와 `localized_pages.py`가 안내 문서를 제공합니다. `translations.py`는 네 언어의 UI 문구를 관리합니다.
 
-테마는 `asi-theme-v1` localStorage 키에 저장합니다. 업데이트 알림은 60초마다 확인하고 숨겨진 탭·오프라인에서는 쉬며, 30분 재알림은 sessionStorage에 보관합니다. 업데이트 전에 입력 중인 검색 조건을 URL에 보존합니다. 피드백은 외부 Tally 링크이며 분석·광고 스크립트는 포함하지 않습니다.
+테마는 `asi-theme-v1` localStorage 키에 저장합니다. 업데이트 알림은 60초마다 확인하고 숨겨진 탭·오프라인에서는 쉬며, 30분 재알림은 sessionStorage에 보관합니다. 업데이트 전에 입력 중인 검색 조건을 URL에 보존합니다. 피드백은 외부 Tally 링크입니다. 운영 도메인에서 Google Analytics 방문 통계를 사용하며 광고 개인화는 비활성화합니다.
 
 
 ## 역할별 코드 위치
@@ -162,3 +162,13 @@ L10ndiff의 sessionStorage 마커, 380ms 이탈 → 페이지 이동 → 300ms �
 | zzzznotfound | 309.90ms | 306.55ms | 0 |
 
 최적화 후 별도 벤치마크에서 다음 페이지(the, offset=50)는 994.54ms였습니다. 흔한 단어는 전체 일치의 중복 제거·정렬 비용이 남으므로 인물 검색과 같은 속도를 보장하지 않습니다. 원문 또는 검색 결과를 서버 캐시에 저장하지 않습니다.
+
+
+## 방문 통계
+
+web/analytics.js는 운영 도메인 arknightsindex.com/www.arknightsindex.com에서만 G-2TEVDLNB9K 태그를 비동기로 로드합니다. 로컬과 Vercel 미리보기는 제외합니다. CSP는 Google 태그 스크립트와 Analytics 수집 도메인만 추가로 허용하며 unsafe-inline은 사용하지 않습니다. 기본 config의 page_location/page_referrer에는 쿼리와 해시를 제외하고, Google signals와 광고 개인화를 끕니다. 검색어나 인물 값을 별도 이벤트로 보내지 않습니다. History API 자동 페이지 측정·향상된 측정 및 추가 URL 매개변수 가림은 GA 웹 스트림 설정의 영향을 받습니다. 운영 속성의 중복 측정 및 q/speaker/target 데이터 가림은 GA 관리 화면에서 함께 확인할 수 있습니다. 코드에 독자적인 수동 page_view를 추가하여 자동 측정과 중복시키지 않습니다. 개인정보 안내를 실제 측정 및 쿠키 사용에 맞게 갱신합니다.
+
+
+## 대응 데이터 v2 검증
+
+`python scripts/verify_alignment_snapshot.py <원문아카이브.sqlite> <검색스냅샷.sqlite> --output <검증결과.json>`은 원문·대사·분기·출처·버전·연결 목록을 대조하고 불일치 시 종료 코드 1로 실패합니다. 파일을 읽기 전용으로 열며 보고서에 대사 내용을 쓰지 않습니다. 합성 fixture에서 잘못된 대응 및 손상된 대사 감지를 검증합니다. translation_alignment.py 변경은 기존 데이터 입력 해시를 무효화하므로 새 v2 스냅샷이 필요합니다. v1 인덱스를 v2 결과로 간주하지 않습니다.

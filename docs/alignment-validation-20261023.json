@@ -1,0 +1,134 @@
+{
+  "source_revisions": [
+    "db6f9ef8046ad17dbebe3ff1d0dd88844a5bc78c"
+  ],
+  "method": "strict-command-structure-v2",
+  "scope": "full imported archive and snapshot; structural integrity is not semantic accuracy",
+  "stored_file_pairs": 6289,
+  "issues": [],
+  "languages": {
+    "ko_KR": {
+      "source_files": 5674,
+      "text_count_files": 3071,
+      "unavailable_files": 415,
+      "matched_files": 2093,
+      "speaker_neither_known_rows": 219182,
+      "speaker_both_known_rows": 138822,
+      "matched_rows": 361685,
+      "excluded_choice_rows": 0,
+      "structure_files": 89,
+      "speaker_one_known_rows": 3681,
+      "speaker_files": 6
+    },
+    "ja_JP": {
+      "source_files": 5674,
+      "text_count_files": 3071,
+      "unavailable_files": 415,
+      "matched_files": 2099,
+      "speaker_neither_known_rows": 219368,
+      "speaker_both_known_rows": 137849,
+      "matched_rows": 362764,
+      "excluded_choice_rows": 0,
+      "structure_files": 88,
+      "speaker_one_known_rows": 5547,
+      "speaker_files": 1
+    },
+    "en_US": {
+      "source_files": 5674,
+      "text_count_files": 3071,
+      "unavailable_files": 415,
+      "matched_files": 2096,
+      "speaker_neither_known_rows": 219472,
+      "speaker_both_known_rows": 140136,
+      "matched_rows": 362535,
+      "excluded_choice_rows": 1,
+      "structure_files": 89,
+      "speaker_one_known_rows": 2927,
+      "speaker_files": 2,
+      "partial_files": 1
+    }
+  },
+  "samples": {
+    "ko_KR": {
+      "text_count": [
+        "[uc]info/activities/a001/level_a001_01_beg.txt",
+        "[uc]info/activities/a001/level_a001_01_end.txt",
+        "[uc]info/activities/a001/level_a001_02_beg.txt"
+      ],
+      "unavailable": [
+        "[uc]info/activities/act21mini/level_act21mini_st01.txt",
+        "[uc]info/activities/act21mini/level_act21mini_st02.txt",
+        "[uc]info/activities/act21mini/level_act21mini_st03.txt"
+      ],
+      "matched": [
+        "activities/a001/level_a001_01_beg.txt",
+        "activities/a001/level_a001_01_end.txt",
+        "activities/a001/level_a001_02_beg.txt"
+      ],
+      "structure": [
+        "activities/act10mini/level_act10mini_st01.txt",
+        "activities/act1vautochess/guide/guide_act1vautochess_r1_begin.txt",
+        "activities/act1vautochess/guide/guide_act1vautochess_r1_prepare.txt"
+      ],
+      "speaker": [
+        "activities/act11d0/level_act11d0_st02.txt",
+        "activities/act11d0/level_act11d0_sub-1-2_end.txt",
+        "activities/act13d0/level_act13d0_st03.txt"
+      ]
+    },
+    "ja_JP": {
+      "text_count": [
+        "[uc]info/activities/a001/level_a001_01_beg.txt",
+        "[uc]info/activities/a001/level_a001_01_end.txt",
+        "[uc]info/activities/a001/level_a001_02_beg.txt"
+      ],
+      "unavailable": [
+        "[uc]info/activities/act21mini/level_act21mini_st01.txt",
+        "[uc]info/activities/act21mini/level_act21mini_st02.txt",
+        "[uc]info/activities/act21mini/level_act21mini_st03.txt"
+      ],
+      "matched": [
+        "activities/a001/level_a001_01_beg.txt",
+        "activities/a001/level_a001_01_end.txt",
+        "activities/a001/level_a001_02_beg.txt"
+      ],
+      "structure": [
+        "activities/act10mini/level_act10mini_st01.txt",
+        "activities/act1vautochess/guide/guide_act1vautochess_r1_begin.txt",
+        "activities/act1vautochess/guide/guide_act1vautochess_r1_prepare.txt"
+      ],
+      "speaker": [
+        "activities/act5d0/level_act5d0_06_end.txt"
+      ]
+    },
+    "en_US": {
+      "text_count": [
+        "[uc]info/activities/a001/level_a001_01_beg.txt",
+        "[uc]info/activities/a001/level_a001_01_end.txt",
+        "[uc]info/activities/a001/level_a001_02_beg.txt"
+      ],
+      "unavailable": [
+        "[uc]info/activities/act21mini/level_act21mini_st01.txt",
+        "[uc]info/activities/act21mini/level_act21mini_st02.txt",
+        "[uc]info/activities/act21mini/level_act21mini_st03.txt"
+      ],
+      "matched": [
+        "activities/a001/level_a001_01_beg.txt",
+        "activities/a001/level_a001_01_end.txt",
+        "activities/a001/level_a001_02_beg.txt"
+      ],
+      "structure": [
+        "activities/act10mini/level_act10mini_st01.txt",
+        "activities/act1vautochess/guide/guide_act1vautochess_r1_begin.txt",
+        "activities/act1vautochess/guide/guide_act1vautochess_r1_prepare.txt"
+      ],
+      "speaker": [
+        "activities/act5d0/level_act5d0_04_end.txt",
+        "activities/act5d0/level_act5d0_06_end.txt"
+      ],
+      "partial": [
+        "obt/main/level_main_08-14_end.txt"
+      ]
+    }
+  }
+}

@@ -16,9 +16,10 @@ jobs:
       - run: python -m pip install -r requirements-dev.txt
       - run: python -m unittest discover -s tests -v
       - run: node --check web/app.js
+      - run: node --check web/analytics.js
       - run: node --check web/theme.js
       - run: node --check web/chrome.js
       - run: npm ci --ignore-scripts
       - run: npm test
       - run: npm run format:check
-      - run: python -m black --check app.py core.py catalog.py search_queries.py search_service.py build.py build_portraits.py portraits.py runtime_snapshot.py scripts/benchmark.py dataset.py translation_alignment.py multilingual_search.py
+      - run: python -m black --check app.py core.py catalog.py search_queries.py search_service.py build.py build_portraits.py portraits.py runtime_snapshot.py scripts/benchmark.py dataset.py translation_alignment.py multilingual_search.py scripts/audit_alignment.py scripts/verify_alignment_snapshot.py
