@@ -25,6 +25,7 @@ from translations import STRINGS, UI_LANGS, tr
 from localized_pages import get_page
 import hashlib
 from catalog import aliases
+from voice_catalog import load_voice_catalog, search_voices, voice_characters
 from search_service import SearchService
 from translation_alignment import attach_comparisons, TARGET_LANGS
 from multilingual_search import search_all, variants
@@ -75,7 +76,7 @@ def create_app(database=None, readonly=None, portrait_root=None):
             adsense_enabled=request.host.split(":", 1)[0]
             in ("arknightsindex.com", "www.arknightsindex.com"),
             ui=ui,
-            t=lambda key: tr(ui, key),
+            t=lambda key, **values: tr(ui, key, **values),
             ui_languages=UI_LANGS,
             corpus_languages={
                 "ko_KR": "한국어",
@@ -236,6 +237,51 @@ def create_app(database=None, readonly=None, portrait_root=None):
             page=data,
             english_page=english,
             bilingual_document=True,
+        )
+
+    @app.route("/voices")
+    def voices():
+        ui = request.args.get("ui", "ko")
+        if ui not in UI_LANGS:
+            ui = "ko"
+        lang = {"ko": "ko_KR", "zh": "zh_CN", "ja": "ja_JP", "en": "en_US"}[ui]
+        character = request.args.get("character", "").strip()
+        query = request.args.get("q", "").strip()
+        if len(character) > 300 or len(query) > 300:
+            abort(400)
+        try:
+            offset = int(request.args.get("offset", "0"))
+            if offset < 0 or offset > 100000:
+                abort(400)
+        except ValueError:
+            abort(400)
+        try:
+            data = load_voice_catalog()
+        except (OSError, ValueError):
+            return (
+                render_template(
+                    "voice.html", title=tr(ui, "voice_search"), unavailable=True
+                ),
+                503,
+            )
+        items, total = (
+            search_voices(data, character, query, lang, offset)
+            if character or query
+            else ([], 0)
+        )
+        return render_template(
+            "voice.html",
+            title=tr(ui, "voice_search"),
+            unavailable=False,
+            voice_items=items,
+            total=total,
+            offset=offset,
+            character=character,
+            query=query,
+            searched=bool(character or query),
+            voice_characters=voice_characters(data, lang),
+            voice_lang=lang,
+            voice_revision=data["revision"],
         )
 
     @app.route("/api/search")

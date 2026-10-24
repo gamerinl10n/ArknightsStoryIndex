@@ -65,3 +65,15 @@ for _ui, _text in {
     "zh": "匹配搜索角色的姓名或已登记别名",
 }.items():
     STRINGS[_ui]["name_match"] = _text
+
+VOICE_COPY = {
+ "ko": ["검색 종류", "스토리 대사", "음성 대사", "캐릭터 음성 대사를 네 언어에서 검색합니다. 스토리 대사와 별도 자료이며 음원 재생은 제공하지 않습니다.", "캐릭터", "전체 캐릭터", "단어나 문구 · 선택", "대사 키", "같은 캐릭터·대사·음성 ID가 일치하는 항목을 함께 표시합니다. 의미상 번역 정확성을 보증하지 않습니다.", "이전 결과"],
+ "en": ["Search type", "Story dialogue", "Voice lines", "Search character voice text across four languages. These are separate from story dialogue; audio playback is not available.", "Character", "All characters", "Word or phrase · optional", "Line key", "Entries share character, line and voice IDs. This does not guarantee semantic translation accuracy.", "Previous results"],
+ "zh": ["搜索类型", "剧情台词", "语音台词", "在四种语言中搜索角色语音文本。此资料与剧情台词分开，不提供音频播放。", "角色", "全部角色", "词句 · 选填", "台词键", "同时显示角色、台词及语音ID一致的条目，不保证语义上的翻译准确性。", "上一页"],
+ "ja": ["検索の種類", "ストーリー台詞", "音声台詞", "四言語のキャラクター音声テキストを検索します。ストーリー台詞とは別資料で、音声再生は提供していません。", "キャラクター", "すべてのキャラクター", "単語・フレーズ · 任意", "台詞キー", "キャラクター・台詞・音声IDが一致する項目を併記します。意味上の翻訳精度を保証するものではありません。", "前の結果"],
+}
+for language, values in VOICE_COPY.items():
+    STRINGS[language].update(zip(["search_type", "story_search", "voice_search", "voice_intro", "voice_character", "voice_all", "voice_optional", "voice_key", "voice_alignment", "voice_previous"], values, strict=True))
+
+for language, text in {"ko":"이 언어의 음성 대사 항목이 없습니다.","en":"This voice line has no entry in this language.","zh":"该语言暂无此语音台词条目。","ja":"この言語の音声台詞項目はありません。"}.items():
+    STRINGS[language]["voice_missing"] = text

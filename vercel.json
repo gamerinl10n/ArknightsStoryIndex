@@ -1,10 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "flask",
-  "buildCommand": "python -m pip install -r requirements.txt && python build.py",
+  "buildCommand": "python -m pip install -r requirements.txt && python build.py && python voice_catalog.py",
   "functions": {
     "app.py": {
-      "includeFiles": "{generated/search.sqlite.gz,generated/portraits/**,characters.json,web/**}",
+      "includeFiles": "{generated/search.sqlite.gz,generated/voices.json.gz,dataset-source.json,generated/portraits/**,characters.json,web/**}",
       "excludeFiles": "{generated/*.sqlite,data/**,node_modules/**,tests/**,docs/**,.git/**,__pycache__/**}",
       "maxDuration": 60
     }
