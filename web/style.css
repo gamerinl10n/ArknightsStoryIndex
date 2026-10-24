@@ -234,7 +234,3 @@ html[data-theme=dark] mark.name-highlight.query-highlight{background:#315b50}
  .modal-heading h2{overflow-wrap:anywhere;min-width:0}
 }
 @media(pointer:coarse){.info-button{width:40px;height:40px;min-width:40px;min-height:40px}.modal-close{width:44px;height:44px;min-width:44px;min-height:44px}}
-
-.search-types{display:flex;width:fit-content;margin:16px auto;flex-wrap:wrap}.search-types a{padding:10px 18px;text-decoration:none;color:var(--muted)}.search-types a[aria-current="page"]{background:var(--accent-soft);color:var(--accent-deep)}.voice-search{max-width:900px}.voice-form{display:flex;gap:14px;align-items:end;flex-wrap:wrap;margin:24px 0}.voice-form label{display:grid;gap:8px;flex:1;min-width:180px}.voice-form select,.voice-form input{width:100%;min-height:48px}.voice-search .result-card{margin-top:18px}.voice-pagination{display:flex;justify-content:space-between;margin:24px 0}.voice-search .quote{white-space:pre-wrap;overflow-wrap:anywhere}
-
-.voice-reset{display:inline-flex;align-items:center;text-decoration:none;border:1px solid var(--line);border-radius:var(--control-radius)}.voice-form .search-actions{flex-wrap:wrap}

@@ -1,1 +1,0 @@
-<nav class="segmented search-types" aria-label="{{ t('search_type') }}"><a href="/?ui={{ ui }}" {% if request.path != '/voices' %}aria-current="page"{% endif %}>{{ t('story_search') }}</a><a href="/voices?ui={{ ui }}" {% if request.path == '/voices' %}aria-current="page"{% endif %}>{{ t('voice_search') }}</a></nav>

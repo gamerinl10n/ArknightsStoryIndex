@@ -1,7 +1,6 @@
 {% extends 'base.html' %}
 {% block preload %}{% for module in ['api','navigation','autocomplete','results','portraits'] %}<link rel="modulepreload" href="{{ asset('ui/'+module+'.mjs') }}">{% endfor %}{% endblock %}
 {% block content %}
-{% include "_search-types.html" %}
 <h1 class="sr-only">{{ t('search') }}</h1>
 <div id="search-experience" class="search-experience" data-view="{{ initial_view }}">
 <div class="search-navigation" {% if initial_view=='home' %}hidden{% endif %}><button type="button" id="back-search" class="button button-quiet"><span aria-hidden="true">←</span> {{ t('back') }}</button></div>
