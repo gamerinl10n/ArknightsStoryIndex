@@ -389,3 +389,51 @@ test('production analytics installs once with clean initial addresses and previe
  }finally{dom.window.close();}
  const preview=new JSDOM('<html><head></head></html>',{runScripts:'outside-only',url:'https://preview.vercel.app/'});try{preview.window.eval(source('analytics.js'));assert.equal(preview.window.document.querySelector('script'),null);assert.equal(preview.window.dataLayer,undefined);}finally{preview.window.close();}
 });
+
+test('context expansion retains unchanged rows and source controls but refreshes changed text',async()=>{
+ const item={...exampleItem,context:undefined};
+ const row=(ordinal,text)=>({speaker:'Mon3tr',text,ordinal,branch:'main',lang:'ko_KR'});
+ const x=await setup({search:url=>String(url).startsWith('/api/context?')
+   ? (new URL(String(url),'https://asi.test').searchParams.get('radius')==='3'
+      ? {items:[row(1,'unchanged'),row(2,'old')],has_more:true}
+      : {items:[row(0,'before'),row(1,'unchanged'),row(2,'updated'),row(3,'after')],has_more:false})
+   : {total:1,items:[item]}});
+ try {
+  enter(x);await tick();await tick();
+  const panel=x.$('results').querySelector('details');panel.open=true;panel.dispatchEvent(new x.w.Event('toggle'));await tick();await tick();
+  const oldRows=[...panel.querySelectorAll('.context-line')], sourceButton=oldRows[0].querySelector('.info-button');
+  panel.querySelector('button:not(.info-button)').click();await tick();await tick();
+  const newRows=[...panel.querySelectorAll('.context-line')];
+  assert.equal(newRows.length,4);assert.equal(newRows[1],oldRows[0]);assert.notEqual(newRows[2],oldRows[1]);assert.match(newRows[2].textContent,/updated/);
+  sourceButton.click();assert.match(x.$('info-content').textContent,/test.txt/);assert.match(x.$('info-content').textContent,/test-sha/);
+ } finally {x.dom.window.close();}
+});
+
+test('new multilingual subtrees apply current visibility without rescanning existing results',async()=>{
+ const x=await setup();try {
+  const button=x.w.document.querySelector('[data-translation-lang="zh_CN"]');button.click();
+  const root=x.$('results'),original=root.querySelectorAll.bind(root);let fullScans=0;
+  root.querySelectorAll=selector=>{if(selector==='[data-variant-lang]')fullScans++;return original(selector);};
+  const wrapper=x.w.document.createElement('div');wrapper.innerHTML='<section data-variant-lang="zh_CN" data-primary="false" hidden>synthetic Chinese</section><section data-variant-lang="ja_JP" data-primary="false">synthetic Japanese</section>';
+  root.append(wrapper);await tick();await tick();
+  assert.equal(wrapper.children[0].hidden,false);assert.equal(wrapper.children[1].hidden,true);assert.equal(fullScans,0);
+  button.click();assert.equal(wrapper.children[0].hidden,true);assert.equal(fullScans,1);
+ }finally{x.dom.window.close();}
+});
+
+test('expanding a full 201-line context creates each unchanged line only once',async()=>{
+ const item={...exampleItem,ordinal:100,context:undefined};
+ const x=await setup({search:url=>{
+  if(!String(url).startsWith('/api/context?'))return {total:1,items:[item]};
+  const radius=Number(new URL(String(url),'https://asi.test').searchParams.get('radius'));
+  return {items:Array.from({length:2*radius+1},(_,i)=>({ordinal:100-radius+i,speaker:'synthetic speaker',text:'synthetic context '+(100-radius+i),lang:'ko_KR',branch:'main'})),has_more:radius<100};
+ }});
+ try {
+  enter(x);await tick();await tick();const panel=x.$('results').querySelector('details');panel.open=true;panel.dispatchEvent(new x.w.Event('toggle'));await tick();await tick();
+  const seen=new Set(panel.querySelectorAll('.context-line'));let visited=seen.size;
+  const expand=panel.querySelector('button:not(.info-button)');
+  for(let n=0;n<7;n++){expand.click();await tick();await tick();const rows=[...panel.querySelectorAll('.context-line')];visited+=rows.length;rows.forEach(row=>seen.add(row));}
+  assert.equal(panel.querySelectorAll('.context-line').length,201);assert.equal(seen.size,201);assert.equal(visited,880);assert.equal(expand.hidden,true);
+  const rows=[...panel.querySelectorAll('.context-line')];assert.match(rows[0].textContent,/synthetic context 0$/);assert.match(rows.at(-1).textContent,/synthetic context 200$/);
+ }finally{x.dom.window.close();}
+});
