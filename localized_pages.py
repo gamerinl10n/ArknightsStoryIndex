@@ -382,16 +382,3 @@ def get_page(page, ui):
             {"title": title, "paragraphs": [text]} for title, text in COPY[ui][page]
         ],
     }
-
-for language, title, text in [
-    ("ko", "캐릭터 음성 대사", "검색 종류에서 음성 대사를 선택한 뒤 캐릭터를 고르세요. 표현 없이 검색하면 해당 캐릭터의 음성 대사를 모아 봅니다. 단어나 문구는 네 언어의 제목·본문에서 함께 찾으며, 결과의 언어 버튼으로 다른 언어를 바로 표시합니다. 스토리 문맥과는 별도 자료이고 음원 재생은 제공하지 않습니다. 번역 항목이 없으면 중국어 대사와 누락 안내를 표시합니다. 같은 캐릭터·대사·음성 ID로 연결하며 의미상 정확성을 보증하지 않습니다."),
-    ("en", "Character voice lines", "Choose Voice lines, select a character, and search with no phrase to browse their voice text. Phrases match titles and text across four languages. Result language buttons toggle translations immediately. These are separate from story context and audio playback is unavailable. Missing localized entries show Chinese text and a notice. Matching character, line and voice IDs do not guarantee semantic accuracy."),
-    ("zh", "角色语音台词", "选择语音台词后选择角色，不填词句即可查看该角色的语音文本。词句会同时匹配四种语言的标题和正文，结果按钮可即时切换其他语言。此资料与剧情上下文分开，不提供音频播放。缺少译文条目时显示中文及提示。相同角色、台词和语音ID不保证语义准确性。"),
-    ("ja", "キャラクター音声台詞", "音声台詞でキャラクターを選び、語句を空にして検索すると、その人物の音声テキストを一覧できます。語句は四言語の見出しと本文から検索し、結果ボタンで他言語を即座に併記できます。ストーリー文脈とは別資料で、音声再生は提供していません。訳文項目がない場合は中国語と案内を表示します。人物・台詞・音声IDの一致は意味上の精度を保証しません。"),
-]:
-    if language == "ko":
-        PAGES["help"]["sections"].append({"title":title,"paragraphs":[text]})
-        PAGES["changelog"]["sections"].insert(0,{"title":"1.3.0 · 2026-10-24","paragraphs":["캐릭터별 음성 대사 텍스트 검색과 네 언어 함께 보기를 추가했습니다. 음원 재생은 제공하지 않습니다."]})
-    else:
-        COPY[language]["help"].append((title,text))
-        COPY[language]["changelog"].insert(0,("1.3.0 · 2026-10-24",title+": "+text))

@@ -49,7 +49,6 @@ jobs:
         run: |
           python -c 'import json, os; from pathlib import Path; Path("dataset-source.json").write_text(json.dumps({"revision":os.environ["CANDIDATE_REVISION"]},indent=2)+"\n"); Path("data/build.sqlite").unlink(missing_ok=True)'
           python build.py --fresh-data
-          python voice_catalog.py
           python scripts/verify_alignment_snapshot.py data/build.sqlite generated/search.sqlite --output generated/alignment-validation.json
           python scripts/check_dataset_update.py data-baseline.sqlite generated/search.sqlite --revision "$CANDIDATE_REVISION" --output generated/update-validation.json
       - name: Open one update PR after all checks pass
