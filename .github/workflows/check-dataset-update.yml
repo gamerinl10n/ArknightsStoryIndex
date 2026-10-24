@@ -1,0 +1,83 @@
+name: Check upstream dataset update
+on:
+  schedule:
+    - cron: '23 1 * * *'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/check-dataset-update.yml
+      - scripts/check_dataset_update.py
+      - tests/test_dataset_update.py
+permissions:
+  contents: read
+concurrency:
+  group: check-dataset-update
+  cancel-in-progress: false
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Resolve upstream revision
+        id: upstream
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          candidate=$(gh api repos/ArknightsAssets/ArknightsGamedata/commits/master --jq .sha)
+          current=$(python -c 'import json; print(json.load(open("dataset-source.json"))["revision"])')
+          [[ "$candidate" =~ ^[0-9a-f]{40}$ ]]
+          echo "revision=$candidate" >> "$GITHUB_OUTPUT"
+          if [ "$candidate" != "$current" ]; then echo 'changed=true' >> "$GITHUB_OUTPUT"; fi
+      - if: steps.upstream.outputs.changed == 'true'
+        run: python -m pip install -r requirements.txt
+      - name: Restore or build current baseline
+        if: steps.upstream.outputs.changed == 'true'
+        run: |
+          python build.py
+          python -c 'import gzip, shutil; a=gzip.open("generated/search.sqlite.gz","rb"); b=open("data-baseline.sqlite","wb"); shutil.copyfileobj(a,b); a.close(); b.close()'
+      - name: Build candidate in disposable archive
+        if: steps.upstream.outputs.changed == 'true'
+        env:
+          CANDIDATE_REVISION: ${{ steps.upstream.outputs.revision }}
+        run: |
+          python -c 'import json, os; from pathlib import Path; Path("dataset-source.json").write_text(json.dumps({"revision":os.environ["CANDIDATE_REVISION"]},indent=2)+"\n"); Path("data/build.sqlite").unlink(missing_ok=True)'
+          python build.py --fresh-data
+          python scripts/verify_alignment_snapshot.py data/build.sqlite generated/search.sqlite --output generated/alignment-validation.json
+          python scripts/check_dataset_update.py data-baseline.sqlite generated/search.sqlite --revision "$CANDIDATE_REVISION" --output generated/update-validation.json
+      - name: Open one update PR after all checks pass
+        if: steps.upstream.outputs.changed == 'true' && github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE_REVISION: ${{ steps.upstream.outputs.revision }}
+        run: |
+          branch="automation/dataset-${CANDIDATE_REVISION}"
+          existing=$(gh pr list --head "$branch" --state all --json number --jq 'length')
+          if [ "$existing" -gt 0 ]; then
+            echo 'A PR for this source revision already exists.'
+            exit 0
+          fi
+          git switch -c "$branch"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add dataset-source.json
+          git commit -m "Update dataset source to $CANDIDATE_REVISION"
+          git push origin "$branch"
+          python -c 'import json; from pathlib import Path; r=json.load(open("generated/update-validation.json")); rows=["Update the pinned game data source to `"+r["revision"]+"`.","", "Passed full archive/correspondence verification, snapshot integrity and size checks, and per-language missing-file/count guards.", "", "| Language | Previous lines | Candidate lines | Added files |", "| --- | ---: | ---: | ---: |"] ; rows += ["| {} | {} | {} | {} |".format(k,v["previous_lines"],v["candidate_lines"],v["added_files"]) for k,v in r["languages"].items()]; rows += ["", "Structural correspondence checks do not guarantee semantic translation accuracy. No automatic merge. The current production source remains pinned until this PR is merged."]; Path("update-pr-body.txt").write_text("\n".join(rows)+"\n")'
+          gh pr create --base master --head "$branch" --title "Update game data source" --body-file update-pr-body.txt
+      - name: Save validation reports
+        if: always() && steps.upstream.outputs.changed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dataset-update-validation
+          path: |
+            generated/update-validation.json
+            generated/alignment-validation.json
+          if-no-files-found: ignore
+          retention-days: 14
