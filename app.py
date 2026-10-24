@@ -25,7 +25,13 @@ from translations import STRINGS, UI_LANGS, tr
 from localized_pages import get_page
 import hashlib
 from catalog import aliases
-from voice_catalog import load_voice_catalog, search_voices, voice_characters
+from voice_catalog import (
+    load_voice_catalog,
+    search_voices,
+    voice_characters,
+    voice_completions,
+    voice_highlights,
+)
 from search_service import SearchService
 from translation_alignment import attach_comparisons, TARGET_LANGS
 from multilingual_search import search_all, variants
@@ -280,6 +286,8 @@ def create_app(database=None, readonly=None, portrait_root=None):
             query=query,
             searched=bool(character or query),
             voice_characters=voice_characters(data, lang),
+            voice_completions=voice_completions(data, lang),
+            voice_highlights=voice_highlights,
             voice_lang=lang,
             voice_revision=data["revision"],
         )

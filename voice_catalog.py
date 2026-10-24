@@ -116,3 +116,48 @@ def voice_characters(data, lang):
 
 if __name__ == "__main__":
     build_voice_catalog()
+
+
+def voice_completions(data, lang):
+    """Native completion values use only registered names/aliases and stable IDs."""
+    labels = dict(voice_characters(data, lang))
+    values = {key: label for key, label in labels.items()}
+    for character in characters():
+        if character["id"] not in labels:
+            continue
+        for value in [
+            *character.get("aliases", []),
+            *(name for names in character["names"].values() for name in names),
+        ]:
+            # Ambiguous names must not silently select a different character.
+            if character_id(value) == character["id"]:
+                values[value] = labels[character["id"]]
+    return sorted(
+        values.items(), key=lambda row: (row[1].casefold(), row[0].casefold())
+    )
+
+
+def voice_highlights(text, query):
+    """Casefold matches mapped back to original Unicode characters; never emit HTML."""
+    text = text or ""
+    needle = query.casefold()
+    if not needle:
+        return [(text, False)]
+    folded, positions = "", []
+    for index, character in enumerate(text):
+        part = character.casefold()
+        folded += part
+        positions.extend([index] * len(part))
+    matched = set()
+    start = folded.find(needle)
+    while start != -1:
+        matched.update(positions[start : start + len(needle)])
+        start = folded.find(needle, start + 1)
+    parts = []
+    for index, character in enumerate(text):
+        active = index in matched
+        if parts and parts[-1][1] == active:
+            parts[-1] = (parts[-1][0] + character, active)
+        else:
+            parts.append((character, active))
+    return parts

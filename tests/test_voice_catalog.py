@@ -37,7 +37,7 @@ class VoiceCatalogTest(unittest.TestCase):
                 self.assertEqual(response.status_code,200)
                 self.assertIn('line-1',response.text)
                 self.assertIn('line-2',response.text)
-                self.assertIn('你好 second',response.text)
+                self.assertIn('你好 second',__import__('re').sub(r'<[^>]*>', '', response.text))
             html=client.get('/voices?ui=ko&character=char_test').text
             self.assertIn('&lt;script&gt;',html)
             self.assertIn('voice-search.mjs',html)
@@ -61,3 +61,28 @@ class VoiceCatalogTest(unittest.TestCase):
             with patch('voice_catalog.urlopen',side_effect=[io.BytesIO(json.dumps(d).encode()) for d in sources]):
                 with self.assertRaises(ValueError):build_voice_catalog(root)
             self.assertEqual(output.read_bytes(),b'previous')
+
+
+    def test_highlights_preserve_unicode_and_escape_source(self):
+        from voice_catalog import voice_highlights
+        for text, query in [('Straße <script>', 'STRASSE'), ('İstanbul', 'i'), ('aaaa', 'aa')]:
+            parts = voice_highlights(text,query)
+            self.assertEqual(''.join(part for part,matched in parts),text)
+            self.assertTrue(any(matched for part,matched in parts))
+        self.assertEqual(voice_highlights('unchanged',''),[('unchanged',False)])
+
+    def test_registered_alias_completions_and_reset_page(self):
+        from voice_catalog import voice_completions
+        from catalog import character_id
+        data=fixture(); data['rows']['line-1']['identity'][0]=character_id('M3')
+        values=dict(voice_completions(data,'ko_KR'))
+        self.assertIn('M3',values)
+        with patch('app.load_voice_catalog',return_value=data):
+            client=create_app().test_client()
+            html=client.get('/voices?ui=ko&character=M3&q=fixture&show=zh_CN').text
+            self.assertIn('list="voice-character-options"',html)
+            self.assertIn('class="query-highlight"',html)
+            self.assertIn('class="reset-search voice-reset"',html)
+            empty=client.get('/voices?ui=ko&show=zh_CN').text
+            self.assertNotIn('class="result-card"',empty)
+            self.assertIn('name="q" value=""',empty)
