@@ -21,6 +21,12 @@ export function readForm() {
 
 export function preserveForm(url = new URL(location.href)) {
   const draft = readForm();
+  const voiceForm = document.getElementById("voice-search-form");
+  if (!draft && voiceForm) {
+    for (const [key, value] of new FormData(voiceForm))
+      url.searchParams.set(key, value);
+    url.searchParams.delete("offset");
+  }
   if (draft) {
     for (const [key, value] of Object.entries(draft))
       url.searchParams.set(key, value);

@@ -437,3 +437,13 @@ test('expanding a full 201-line context creates each unchanged line only once',a
   const rows=[...panel.querySelectorAll('.context-line')];assert.match(rows[0].textContent,/synthetic context 0$/);assert.match(rows.at(-1).textContent,/synthetic context 200$/);
  }finally{x.dom.window.close();}
 });
+
+test('voice form drafts survive interface-language URL preparation',async()=>{
+ const x=await setup();try {
+  x.$('search-experience').remove();
+  const form=x.w.document.createElement('form');form.id='voice-search-form';form.innerHTML='<input name="character" value="char_synthetic"><input name="q" value="synthetic phrase"><input name="show" value="zh_CN">';x.w.document.body.append(form);
+  const module=await x.loadModule('ui/form-state.mjs');
+  const url=module.namespace.preserveForm(new x.w.URL('https://asi.test/voices?offset=50&ui=ko'));
+  assert.equal(url.pathname,'/voices');assert.equal(url.searchParams.get('character'),'char_synthetic');assert.equal(url.searchParams.get('q'),'synthetic phrase');assert.equal(url.searchParams.has('offset'),false);assert.equal(url.searchParams.get('show'),'zh_CN');
+ }finally{x.dom.window.close();}
+});
