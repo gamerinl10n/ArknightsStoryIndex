@@ -41,9 +41,24 @@ function infoButton(item, row = item) {
   return button;
 }
 
-function contextRows(rows, item, needle, matches = [item], options = {}) {
+function contextRows(
+  rows,
+  item,
+  needle,
+  matches = [item],
+  options = {},
+  cache = new Map(),
+) {
   const fragment = document.createDocumentFragment();
+  const retained = new Set();
   for (const row of rows) {
+    retained.add(row.ordinal);
+    const signature = JSON.stringify(row);
+    const cached = cache.get(row.ordinal);
+    if (cached?.signature === signature) {
+      fragment.append(cached.node);
+      continue;
+    }
     const line = el(
       "div",
       "",
@@ -82,8 +97,10 @@ function contextRows(rows, item, needle, matches = [item], options = {}) {
               options.targetNames?.[row.lang || item.lang],
             ),
     );
+    cache.set(row.ordinal, { signature, node: line });
     fragment.append(line);
   }
+  for (const key of cache.keys()) if (!retained.has(key)) cache.delete(key);
   return fragment;
 }
 
@@ -195,7 +212,10 @@ function renderCard(group, needle, index, options) {
   }
   section("context", (content, data) => {
     const lines = el("div", "", "context-lines");
-    lines.append(contextRows(data.items, item, needle, group, options));
+    const rowCache = new Map();
+    lines.append(
+      contextRows(data.items, item, needle, group, options, rowCache),
+    );
     const expand = el("button", t("context_more"));
     expand.type = "button";
     let radius = initialRadius;
@@ -215,7 +235,7 @@ function renderCard(group, needle, index, options) {
         );
         if (!card.isConnected) return;
         lines.replaceChildren(
-          contextRows(data.items, item, needle, group, options),
+          contextRows(data.items, item, needle, group, options, rowCache),
         );
         radius = next;
         expand.hidden = !data.has_more || radius >= 100;

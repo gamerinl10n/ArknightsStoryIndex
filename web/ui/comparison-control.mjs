@@ -7,6 +7,15 @@ export function createComparisonControl() {
     window.ASI.ui
   ];
   let selected = new Set();
+  function updateRows(root) {
+    if (root.nodeType !== 1 || !root.isConnected) return;
+    const rows = [...root.querySelectorAll("[data-variant-lang]")];
+    if (root.matches("[data-variant-lang]")) rows.unshift(root);
+    for (const row of rows)
+      row.hidden =
+        row.dataset.primary !== "true" &&
+        !selected.has(row.dataset.variantLang);
+  }
   function refresh() {
     for (const button of buttons) {
       const lang = button.dataset.translationLang;
@@ -16,10 +25,7 @@ export function createComparisonControl() {
       );
       button.disabled = lang === main;
     }
-    for (const row of $("results").querySelectorAll("[data-variant-lang]"))
-      row.hidden =
-        row.dataset.primary !== "true" &&
-        !selected.has(row.dataset.variantLang);
+    updateRows($("results"));
   }
   for (const button of buttons)
     button.addEventListener("click", () => {
@@ -37,7 +43,18 @@ export function createComparisonControl() {
         url,
       );
     });
-  const observer = new MutationObserver(refresh);
+  const observer = new MutationObserver((records) => {
+    // Appending context or another page should not rescan all existing results.
+    const roots = new Set();
+    for (const record of records)
+      for (const node of record.addedNodes)
+        if (node.nodeType === 1 && node.isConnected) roots.add(node);
+    for (const node of roots) {
+      let parent = node.parentElement;
+      while (parent && !roots.has(parent)) parent = parent.parentElement;
+      if (!parent) updateRows(node);
+    }
+  });
   observer.observe($("results"), { childList: true, subtree: true });
   return {
     refresh,
